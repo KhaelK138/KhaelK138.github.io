@@ -1,0 +1,19 @@
+:root{
+	--main-color: green;
+	--bg-color: black;
+}
+
+body{
+	color: var(--main-color);
+} 
+p {
+
+}
+
+#menu{
+ color: green
+}
+
+.red{
+ color = red;
+}
