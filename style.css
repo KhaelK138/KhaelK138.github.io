@@ -1,9 +1,10 @@
 :root{
-	--main-color: green;
-	--bg-color: black;
+	--main-color: #17E300;
+	--bg-color: #000000;
 }
 
 body{
+	background-color: var(--bg-color);
 	color: var(--main-color);
 } 
 p {
