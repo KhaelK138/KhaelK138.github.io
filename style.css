@@ -22,3 +22,7 @@ p {
 a {
     color: #17E300; /* Set links to green */
 }
+
+a:visited {
+    color: blue; /* Set links to blue after they have been visited */
+}
