@@ -18,3 +18,7 @@ p {
 .red{
  color = red;
 }
+
+a {
+    color: green; /* Set links to green */
+}
