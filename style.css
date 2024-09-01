@@ -23,6 +23,10 @@ a {
     color: #17E300; /* Set links to green */
 }
 
+.particles-icon:hover svg path {
+  stroke-width:.075em
+}
+
 a:visited {
-    color: red; /* Set links to blue after they have been visited */
+    color: #17E300; /* Set links to blue after they have been visited */
 }
