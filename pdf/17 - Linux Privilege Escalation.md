@@ -1,0 +1,151 @@
+<h3 id="enumerating-linux">Enumerating Linux</h3>
+<p><strong>Files and User Privileges</strong></p>
+<ul>
+<li>Each file has read, write, and execute</li>
+<li>Groups are owner, owner&#39;s group (/etc/group), and others (everybody else) group</li>
+</ul>
+<p><strong>Manual Enumeration</strong></p>
+<ul>
+<li>Getting info about the system<ul>
+<li>Running <code>id</code> can tell use about the user context</li>
+<li>Running <code>hostname</code> can give us, the, uh, hostname</li>
+<li>Reading <code>/etc/issue</code> and <code>/etc/os-release</code> and <code>uname -a</code> can give us OS info for exploits</li>
+<li>Explore processes with <code>ps aux</code></li>
+<li>Check out network adapters with <code>ip a</code> or <code>ifconfig</code></li>
+<li>Display routing tables with <code>route</code> or <code>routel</code></li>
+<li>Display active connections with <code>netstat -anp</code> or <code>ss -anp</code> </li>
+</ul>
+</li>
+<li>Getting info on the firewall (without root user -&gt; iptables)<ul>
+<li>Can sometimes read <code>/etc/iptables</code> </li>
+<li>Can search for <code>iptables-save</code> output in that directory, ending in .v4 I think</li>
+</ul>
+</li>
+<li>Check cron jobs with <code>ls -lah /etc/cron*</code><ul>
+<li>Has sections showing what is run at what intervals (e.g. hourly)<ul>
+<li>We can then check those folders to see what&#39;s running (e.g. <code>/etc/cron.hourly/</code>)</li>
+</ul>
+</li>
+<li>If we have sudo permissions ONLY for checking crontab, running <code>sudo crontab -l</code> will show scripts run by the root user</li>
+<li>Can also check for running cron jobs with <code>grep &quot;CRON&quot; /var/log/syslog</code></li>
+</ul>
+</li>
+<li>Querying installed packages with <code>dpkg -l</code></li>
+<li>Checking drives<ul>
+<li><code>mount</code> will list all mounted filesystems</li>
+<li>Can also check <code>/etc/fstab</code></li>
+<li><code>lsblk</code> to list all available disks</li>
+</ul>
+</li>
+<li>Check kernel modules with <code>lsmod</code><ul>
+<li>To investigate certain modules, use <code>/sbin/modinfo {module_name}</code></li>
+</ul>
+</li>
+<li>Checking for <code>setuid</code> and <code>setgid</code> executables<ul>
+<li>These files can be executed by users with the rights of the owner or owner&#39;s group</li>
+<li>Thus, getting commands through one of these executables allows privesc</li>
+<li>Search for these files with <code>find / -perm -u=s -type f 2&gt;/dev/null</code><ul>
+<li>Then, check if usable with GTFO bins</li>
+<li><code>2&gt;/dev/null</code> sends all errors to null</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Automated Enumeration</strong></p>
+<ul>
+<li><code>unix-privesc-check</code><ul>
+<li>Checks for misconfigurations that can be used for privescs</li>
+<li>Located in kali at /usr/bin/unix-privesc-check</li>
+<li><code>./unix-privesc-check standard &gt; output.txt</code></li>
+</ul>
+</li>
+<li><code>LinEnum</code> - apparently a developed tool listed alongside <code>LinPeas</code></li>
+<li><code>pspy</code> - <a href="https://github.com/DominicBreuker/pspy">https://github.com/DominicBreuker/pspy</a><ul>
+<li>Use static 64bit version</li>
+<li>Checks for commands being executed on the host</li>
+<li>Finds scripts</li>
+</ul>
+</li>
+<li><code>linux-exploit-suggester</code> (executed by linpeas)<ul>
+<li><a href="https://github.com/jondonas/linux-exploit-suggester-2">https://github.com/jondonas/linux-exploit-suggester-2</a><h3 id="exposed-confidential-information">Exposed Confidential Information</h3>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Checking User History Files</strong></p>
+<ul>
+<li><code>.bashrc</code> can sometimes contains environment variables with credentials</li>
+<li><code>echo $HISTFILE</code></li>
+<li>Can check environment variables with <code>env</code></li>
+</ul>
+<p><strong>Inspecting User/System Trails for Credentials</strong></p>
+<ul>
+<li>Can use <code>watch -n 1</code> to run something like <code>ps -aux | grep &quot;pass&quot;</code> to look for new processes spawned with &quot;pass&quot; somewhere in the command</li>
+<li>If TCPdump sudo permissions have already been given to us, we can use it to monitor network traffic, which isn&#39;t normally allowed<ul>
+<li><code>sudo tcpdump -i lo -A | grep &quot;pass&quot;</code><h3 id="insecure-file-permissions">Insecure File Permissions</h3>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>Abusing Insecure Cron Jobs/File Permissions</strong></p>
+<ul>
+<li>Checking for running cron jobs<ul>
+<li><code>ls -lah /etc/cron*</code></li>
+<li><code>grep &quot;CRON&quot; /var/log/syslog</code></li>
+<li>check <code>/var/log/cron.log</code></li>
+</ul>
+</li>
+<li>Find modifiable cron jobs and overwrite them with anything, really</li>
+<li>Find writable directories with <code>find / -writable -type d 2&gt;/dev/null</code></li>
+<li>Find writable files with <code>find / -writable -type f 2&gt;/dev/null</code></li>
+<li>Find readable files with <code>find /home -readable -type f 2&gt;/dev/null</code></li>
+</ul>
+<p><strong>Abusing Password Authentication</strong></p>
+<ul>
+<li><code>/etc/passwd</code> is considered valid for auth, even with existence of <code>/etc/shadow</code>, meaning that if we can write to <code>/etc/passwd</code> we can just set an arbitrary password for a user<ul>
+<li>Generate a new password with <code>openssl passwd {passwd}</code>, which returns crypt algo hash</li>
+<li>Then, create a new user with that hash as their password in the following format:<ul>
+<li><code>root2:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash</code> (creates new root2/w00t user)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="abusing-system-linux-components">Abusing System Linux Components</h3>
+<p><strong>Abuse SUID Programs/Capabilities</strong></p>
+<ul>
+<li>Enumerate for binaries with capabilities:<ul>
+<li><code>/usr/sbin/getcap -r / 2&gt;/dev/null</code></li>
+<li>Check GTFOBins for UNIX binaries that can be misused for privesc</li>
+</ul>
+</li>
+</ul>
+<p><strong>Circumvent Special Sudo Permissions</strong></p>
+<ul>
+<li><code>sudo -l</code> to see allowed commands</li>
+<li>&quot;AppArmor&quot; is a kernel module providing Mandatory Access Control; can prevent privesc</li>
+<li>Search up all sudo binaries in GTFOBins to see if they can be abused </li>
+</ul>
+<p><strong>Enumerate Kernel for CVEs</strong></p>
+<ul>
+<li>Get kernel info with <code>cat /etc/issue</code>, <code>uname -r</code>, and <code>arch</code></li>
+<li>Then, use <code>searchsploit</code> to search for existing kernel exploits<ul>
+<li><code>searchsploit &quot;linux kernel {kernel type and version} Local Privilege Escalation&quot;</code> and then grep for the version needed<ul>
+<li><code>grep &quot;4.&quot; | grep -v &quot; &lt; 4.4.4&quot; | grep -v &quot;4.8&quot;</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="what-to-do-once-you-have-root-">What to do once you have root?</h3>
+<ul>
+<li>Look (yes, manually) around the filesystem for passwords<ul>
+<li><code>/etc/shadow</code> for hashes</li>
+<li>Application config files are great!</li>
+<li>Log files (like apache)</li>
+<li>All users&#39; home directories for interesting files/bash history</li>
+</ul>
+</li>
+<li>You want to use this to find credentials to use elsewhere</li>
+</ul>

