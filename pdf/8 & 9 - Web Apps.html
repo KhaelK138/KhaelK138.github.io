@@ -23,6 +23,10 @@
 </ul>
 <h3 id="exploitation">Exploitation</h3>
 <ul>
+<li>Finding default passwords for HTTP basic auth:<ul>
+<li>Use <a href="https://github.com/InfosecMatter/default-http-login-hunter">Default HTTP login hunter</a> with a list of hosts. </li>
+<li>Can be very useful on internal engagements with hundreds/thousands of webservers</li>
+</ul>
 <li>HTTP Headers:<ul>
 <li><code>HTTP User-Agent</code> can sometimes be displayed in logging pages, so modifying it could XSS or SQLi some sites</li>
 <li><code>Server</code> response can reveal info about server</li>
