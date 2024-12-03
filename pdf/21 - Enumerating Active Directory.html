@@ -266,7 +266,7 @@ $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
 <h3 id="automatic-enumeration">Automatic Enumeration</h3>
 <p><strong>Enum4Linux</strong></p>
 <ul>
-<li>Just run <code>enum4linux {IP}</code>
+<li>Just run <code>enum4linux {IP}</code></ul>
 <strong>BloodHound/SharpHound</strong></li>
 <li>Capturing the system data with BloodHound:<ul>
 <li><a href="https://github.com/BloodHoundAD/SharpHound/releases/tag/v1.1.1">SharpHound</a><ul>
@@ -313,6 +313,10 @@ $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
 <li>All computers: <code>MATCH (m:Computer) RETURN m</code></li>
 <li>All users: <code>MATCH (m:User) RETURN m</code></li>
 <li>Active sessions: <code>MATCH p = (c:Computer)-[:HasSession]-&gt;(m:User) RETURN p</code></li>
+<li>Get all hostnames (for massive internal networks): <code>./cypher-shell -u neo4j -p {password} 'MATCH (c:Computer) WHERE toLower(c.name) ENDS WITH ".example.domain.tld" RETURN c.name' --format plain | tee hostnames.txt</code></li>
+<ul>
+    <li>Turn hostnames into hostname, IP csv: <code>head hostnames.txt | xargs -I {} sh -c "echo -n '{}, '; dig +short {}; echo" | grep -v -E '^$'</code></li>
+</ul>
 </ul>
 </li>
 <li>Interesting paths:<ol>
