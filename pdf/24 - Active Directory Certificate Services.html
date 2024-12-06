@@ -24,7 +24,8 @@
 <p>The first step in attacking ADCS is understanding the configuration of the CA, its templates, and associated permissions. Enumerating these components reveals potential misconfigurations that can be exploited.</p>
 <ul>
     <li><strong>Certipy</strong> - Python tool for ADCS enumeration:
-        <pre><code>certipy find -u {username} -p {password} -d {domain}</code></pre>
+        <pre><code>certipy find -u {username} -p {password} -dc-ip {dc_IP} -text -stdout</code></pre>
+        <ul><li>Look for <code>[!] Vulnerabilities</code> in templates and certificates</li></ul>
     </li>
     <li><strong>ldapsearch</strong> - Query AD objects for ADCS-related information:
         <pre><code>ldapsearch -x -h {DC_IP} -b "CN=Configuration,DC=domain,DC=com" "(objectClass=pKIEnrollmentService)"</code></pre>
