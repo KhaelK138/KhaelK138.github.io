@@ -1,3 +1,4 @@
+<p><a href="https://khaelkugler.com/pdf/Linux_Privilege_Escalation_Module_Cheat_Sheet.pdf">HTB Linux Privesc Checklist</a></p>
 <h3 id="enumerating-linux">Enumerating Linux</h3>
 <p><strong>Files and User Privileges</strong></p>
 <ul>
@@ -13,7 +14,7 @@
 <li>Explore processes with <code>ps aux</code></li>
 <li>Check out network adapters with <code>ip a</code> or <code>ifconfig</code></li>
 <li>Display routing tables with <code>route</code> or <code>routel</code></li>
-<li>Display active connections with <code>netstat -anp</code> or <code>ss -anp</code> </li>
+<li>Display active connections with <code>netstat -anp</code> or <code>ss -anp</code></li>
 </ul>
 </li>
 <li>Getting info on the firewall (without root user -&gt; iptables)<ul>
@@ -54,11 +55,6 @@
 </ul>
 <p><strong>Automated Enumeration</strong></p>
 <ul>
-<li><code>linpeas.sh</code><ul>
-<li>The best out there</li>
-<li>Get it <a href="https://github.com/peass-ng/PEASS-ng/tree/master/linPEAS">here</a></li>
-</ul>
-</li>
 <li><code>unix-privesc-check</code><ul>
 <li>Checks for misconfigurations that can be used for privescs</li>
 <li>Located in kali at /usr/bin/unix-privesc-check</li>
@@ -73,11 +69,11 @@
 </ul>
 </li>
 <li><code>linux-exploit-suggester</code> (executed by linpeas)<ul>
-<li><a href="https://github.com/jondonas/linux-exploit-suggester-2">https://github.com/jondonas/linux-exploit-suggester-2</a><h3 id="exposed-confidential-information">Exposed Confidential Information</h3>
-</li>
+<li><a href="https://github.com/jondonas/linux-exploit-suggester-2">https://github.com/jondonas/linux-exploit-suggester-2</a></li>
 </ul>
 </li>
 </ul>
+<h3 id="exposed-confidential-information">Exposed Confidential Information</h3>
 <p><strong>Checking User History Files</strong></p>
 <ul>
 <li><code>.bashrc</code> can sometimes contains environment variables with credentials</li>
@@ -86,13 +82,13 @@
 </ul>
 <p><strong>Inspecting User/System Trails for Credentials</strong></p>
 <ul>
-<li>Can use <code>watch -n 1</code> to run something like <code>ps -aux | grep &quot;pass&quot;</code> to look for new processes spawned with &quot;pass&quot; somewhere in the command</li>
+<li>Can use <code>watch -n 1</code>sudo to run something like <code>ps -aux | grep &quot;pass&quot;</code> to look for new processes spawned with &quot;pass&quot; somewhere in the command</li>
 <li>If TCPdump sudo permissions have already been given to us, we can use it to monitor network traffic, which isn&#39;t normally allowed<ul>
-<li><code>sudo tcpdump -i lo -A | grep &quot;pass&quot;</code><h3 id="insecure-file-permissions">Insecure File Permissions</h3>
-</li>
+<li><code>sudo tcpdump -i lo -A | grep &quot;pass&quot;</code></li>
 </ul>
 </li>
 </ul>
+<h3 id="insecure-file-permissions">Insecure File Permissions</h3>
 <p><strong>Abusing Insecure Cron Jobs/File Permissions</strong></p>
 <ul>
 <li>Checking for running cron jobs<ul>
@@ -130,7 +126,7 @@
 <ul>
 <li><code>sudo -l</code> to see allowed commands</li>
 <li>&quot;AppArmor&quot; is a kernel module providing Mandatory Access Control; can prevent privesc</li>
-<li>Search up all sudo binaries in GTFOBins to see if they can be abused </li>
+<li>Search up all sudo binaries in GTFOBins to see if they can be abused</li>
 </ul>
 <p><strong>Enumerate Kernel for CVEs</strong></p>
 <ul>
@@ -143,7 +139,7 @@
 </ul>
 </li>
 </ul>
-<h3 id="what-to-do-once-you-have-root-">What to do once you have root?</h3>
+<h3 id="what-to-do-once-you-have-root">What to do once you have root?</h3>
 <ul>
 <li>Look (yes, manually) around the filesystem for passwords<ul>
 <li><code>/etc/shadow</code> for hashes</li>

