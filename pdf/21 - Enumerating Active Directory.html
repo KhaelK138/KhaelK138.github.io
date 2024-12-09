@@ -92,7 +92,7 @@
 <li>`ldapsearch -x -H ldap://{IP} -b &quot;dc={domain},dc={TLD}&quot; </li>
 <li>This can yield a ton of information, such as users on the system<ul>
 <li><code>ldapsearch -x -H ldap://{IP} -b &quot;dc={domain},dc={tld}&quot; &quot;(objectClass=person)&quot;</code></li>
-<li>[More info](<a href="https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap">https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap</a></li>
+<li>More info: <a href="https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap">https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap</a></li>
 <li>Users can have custom fields added, so check each user/group for passwords<ul>
 <li><code>| grep -iE &quot;pass|pwd|secret|cred|auth|token|key&quot;</code></li>
 <li>If we find anonymous ldap bind, slowing down for 5-10 mins and just processing the entire output could be nice</li>
