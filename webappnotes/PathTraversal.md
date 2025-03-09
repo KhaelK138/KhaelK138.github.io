@@ -9,8 +9,11 @@
 **Bypassing traversal defenses**
 - Try using absolute paths
 - Try using `....//` if `../` is stripped
-- Try encoding the data:
+- Try encoding the data for forms (which often automatically strip the attempts):
   - `%2f` for `/` and `%2e` for `.` 
+  - `%252f` for `%2f` and `%252e` for `%2e` (double encoded)
+- Alternative encodings may also work
+  - `..%c0%af` is `..`, `..%ef%bc%8f` is `.. ／ `
 
 **Windows Directory Traversal**
 - Test Windows traversal with `C:\Windows\System32\drivers\etc\hosts` (if win.ini not working)
