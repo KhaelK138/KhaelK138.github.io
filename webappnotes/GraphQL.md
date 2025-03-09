@@ -62,7 +62,7 @@ import json
 with open("wordlist.txt") as f:
     passwords = [line.strip() for line in f]
 mutations = "\n".join(
-    f'bruteforce{i}: login(input: {{username: "carlos", password: "{pw}"}}) {{ token success }}'
+    f'bruteforce{i}: [function](input: {{[input]}}) {{ token success }}'
     for i, pw in enumerate(passwords)
 )
 
