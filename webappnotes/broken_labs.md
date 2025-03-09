@@ -21,3 +21,7 @@
 - SameSite Strict bypass via sibling domain
   - Uses cross-site WebSocket hijacking
 - Rest of the clickjacking labs
+
+
+### Fix in notes:
+- GraphQL - 
