@@ -14,6 +14,8 @@
   - `%252f` for `%2f` and `%252e` for `%2e` (double encoded)
 - Alternative encodings may also work
   - `..%c0%af` is `..`, `..%ef%bc%8f` is `.. ／ `
+- Try using `%00` or `%0a` to bypass required endings
+  - e.g. `/etc/passwd%00.png`
 
 **Windows Directory Traversal**
 - Test Windows traversal with `C:\Windows\System32\drivers\etc\hosts` (if win.ini not working)
