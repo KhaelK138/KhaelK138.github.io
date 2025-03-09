@@ -67,7 +67,7 @@ mutations = "\n".join(
 )
 
 graphql_query = {
-    "query": f"mutation {{\n{mutations}\n}}"
+    "query": f"mutation {{" + f"\n{mutations}\n" + "}}"
 }
 
 print(json.dumps(graphql_query, indent=2))
