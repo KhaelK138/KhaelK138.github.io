@@ -57,6 +57,7 @@ query isValidDiscount($code: Int) {
 }
 ```
 - Python script to generate JSON-friendly aliases given a file with a list of words (brute forcing usernames example):
+  - Replace `[mutations_code_here]` with `\n{mutations}\n` (Github markdown issue)
 ```
 import json
 with open("wordlist.txt") as f:
@@ -67,11 +68,12 @@ mutations = "\n".join(
 )
 
 graphql_query = {
-    "query": f"mutation {{" + f"\n{mutations}\n" + "}}"
+    "query": f"mutation {{[mutations_code_here]}}"
 }
 
 print(json.dumps(graphql_query, indent=2))
 ```
+
 
 **GraphQL CSRF:**
 - Arise when GraphQL endpoints don't validate content type of requests and CSRF tokens not implemented
