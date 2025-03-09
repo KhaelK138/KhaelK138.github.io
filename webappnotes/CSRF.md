@@ -2,7 +2,7 @@
 
 Cause a victim to do an action unintentionally by having them make a request (e.g. `https://example.com/changeemail?email=attacker@email.com`)
 
-**CSRF requires:**
+**CSRF requires**
 - An action to induce
 - Solely cookie-based session handling (not using SameSite)
   - Can also work with basic auth or cert-based auth
@@ -27,7 +27,7 @@ Can be generated using the CSRF PoC generator in burp suite professional
 - When using Portswigger's exploit server:
   - Paste the payload (without html or body), hit store, then hit deliver
 
-**Common validation issues:**
+**Common validation issues**
 - Switching POST to GET 
   - Use this PoC: `<html><body><script>document.location = '{vulnerable_site}';</script></body></html>`
 - Omitting the token
@@ -55,7 +55,7 @@ If we need to perform a GET request first:
 </html>
 ```
 
-**SameSite Cookies:**
+**SameSite Cookies**
 - Strict
   - Never allows cookies to be sent in a cross-site request (iframes, links to other sites, data submission to other sites)
 - Lax (default)

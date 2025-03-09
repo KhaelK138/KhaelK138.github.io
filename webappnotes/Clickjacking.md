@@ -1,6 +1,6 @@
 ### Clickjacking
 
-**Clickjacking PoC:**
+**Clickjacking PoC**
 ```
 <style>
     iframe {
@@ -21,7 +21,7 @@
 <iframe src="https://0a96005403001104812e3ea900bf0098.web-security-academy.net/my-account"></iframe>
 ```
 
-**Clickbandit:**
+**Clickbandit**
 - Used to automatically generate PoCs
 - Steps:
   - Burp Menu -> Clickbandit
