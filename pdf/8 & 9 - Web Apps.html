@@ -114,7 +114,7 @@
     <h3 id="wordpress">Wordpress</h3>
     <ul>
     <li>Use <code>wpscan</code> and investigate the plugins<ul>
-    <li><code>wpscan --url http://{IP} --enumerate p --plugins-detection aggressive</code></li>
+    <li><code>wpscan --url http://{IP} --enumerate u,vp,vt --plugins-detection aggressive --api-token {api_token} --random-user-agent</code></li>
     <li>Look for <code>[!] This version is out of date</code></li>
     <li>Can use searchsploit for these plugins or the wpscan vuln database</li>
     </ul>
