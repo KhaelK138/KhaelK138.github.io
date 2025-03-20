@@ -18,6 +18,9 @@ Broken down:
 - `@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A` - payload decoding to `tinyurl.com/39tzrjyj`, starting with `@`
 - `#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main` - more fake parameters, starting with a `#` to not confuse tinyurl's redirection
 
+When emailing:
+- choose a font that looks good. Menlo is alright, but a bit too code-related
+
 Final payload: https://󠀁󠀠󠁿github.com∕praetorian-inc∕Cerebrum∕tree∕main∕Personal%20Spaces∕khael.kugler&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main
 
 Other example payloads:
