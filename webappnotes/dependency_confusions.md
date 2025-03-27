@@ -23,7 +23,23 @@
 - Find packages that are used without a reserved namespace (unscoped)
   - This could look like `org-name/package` (without the `@`)
 - Node will then use the public package over the private one, allowing code execution
-- [Synyc](https://github.com/snyk-labs/snync) is a good tool to scan for and recognize these packages
+- [Synyc](https://github.com/snyk-labs/snync) is a good tool to scan for and recognize these packages:
+```
+# !/bin/bash
+# Set the base directory to the current working directory
+BASE_DIR =$( pwd )
+# Loop through each directory in the base directory
+for dir in " $BASE_DIR " /*/; do
+    # Check if package . json exists in the directory
+    if [ -f "${ dir } package . json " ]; then
+        echo " Scanning repository : ${ dir }"
+        # Run the npx snyk command in the directory
+        npx snync -- directory " $dir "
+    else
+        echo " No package . json found in : ${ dir }. Skipping ... "
+    fi
+done
+```
 - Then you just have to host the package yourself
 
 **Creating a Malicious package**
