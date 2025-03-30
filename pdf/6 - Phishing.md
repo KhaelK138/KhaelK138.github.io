@@ -1,4 +1,6 @@
-
+---
+layout: blank
+---
 
 **Techniques:**
 - Uses `@` character to tell the browser that everything before the `@` is simply authentication for the following page (an encoded tinyurl site) - I didn't find an arbitrary redirect on github
@@ -21,12 +23,12 @@ Broken down:
 When emailing:
 - choose a font that looks good. Menlo is alright, but a bit too code-related
 
-Final payload: https://󠀁󠀠󠁿github.com∕praetorian-inc∕Cerebrum∕tree∕main∕Personal%20Spaces∕khael.kugler&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main
+Final payload: `https://󠀁󠀠󠁿github.com∕praetorian-inc∕Cerebrum∕tree∕main∕Personal%20Spaces∕khael.kugler&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main`
 
 Other example payloads:
-https://github.com∕praetorian-inc∕noseyparker∕releases∕download∕v0.23.0∕secret-noseyparker-v0.23.0-aarch64-apple-darwin.tar.gz&conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32/&96298722-d186-4e28-b5e9-2ca14f49d977=1
+`https://github.com∕praetorian-inc∕noseyparker∕releases∕download∕v0.23.0∕secret-noseyparker-v0.23.0-aarch64-apple-darwin.tar.gz&conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32/&96298722-d186-4e28-b5e9-2ca14f49d977=1`
 
-https://www.amazon.com∕gp∕product∕B008A0GNA8pr=conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6TT&plattr=mathplace=priceblockimp@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32?=96298722-d186-4e28-b5e9-2ca14f49d977
+`https://www.amazon.com∕gp∕product∕B008A0GNA8pr=conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6TT&plattr=mathplace=priceblockimp@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32?=96298722-d186-4e28-b5e9-2ca14f49d977`
 
 Can also sort of be used to bypass URL validation
 Portswigger URL bypass techniques: https://portswigger.net/web-security/ssrf/url-validation-bypass-cheat-sheet
