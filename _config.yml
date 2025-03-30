@@ -1,2 +1,4 @@
 title: Khael\'s Page
 description: Description
+markdown: kramdown
+theme: minima  # Optional, you can remove this line if you don't want styling
