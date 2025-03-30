@@ -11,7 +11,6 @@
     .section { margin: 20px 0; }
     a { color: #1a73e8; text-decoration: none; }
     a:hover { text-decoration: underline; }
-    #md-content { border: 1px solid #ddd; padding: 10px; margin-top: 20px; background: #f9f9f9; display: none; }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"></script>
 </head>
@@ -75,25 +74,11 @@
   <h2>Miscellaneous Resources</h2>
   <ul>
     <li><a href="./pdf/25 - Miscellaneous.html">Miscellaneous Notes</a></li>
-    <li><a href="./pdf/6 - Phishing.md" onclick="loadMarkdown(event, './pdf/6 - Phishing.md')">Phishing Techniques</a></li>
     <li><a href="https://ippsec.rocks/?#">Ippsec.rocks - search up literally <u>ANY</u> service</a></li>
-    <li><a href="https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_dark_classic_2025.03.excalidraw.svg">AD Mind Map - Orange CyberDefense</a></li>
+    <li><a href="hh=ttps://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_dark_classic_2025.03.excalidraw.svg">AD Mind Map - Orange CyberDefense</a></li>
     <li><a href="https://book.hacktricks.xyz/">Hacktricks - provides checklist for every port/common service</a></li>
   </ul>
 </div>
-
-<!-- Markdown Content Section -->
-<div id="md-content"></div>
-
-<script>
-  async function loadMarkdown(event, filePath) {
-    event.preventDefault();
-    const response = await fetch(filePath);
-    const text = await response.text();
-    document.getElementById('md-content').innerHTML = marked.parse(text);
-    document.getElementById('md-content').style.display = 'block';
-  }
-</script>
 
 </body>
 </html>
