@@ -17,4 +17,4 @@
   - Common session-handling mechanism flaws in the handshake
 
 **Cross-site WebSocket Hijacking**
-- 
+- Results from cross-domain WebSocket connections from an attacker-controlled site
