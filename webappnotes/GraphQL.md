@@ -43,6 +43,7 @@
 - Many endpoints will have a rate limiter in place, and will often be based on the number of HTTP requests received (as opposed to the number of operations performed)
   - Network level instead of application level
 - This means that we can do a massive brute force of one object/query in a single request using aliases:
+
 ```
 query isValidDiscount($code: Int) {
     isvalidDiscount(code:$code){
@@ -58,6 +59,7 @@ query isValidDiscount($code: Int) {
 ```
 - Python script to generate JSON-friendly aliases given a file with a list of words (brute forcing usernames example):
   - Replace `[mutations_code_here]` with `\n{mutations}\n` (Github markdown issue)
+
 ```
 import json
 with open("wordlist.txt") as f:

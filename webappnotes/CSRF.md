@@ -9,6 +9,7 @@ Cause a victim to do an action unintentionally by having them make a request (e.
 - No unpredictable parameters (like anti-csrf tokens)
 
 POST request CSRF example:
+
 ```
 <html>
     <body>
@@ -44,6 +45,7 @@ Can be generated using the CSRF PoC generator in burp suite professional
   - New CSRF token can be anything as long as POST form value matches, doesn't have to be our valid token
 
 If we need to perform a GET request first:
+
 ```
 <html>
     <body>
@@ -83,6 +85,7 @@ If we need to perform a GET request first:
     - Redirecting the victim to the login page (/login/sso or something) means they leave the payload page, so that won't work
     - Thus, open the sso page in a new tab - refreshes session in background and attack page can exploit 
       - Most browsers block `window.open()` popups, so open a new tab on-click, wait a bit for the refresh, and then submit the form:
+      
 ```
 <form action="https://vulnerable-website.com/email/change" method="POST">
     <input type="hidden" name="email" value="pwned@evil-user.net" />

