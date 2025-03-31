@@ -14,6 +14,7 @@ Uncovering assets:
 - Look into spiderfoot?
 
 Search documentation/internal resources for:
+
 ```
 net use
 psexec

