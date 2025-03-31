@@ -67,7 +67,8 @@ layout: blank
 
 ### Thread Injection
 - Operates within the process it's being executed from
-- Rename the variables
+- Rename the variables to bypass string detection
+
 ```
 # Import VirtualAlloc to allocate memory
 $code = '

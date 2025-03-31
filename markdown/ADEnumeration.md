@@ -96,6 +96,7 @@ AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_d
 	- Use with `Import-Module .\{name}.ps1` and `LDAPSearch -q "({key}={value})"`
 		- `LDAPSearch -q "(samAccountType=805306368)"`
 		- `LDAPSearch -q "(objectclass=group)"`
+
 ```
 function LDAPSearch {
     param (
@@ -113,6 +114,7 @@ function LDAPSearch {
 
 }
 ```
+
 - Can then use the output with filtering
 	- `foreach ($group in $(LDAPSearch -q "(objectCategory=group)")) { $group.properties | select {$_.cn}, {$_.member}}`
 		- Just basically shows the CN and members for each group 
