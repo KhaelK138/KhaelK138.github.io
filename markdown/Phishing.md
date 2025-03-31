@@ -2,6 +2,8 @@
 layout: blank
 ---
 
+### Phishing
+
 **Techniques:**
 - Uses `@` character to tell the browser that everything before the `@` is simply authentication for the following page (an encoded tinyurl site) - I didn't find an arbitrary redirect on github
 	- You can't use the `@` technique after a domain AND path have been specified, so specify fake paths using a `/` Unicode lookalike: `∕` (effectively making the TLD in the domain very very long)
