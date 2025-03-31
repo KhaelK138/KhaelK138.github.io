@@ -3,6 +3,7 @@ layout: blank
 ---
 
 ### Information Gathering
+
 - **Metadata**
 	- Examining metadata of company-created PDFs can be a good source of information
 - theHarvester - searches for emails given a domain -d
@@ -11,6 +12,7 @@ layout: blank
 		- This token grabs browser info, IP address, and OS info
 
 ### Attacking MS Office
+
 - **MS Office Attack**
 	- Can't send malware directly by email, so we need to get them to download the spreadsheet with macros from a link
 	- Also need to "blur" the spreadsheet so victim clicks "Enable Editing" to allow macros

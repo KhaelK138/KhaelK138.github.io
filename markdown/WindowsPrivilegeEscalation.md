@@ -82,6 +82,7 @@ layout: blank
 	- https://github.com/GhostPack/Seatbelt
 
 ### Leveraging Windows Services
+
 **Hijacking Service Binaries**
 - `Get-CimInstance`to query services of WMI (Windows Management Instrumentation) class
 	- `Get-CimInstance -ClassName win32_service | Select Name,State,Pathname | Where-Object {$_.State -like 'Running'}`
@@ -178,6 +179,7 @@ C:\Users\Public\reverseshell.exe
 	- Then, restart the service
 
 ### Abusing Other Windows Components
+
 **Using Scheduled Tasks**
 - Need to know who runs the scheduled tasks, what triggers are required, and what the tasks do
 - View scheduled tasks with `Get-ScheduledTask` or `schtasks /query /fo LIST /v`

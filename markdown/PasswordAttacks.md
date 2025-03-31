@@ -13,6 +13,7 @@ layout: blank
 	- `sudo hydra -l {username} -P {password_list} {IP} http-post-form "/{endpoint}:{param1}=^PASS^:Login failed. Invalid"`
 		- So, for example: `sudo hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.50.201 http-post-form "/index.php:user=admin&password=^PASS^:Login failed. Invalid"`
 	- Could also likely just use ffuf (with a filter on size if app returns 200)
+
 ### Passwords
 - AES is symmetric, RSA is asymmetric
 - GPUs crack like a thousand times faster than CPUs
@@ -23,6 +24,7 @@ layout: blank
     - `noseyparker scan --github-org={org}`
     - Show results with `noseyparker report`
 - Make sure to save or delete the existing `datastore.np` before starting a new scan
+
 ### Password Cracking
 - Mutating Wordlists:
 	- https://github.com/frizb/Hashcat-Cheatsheet?tab=readme-ov-file

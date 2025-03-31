@@ -21,13 +21,16 @@ layout: blank
     - Machine Learning
 
 ### Bypassing Detection
+
 **On-disk Evasion**
 - Obfuscators can be marginally effective
 - _Crypter_ cryptographically alters code and only decrypts in memory
     - Encryption is one of the most effective AV evasion techniques
 - Anti-reversing, Anti-debugging, VM detection
 - Software protectors like _Anti-copy_
-- _The Enigma Protector_ can successfully bypass antiviruses **In-Memory Evasion**
+- _The Enigma Protector_ can successfully bypass antiviruses 
+
+**In-Memory Evasion**
 - Injecting into the memory of another process
     - Use OpenProcess to obtain a valid HANDLE
     - Use VirtualAllocEx to allocate memory in the context of the process with that HANDLE
