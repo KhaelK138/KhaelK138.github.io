@@ -5,6 +5,7 @@ layout: blank
 [HackTheBox - Attacking Common Applications](https://academy.hackthebox.com/module/113/section/1087)
 
 [HackTheBox - Attacking Common Services](https://academy.hackthebox.com/module/116/section/1140)
+
 ### Enumeration
 - Install Wappalyzer when doing boxes/taking test
 - `gobuster`

