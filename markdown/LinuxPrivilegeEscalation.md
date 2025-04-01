@@ -4,7 +4,7 @@ pagetitle: Linux Privilege Escalation
 ---
 
 [HTB Linux Privesc Checklist](https://khaelkugler.com/pdf/Linux_Privilege_Escalation_Module_Cheat_Sheet.pdf)
-### Enumerating Linux
+## Enumerating Linux
 
 **Files and User Privileges**
 - Each file has read, write, and execute
@@ -56,7 +56,7 @@ pagetitle: Linux Privilege Escalation
 - `linux-exploit-suggester` (executed by linpeas)
 	- https://github.com/jondonas/linux-exploit-suggester-2
 
-### Exposed Confidential Information
+## Exposed Confidential Information
 
 **Checking User History Files**
 - `.bashrc` can sometimes contains environment variables with credentials
@@ -69,7 +69,7 @@ pagetitle: Linux Privilege Escalation
 	- `sudo tcpdump -i lo -A | grep "pass"`
 
 
-### Insecure File Permissions
+## Insecure File Permissions
 
 **Abusing Insecure Cron Jobs/File Permissions**
 - Checking for running cron jobs
@@ -87,7 +87,7 @@ pagetitle: Linux Privilege Escalation
 	- Then, create a new user with that hash as their password in the following format:
 		- `root2:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash` (creates new root2/w00t user)
 
-### Abusing System Linux Components
+## Abusing System Linux Components
 
 **Abuse SUID Programs/Capabilities**
 - Enumerate for binaries with capabilities:
@@ -105,7 +105,7 @@ pagetitle: Linux Privilege Escalation
 	- `searchsploit "linux kernel {kernel type and version} Local Privilege Escalation"` and then grep for the version needed
 		- `grep "4." | grep -v " < 4.4.4" | grep -v "4.8"`
 
-### What to do once you have root?
+## What to do once you have root?
 * Look (yes, manually) around the filesystem for passwords
 	* `/etc/shadow` for hashes
 	* Application config files are great!

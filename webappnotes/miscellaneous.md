@@ -7,7 +7,7 @@ pagetitle: Miscellaneous Web Notes
 [HackTheBox - Attacking Common Applications](https://academy.hackthebox.com/module/113/section/1087)
 [HackTheBox - Attacking Common Services](https://academy.hackthebox.com/module/116/section/1140)
 
-### Enumeration
+## Enumeration
 - Install Wappalyzer
 - `gobuster`
 	- Enumerates dirs/files; very noisy
@@ -24,7 +24,7 @@ pagetitle: Miscellaneous Web Notes
 - `whatweb` is like a local wappalyzer on kali
 	- `whatweb http://{IP}`
 
-### Exploitation
+## Exploitation
 - Finding default passwords for HTTP basic auth
 	- Use [LoginHunter](https://github.com/InfosecMatter/default-http-login-hunter) with a list of hosts to find things like cameras w default passwords
 	- Can be very useful on internal engagements with hundreds/thousands of webservers

@@ -3,7 +3,7 @@ layout: blank
 pagetitle: Antivirus Evasion
 ---
 
-### EDRs
+## EDRs
 - 7 general components:
     - File Engine
     - Memory Engine
@@ -21,7 +21,7 @@ pagetitle: Antivirus Evasion
         - Execute the file in an emulated environment and watching for suspicious actions
     - Machine Learning
 
-### Bypassing Detection
+## Bypassing Detection
 
 **On-disk Evasion**
 - Obfuscators can be marginally effective
@@ -48,7 +48,7 @@ pagetitle: Antivirus Evasion
 - Inline hooking
     - Modify memory to introduce a hook into malicious code, returning back to original point after execution
 
-### Evasion in Practice
+## Evasion in Practice
 - Use AntiScan.me to test malware if target AV vendor is unknown, which doesn't submit samples to third-parties
 - DISABLE AUTOMATIC SAMPLE SUBMISSION TO TEST ON DEFENDER
 - **Thread Injection**
@@ -66,7 +66,7 @@ pagetitle: Antivirus Evasion
 - DLL injection without touching disk
     - Share the DLL remotely with `sudo impacket-smbserver share ./`
 
-### Thread Injection
+## Thread Injection
 - Operates within the process it's being executed from
 - Rename the variables to bypass string detection
 

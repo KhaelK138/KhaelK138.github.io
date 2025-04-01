@@ -3,7 +3,7 @@ layout: blank
 pagetitle: Tunneling through Deep Packet Inspection
 ---
 
-### HTTP Tunneling Theory/Practice
+## HTTP Tunneling Theory/Practice
 
 **HTTP Tunneling Fundamentals**
 - Useful when all you have is egress HTTP traffic and no useful inbound ports
@@ -22,7 +22,7 @@ pagetitle: Tunneling through Deep Packet Inspection
 - Can be combined with proxychains
 	- Put the socks5 proxy port (from Chisel) in proxychains
 
-### DNS Tunneling Theory/Practice
+## DNS Tunneling Theory/Practice
 
 **DNS Tunneling Fundamentals**
 - Register a name server that can communicate with all other nameservers

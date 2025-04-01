@@ -4,7 +4,7 @@ pagetitle: Windows Privilege Escalation
 ---
 
 [HTB Windows Privesc Checklist](https://khaelkugler.com/pdf/Windows_Privilege_Escalation_Module_Cheat_Sheet.pdf)
-### Enumerating Windows
+## Enumerating Windows
 
 **Windows Privilege and Access Control**
 - Secure Identifier (SID)
@@ -82,7 +82,7 @@ pagetitle: Windows Privilege Escalation
 - Seatbelt
 	- https://github.com/GhostPack/Seatbelt
 
-### Leveraging Windows Services
+## Leveraging Windows Services
 
 **Hijacking Service Binaries**
 - `Get-CimInstance`to query services of WMI (Windows Management Instrumentation) class
@@ -182,7 +182,7 @@ C:\Users\Public\reverseshell.exe
 		- If we can write to the "C:\\Program Files\\Enterprise Agents\\" directory, we can make an executable called Company.exe, which will be used before the real one
 	- Then, restart the service
 
-### Abusing Other Windows Components
+## Abusing Other Windows Components
 
 **Using Scheduled Tasks**
 - Need to know who runs the scheduled tasks, what triggers are required, and what the tasks do
@@ -256,7 +256,7 @@ C:\Users\Public\reverseshell.exe
 			- `GodPotato.exe -cmd "powershell -e ...."`
 		- Can also use it to create a new administrative user, then rdp/winrm in
 
-### What to do after escalating privileges?
+## What to do after escalating privileges?
 - Credentials Credentials Credentials
 	- Run WinPEAS again
 	- `Get-ChildItem -Recurse -Filter *.kdbx`

@@ -7,14 +7,14 @@ AD Cheat Sheet - https://wadcoms.github.io/#
 
 AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_dark_classic_2025.03.excalidraw.svg
 
-### AD Intro
+## AD Intro
 - Organizational Units (OUs)
 	- Basically categories for group policy settings and permissions
 	- These can be hierarchical (for example, two OUs for two sub-organizations within a company)
 - Ensure to enumerate from all users we have access to
 - When using xfreerdp, use `/d:` for domain name
 
-### Manual Enumeration
+## Manual Enumeration
 
 **User Enumeration**
 - If something reveals the names of employees, use this to guess at usernames. Can try to see if each user doesn't have preauth
@@ -121,7 +121,7 @@ function LDAPSearch {
 		- Just basically shows the CN and members for each group 
 		- This will additionally show nested groups, which `net.exe` doesn't
 
-### Enumeration with PowerView
+## Enumeration with PowerView
 - https://powersploit.readthedocs.io/en/latest/Recon/
 - https://github.com/PowerShellMafia/PowerSploit/blob/dev/Recon/PowerView.ps1
 	- Import it using `Import-Module .\PowerView.ps1`
@@ -153,7 +153,7 @@ function LDAPSearch {
 		- Can view internals using `ls \\{domain}\{share}` and read files with `cat`
 			- Will sometimes find encrypted Group Policy Preferences passwords, which have a known key and can be decrypted in kali with `gpp-decrypt`
 
-### Manual Enumeration
+## Manual Enumeration
 - `PsLoggedOn.exe` - uses Remote Registry service to enumerate registry keys to see who's logged on to a system
 	- Not enabled by default on workstations since Windows 8, but it enabled by default on servers like 2012, 2016, 2019, and 2022
 	- Usage: `.\PsLoggedOn.exe \\{computer name}`
@@ -178,7 +178,7 @@ function LDAPSearch {
 	- To enumerate everything:
 		- `crackmapexec smb {IP} -u {username} -p {password} --all`
 
-### Automatic Enumeration
+## Automatic Enumeration
 
 **Enum4Linux**
 - Just run `enum4linux {IP}`

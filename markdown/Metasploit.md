@@ -4,7 +4,7 @@ pagetitle: Metasploit
 ---
 
 
-### The Basics
+## The Basics
 **Setup and Navigate Metasploit**
 - Database isn't enabled by default
 	- `sudo msfdb init`, `sudo systemctl enable postgresql`
@@ -44,7 +44,7 @@ pagetitle: Metasploit
 - Can search through exploits with `searchsploit {string}`
 - Can copy exploits to home directory with `-m`
 
-### Using Payloads 
+## Using Payloads 
 
 **Staged/Non-Stated Payloads**
 - Non-staged: payload is sent along with the exploit
@@ -87,7 +87,7 @@ pagetitle: Metasploit
 	- `set LPORT 4444`
 	- `exploit -j`
 
-### Post-Exploitation
+## Post-Exploitation
 
 **Meterpreter Post-Exploitation Features**
 
@@ -128,7 +128,7 @@ pagetitle: Metasploit
 	- Use a meterpreter session with `sessions -i {session #}`
 	- Then, port forward with `portfwd add -l {local_port} -p {remote_port} -r {int_IP}`
 
-### Automation
+## Automation
 
 **Resource Scripts**
 - Can chain together metasploit commands and Ruby code

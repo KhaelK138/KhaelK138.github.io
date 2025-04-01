@@ -3,7 +3,7 @@ layout: blank
 pagetitle: Password Attacks
 ---
 
-### Hydra
+## Hydra
 - Can be used on a lot of things
 - SSH:
 	- `sudo hydra -l {username} -P {password_list} -s {port} ssh://{IP}`
@@ -15,18 +15,18 @@ pagetitle: Password Attacks
 		- So, for example: `sudo hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.50.201 http-post-form "/index.php:user=admin&password=^PASS^:Login failed. Invalid"`
 	- Could also likely just use ffuf (with a filter on size if app returns 200)
 
-### Passwords
+## Passwords
 - AES is symmetric, RSA is asymmetric
 - GPUs crack like a thousand times faster than CPUs
 
-### Finding Passwords
+## Finding Passwords
 - Just use noseyparker. Can scan file systems, cloned repositories, and even entire github organizations.
     - `noseyparker scan {repo/directory}`
     - `noseyparker scan --github-org={org}`
     - Show results with `noseyparker report`
 - Make sure to save or delete the existing `datastore.np` before starting a new scan
 
-### Password Cracking
+## Password Cracking
 - Mutating Wordlists:
 	- https://github.com/frizb/Hashcat-Cheatsheet?tab=readme-ov-file
 	- Sometimes wordlists might not match the minimum requirements of a password for a location being tested, so the wordlist can drop all of the unneeded passwords
@@ -48,7 +48,7 @@ pagetitle: Password Attacks
 	- `hashcat -m {hashcat_mode (e.g. 13400)} {hash} {wordlist} -r {mutation} --force`
 		- Increase speed with `-O -w 4 --opencl-device-types 1,2`
 
-### SSH Private Key Passphrase
+## SSH Private Key Passphrase
 - `ssh2john {private RSA SSH key file} > ssh.hash` will put the hash in a crack-able format
 - `hashcat -m 22921 ssh.hash {password_list} -r {mutation} --force` will crack the SSH hash
 	- 22921 comes from looking up \$6$ in the `hashcat --help` response
@@ -58,7 +58,7 @@ pagetitle: Password Attacks
 	- Can use mutation rules, placed at the end of /etc/john/john.conf
 	- `john --wordlist={password_list} --rules=sshRules {hash}` to crack
 
-### NTLM
+## NTLM
 - NT LAN Manager or Net-NTLMv2
 - Windows stores hashed passwords in the Security Account Manager (SAM) database file
 - [Mimikatz](https://github.com/gentilkiwi/mimikatz) can extract password hashes from memory as a basic user

@@ -4,12 +4,12 @@ pagetitle: SQL Attacks
 ---
 
 https://pentestmonkey.net/category/cheat-sheet/sql-injection
-### Enumeration/Discovery
+## Enumeration/Discovery
 - General fuzzing can help, but try to think from the developer's perspective when coming up with the example query
 - Matching on numbers may not use single/double quotes at all
 	- `SELECT * FROM rooms WHERE room_id = 1;` uses no quotes
 
-### MySQL
+## MySQL
 - MariaDB is an open-source fork
 - `mysql -u {username} -p -h {host IP} -P {port}`
 - Specifying multiple parameters `SELECT user, passhash FROM mysql.user WHERE user = '{username}'`
@@ -18,7 +18,7 @@ https://pentestmonkey.net/category/cheat-sheet/sql-injection
 	- Version: `SELECT @@version;`
 	- Current user: `SELECT system_user();`
 
-### MSSQL
+## MSSQL
 - Database management built into Windows
 - Command-line tool `SQLCMD` allows SQL queries through cmd
 - Kali has `impacket-mssqlclient` to connect to MSSQL databases
@@ -38,13 +38,13 @@ https://pentestmonkey.net/category/cheat-sheet/sql-injection
 	- This returns the tables within that database, which we can query from with `SELECT * from {database name}.dbo.{table name}`
 		- `dbo` is a table schema
 
-### SQLite
+## SQLite
 - Use `sqlitebrowser` for viewing sqlite databases
 
-### PostgreSQL
+## PostgreSQL
 - Use `psql` for to connect to PostgreSQL databases
 
-### SQL Exploitation
+## SQL Exploitation
 - Techniques:
 	- Can trail SQL injection queries with `//` to provide visibility on the payload and protect against whitespace truncation
 	- Can use `IN` to inject arbitrary second command:
