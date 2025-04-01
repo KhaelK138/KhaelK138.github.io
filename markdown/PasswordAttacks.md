@@ -6,7 +6,7 @@ pagetitle: Password Attacks
 ### Hydra
 - Can be used on a lot of things
 - SSH:
-	- `sudo hydra -l {username} -P {password_list} -s {port} ssh://{IP}
+	- `sudo hydra -l {username} -P {password_list} -s {port} ssh://{IP}`
 	- Lets say we found a password, and want to spray it everywhere (like rdp)
 		- `sudo hydra -L {username_list} -p {password} rdp://{IP}`
 - HTTP:
