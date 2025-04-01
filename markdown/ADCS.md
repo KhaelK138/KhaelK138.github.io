@@ -1,8 +1,10 @@
 ---
 layout: blank
+pagetitle: Attacking Active Directory Certificate Services
 ---
 
-### Attacking Active Directory Certificate Services (ADCS)
+
+### What is ADCS
 
 **Overview of ADCS**
 - ADCS implements Public Key Infrastructure (PKI) in Windows domains, providing certificates for secure communication, user authentication, and more.
