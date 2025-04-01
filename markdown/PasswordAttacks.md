@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Password Attacks
 ---
 
 ### Hydra

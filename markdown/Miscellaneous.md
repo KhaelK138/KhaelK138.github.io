@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Miscellaneous Notes
 ---
 
 [https://johnstawinski.com/2022/10/09/oscp-2023-study-guide-new-exam-format/](https://johnstawinski.com/2022/10/09/oscp-2023-study-guide-new-exam-format/) [Ippsec’s videos](https://www.youtube.com/channel/UCa6eh7gCkpPo5XXUDfygQQA) - vital at the beginning - show a bunch of HTB walkthroughs

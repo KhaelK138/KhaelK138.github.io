@@ -1,4 +1,9 @@
-### Dependency Confusion - Node.js
+---
+layout: blank
+pagetitle: Dependency Confusion
+---
+
+### Node.js
 
 **Info**
 - In Node, npm packages are stated in the package.json file

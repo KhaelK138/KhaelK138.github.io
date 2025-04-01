@@ -1,4 +1,8 @@
-### API Testing
+---
+layout: blank
+pagetitle: API Testing
+---
+
 
 **Recon**
 - Always start with API recon if documentation isn't provided

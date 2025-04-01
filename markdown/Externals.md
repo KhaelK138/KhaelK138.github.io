@@ -1,8 +1,8 @@
 ---
 layout: blank
+pagetitle: External Assessments
 ---
 
-### External Assessments
 
 Uncovering assets:
 - crt.sh, merklemap.com, censys, Shodan, Gau, Whoxy, LinkedIn scraping, Google Dorks, Crunchbase, Zoominfo (zoomeye?)

@@ -1,8 +1,7 @@
 ---
 layout: blank
+pagetitle: Phishing
 ---
-
-### Phishing
 
 **Techniques:**
 - Uses `@` character to tell the browser that everything before the `@` is simply authentication for the following page (an encoded tinyurl site) - I didn't find an arbitrary redirect on github

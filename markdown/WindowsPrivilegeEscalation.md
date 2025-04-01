@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Windows Privilege Escalation
 ---
 
 [HTB Windows Privesc Checklist](https://khaelkugler.com/pdf/Windows_Privilege_Escalation_Module_Cheat_Sheet.pdf)

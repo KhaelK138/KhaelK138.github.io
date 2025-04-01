@@ -1,4 +1,8 @@
-### GraphQL
+---
+layout: blank
+pagetitle: GraphQL Attacks
+---
+
 
 **Finding GraphQL Endpoints**
 - Universal query - `query{__typename}`

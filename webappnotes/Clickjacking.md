@@ -1,4 +1,7 @@
-### Clickjacking
+---
+layout: blank
+pagetitle: Clickjacking
+---
 
 **Clickjacking PoC**
 

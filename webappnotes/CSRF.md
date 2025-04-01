@@ -1,4 +1,8 @@
-### CSRF
+---
+layout: blank
+pagetitle: Cross-site Request Forgery
+---
+
 
 Cause a victim to do an action unintentionally by having them make a request (e.g. `https://example.com/changeemail?email=attacker@email.com`)
 
