@@ -1,8 +1,8 @@
 ---
 layout: blank
+pagetitle: Attacking Services
 ---
 
-### Hacking Common Services
 
 **The best methodology for pentesting services is to usually just search "Pentesting {service name}"**
 

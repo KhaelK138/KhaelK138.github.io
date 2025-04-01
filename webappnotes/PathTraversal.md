@@ -1,4 +1,7 @@
-### Path Traversal
+---
+layout: blank
+pagetitle: Path Traversal Attacks
+---
 
 **Path Traversal with Other Returned Content Types**
 - Sometimes the app will return something like `/etc/passwd` in `image/jpeg` format

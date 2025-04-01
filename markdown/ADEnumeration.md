@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Active Directory Enumeration
 ---
 
 AD Cheat Sheet - https://wadcoms.github.io/#

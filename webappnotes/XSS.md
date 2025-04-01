@@ -1,4 +1,7 @@
-### XSS
+---
+layout: blank
+pagetitle: XSS
+---
 
 **XSS Exploitation Example**
 - Grabbing a nonce value from /wp-admin/user-new.php

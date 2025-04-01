@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Client-side Attacks
 ---
 
 ### Information Gathering

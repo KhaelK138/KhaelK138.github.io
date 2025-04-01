@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Android Reverse Engineering
 ---
 
 ### Static Reversing - JADX

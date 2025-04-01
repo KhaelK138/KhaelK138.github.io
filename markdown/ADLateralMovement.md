@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Active Directory Lateral Movement
 ---
 
 Lateral movement doesn't have to be used for different subnets. If we have credentials but lack rdp, lateral movement as a domain user is our friend

@@ -1,4 +1,7 @@
-### Websockets
+---
+layout: blank
+pagetitle: Websockets
+---
 
 **Common vulnerabilities**
 - Since websockets are just another way of communicating with a webserver, most standard vulnerabilities still apply

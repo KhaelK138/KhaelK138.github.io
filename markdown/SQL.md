@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: SQL Attacks
 ---
 
 https://pentestmonkey.net/category/cheat-sheet/sql-injection

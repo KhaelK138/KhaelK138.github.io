@@ -1,4 +1,9 @@
-### Wordpress
+---
+layout: blank
+pagetitle: Testing Wordpress
+---
+
+
 - Use `wpscan` and investigate the plugins
 	- `wpscan --url http://{IP} --enumerate p --plugins-detection aggressive`
 	- Look for `[!] This version is out of date`

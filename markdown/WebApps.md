@@ -1,5 +1,6 @@
 ---
 layout: blank
+pagetitle: Attacking Web Applications
 ---
 
 [HackTheBox - Attacking Common Applications](https://academy.hackthebox.com/module/113/section/1087)

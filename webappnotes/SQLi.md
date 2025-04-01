@@ -1,4 +1,7 @@
-### SQL Injection
+---
+layout: blank
+pagetitle: SQL Injection
+---
 
 Cheat sheet: https://portswigger.net/web-security/sql-injection/cheat-sheet
 
