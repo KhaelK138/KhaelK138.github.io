@@ -18,11 +18,11 @@
 
 
 
-### Return to these labs
+## Return to these labs
 - SameSite Strict bypass via sibling domain
   - Uses cross-site WebSocket hijacking
 - Rest of the clickjacking labs
 
 
-### Fix in notes
+## Fix in notes
 - GraphQL - Github markdown issue with double curly braces

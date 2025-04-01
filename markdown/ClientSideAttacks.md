@@ -3,7 +3,7 @@ layout: blank
 pagetitle: Client-side Attacks
 ---
 
-### Information Gathering
+## Information Gathering
 
 - **Metadata**
 	- Examining metadata of company-created PDFs can be a good source of information
@@ -12,7 +12,7 @@ pagetitle: Client-side Attacks
 	- Canarytokens - tool that can fingerprint a computer from a link
 		- This token grabs browser info, IP address, and OS info
 
-### Attacking MS Office
+## Attacking MS Office
 
 - **MS Office Attack**
 	- Can't send malware directly by email, so we need to get them to download the spreadsheet with macros from a link
@@ -51,7 +51,7 @@ End Sub
 		- `Str = Str + {base64}"`
 		- `CreateObject("Wscript.Shell").Run Str`
 
-### Abusing Windows Library Files
+## Abusing Windows Library Files
 - Windows library files are less well-known and can be equally effective
 - Executing .Library-ms file into executing .lnk file
 - These files display remote directories like local directories, where we put .lnk file

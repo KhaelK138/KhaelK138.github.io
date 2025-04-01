@@ -4,7 +4,7 @@ pagetitle: Attacking Active Directory Certificate Services
 ---
 
 
-### What is ADCS
+## What is ADCS
 
 **Overview of ADCS**
 - ADCS implements Public Key Infrastructure (PKI) in Windows domains, providing certificates for secure communication, user authentication, and more.
@@ -19,7 +19,7 @@ pagetitle: Attacking Active Directory Certificate Services
 - Enrollment Services: Allows users and computers to request certificates via interfaces like the Certificate Enrollment Web Service (CES).
 - Certificate Templates: Define certificate properties, validity periods, and permissions.
 
-#### Enumeration
+### Enumeration
 The first step in attacking ADCS is understanding the configuration of the CA, its templates, and associated permissions. Enumerating these components reveals potential misconfigurations that can be exploited.
 
 - **Certipy** - Python tool for ADCS enumeration:
@@ -36,7 +36,7 @@ ldapsearch -x -h {DC_IP} -b "CN=Configuration,DC=domain,DC=com" "(objectClass=pK
 certutil -template
 ```
 
-#### Common Vulnerabilities
+### Common Vulnerabilities
 ADCS often suffers from misconfigurations or insecure defaults that attackers can exploit. Here are the primary vulnerabilities:
 
 - **Misconfigured Certificate Templates**:
@@ -48,7 +48,7 @@ ADCS often suffers from misconfigurations or insecure defaults that attackers ca
     - Improper permissions on CA objects can allow attackers to modify or issue unauthorized certificates.
 Insecure configurations allow attackers to escalate privileges by obtaining certificates for sensitive accounts or performing man-in-the-middle attacks.
 
-#### Attack Techniques
+### Attack Techniques
 
 **Exploitation of Misconfigured Certificate Templates**
 Certificate templates define which users can request specific types of certificates. When a template is misconfigured to allow enrollment by "Authenticated Users," any domain user can request a certificate that provides elevated privileges. This is a common misstep in ADCS deployments.

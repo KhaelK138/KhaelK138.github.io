@@ -3,7 +3,7 @@ layout: blank
 pagetitle: Port Redirection and SSH Tunneling
 ---
 
-### Port Forwarding
+## Port Forwarding
 
 **Upgrading terminal**
 - Might need to run `python3 -c 'import pty; pty.spawn("/bin/sh")'` to upgrade terminal
@@ -22,7 +22,7 @@ pagetitle: Port Redirection and SSH Tunneling
 	- `socat -ddd TCP-LISTEN:{External_Port},fork TCP:{Internal_IP}:{Internal Port}`
 - Can also use *rinetd*, netcat + FIFO named pipe, or *iptables* if we have root
 
-### Ligolo-ng
+## Ligolo-ng
 - https://github.com/nicocha30/ligolo-ng/releases/tag/v0.6.2
 - Download a proxy file for kali and an agent file for the DMZ machine
 - Setup on kali (create tun interface):
@@ -49,7 +49,7 @@ pagetitle: Port Redirection and SSH Tunneling
 		- Forwarding all traffic that reaches DMZ on 1339 to kali on 8000
 	- Now, we `iwr/wget {DMZ_IP}:1339/{file}`
 	
-### SSH Tunneling
+## SSH Tunneling
 - Can also be referred to as "SSH Port Forwarding"
 - SSH was designed to securely transmit traffic, so it was used initially for a lot of tunneling
 
@@ -106,7 +106,7 @@ pagetitle: Port Redirection and SSH Tunneling
 - Then, we can just make requests to hosts in the subnet
 	- For example, `nmap {private_IP}`
 
-### Port Forwarding with Windows Tools
+## Port Forwarding with Windows Tools
 
 **Using SSH on Windows**
 - Pretty much the same, as it's OpenSSH - comes bundled with Windows after 2018
