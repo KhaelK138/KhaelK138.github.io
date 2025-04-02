@@ -3,7 +3,8 @@ layout: blank
 pagetitle: SQL Injection
 ---
 
-Cheat sheet: https://portswigger.net/web-security/sql-injection/cheat-sheet
+Portswigger Cheat Sheet: https://portswigger.net/web-security/sql-injection/cheat-sheet
+PentestMonkey Cheat Sheet: https://pentestmonkey.net/category/cheat-sheet/sql-injection
 
 **What is SQL injection**
 - Inserting into SQL queries (commonly SELECT, but sometimes others like UPDATE or INSERT)
@@ -116,3 +117,17 @@ Cheat sheet: https://portswigger.net/web-security/sql-injection/cheat-sheet
 - Backslashes can also be used for bypassing single quotes being replaced with double quotes
 - For WAFs, if we can encode the data (HTML, XML), doing so can bypass basic WAFs
 
+**Other Techniques**
+- Can trail SQL injection queries with `//` to provide visibility on the payload and protect against whitespace truncation
+- Can use `IN` to inject arbitrary second command:
+  - `' OR 1=1 IN (SELECT version()) -- //`
+  - `' OR 1=1 in (SELECT password FROM users WHERE username = 'admin') -- //`
+- Matching on numbers may not use single/double quotes at all
+	- `SELECT * FROM rooms WHERE room_id = 1;` uses no quotes
+- MySQL RCE via SQLi
+	- Use the `INTO OUTFILE` to create a PHP/JSP/ASPX/etc shell
+		- Example: `' UNION SELECT "<?php system('whoami');?>", null, null INTO OUTFILE "/var/www/html/tmp/shell.php" -- // `
+			- `tmp` is important, because we might not have perms for `/html`
+		- Then, either LFI the new file or straight up access it if possible
+	- Can also extract users/passwords and crack hashes
+	- Could search up phpmyadmin version to get RCE (LFI + session cookie can lead to RCE)
