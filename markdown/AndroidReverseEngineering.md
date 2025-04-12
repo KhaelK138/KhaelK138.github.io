@@ -3,6 +3,10 @@ layout: blank
 pagetitle: Android Reverse Engineering
 ---
 
+## APKTool
+- `apt install apktool`
+- `apktool d {apk_file}`
+
 ## Static Reversing - JADX
 - Use jadx GUI - installable in Kali with `apt install jadx`, pass it the apk file
 - Check out the AndroidManifest.xml to see two things:
