@@ -1,4 +1,4 @@
-## RedTeaming
+## Red Teaming CCDC
 
 **CCDC playbook**
 - Make sure to have a sheet with all host/shell info, so if we lose a shell we know where we lost it
