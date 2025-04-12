@@ -23,8 +23,8 @@ pagetitle: Port Redirection and SSH Tunneling
 - Can also use *rinetd*, netcat + FIFO named pipe, or *iptables* if we have root
 
 ## Ligolo-ng
-- https://github.com/nicocha30/ligolo-ng/releases/tag/v0.6.2
-- Download a proxy file for kali and an agent file for the DMZ machine
+- Grab latest proxy and agent: https://github.com/nicocha30/ligolo-ng/releases/
+  - Proxy file for kali and an agent file for the DMZ machine
 - Setup on kali (create tun interface):
 	- `sudo ip tuntap add user kali mode tun ligolo`
 	- `sudo ip link set ligolo up`
