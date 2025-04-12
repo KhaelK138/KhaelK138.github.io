@@ -65,7 +65,7 @@ AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_d
 	- LdapDomainDump - outputs to a pretty HTML page
 		- `sudo ldapdomaindump ldaps://{IP} -u '{username}' -p '{password}'`
 - Checking for anonymous LDAP bind
-	- `ldapsearch -x -H ldap://{IP} -b "dc={domain},dc={TLD}" 
+	- `ldapsearch -x -H ldap://{IP} -b "dc={domain},dc={TLD}"`
 	- This can yield a ton of information, such as users on the system
 		- `ldapsearch -x -H ldap://{IP} -b "dc={domain},dc={tld}" "(objectClass=person)"`
 		- [More info](https://book.hacktricks.xyz/network-services-pentesting/pentesting-ldap)

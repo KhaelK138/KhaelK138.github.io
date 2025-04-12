@@ -1,6 +1,6 @@
 ---
 layout: blank
-pagetitle: Active Directory Authentication Exploitation
+pagetitle: Attacking Active Directory
 ---
 
 ## Understanding Authentication

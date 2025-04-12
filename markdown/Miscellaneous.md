@@ -41,6 +41,9 @@ export PGUSER=postgres
 export PGDATABASE=postgres
 ```
 
+Connecting to a device/switch from a mac using an ethernet cable:
+- Make sure to manually set IP and interface via Network settings after connecting via USB
+
 - `sudo apt install libpq-dev`
 - `sudo apt-get install --reinstall postgresql-client`
 
