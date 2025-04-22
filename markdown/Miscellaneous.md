@@ -7,6 +7,8 @@ pagetitle: Miscellaneous Notes
 - [https://ippsec.rocks/?#](https://ippsec.rocks/?#) - search up video on a topic [HackTheBox Active Directory track](https://app.hackthebox.com/tracks/Active-Directory-101) [TJ Null’s list of OSCP-like HTB machines](https://docs.google.com/spreadsheets/d/1dwSMIAPIam0PuRBkCiDI88pU3yzrqqHkDtBngUHNCw8/edit#gid=1839402159)
 - `for i in \$(seq 1 254); do nc -zv -w 1 {IP/24}.$i {port}; done`
     - We have nmap at home
+    - For a more basic ping sweep:
+        - `for /l %i in (1,1,254) do @ping {IP/24}.%i -w 1 -n 1`
 
 RDP on kali: `xfreerdp /u:{username} /p:{password} /v:{IP} (optional)/d:{domain} (optional)/drive:shared,/home/kali/Downloads/`
 - Dealing with powershell wrapping? Just put the entire output in a variable and do `${variable} | Out-GridView`
