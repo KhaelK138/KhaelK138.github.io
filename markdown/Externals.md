@@ -11,7 +11,7 @@ Uncovering assets:
 - Bug bounty/dorking search engine: https://nitinyadav00.github.io/Bug-Bounty-Search-Engine/
 - Awesome censys queries: https://github.com/thehappydinoa/awesome-censys-queries
 
-- Look into spiderfoot?
+- Burp Enterprise is really good for automatically searching for classic bugs on a list of sites
 
 Search documentation/internal resources for:
 
