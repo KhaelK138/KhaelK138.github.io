@@ -17,6 +17,7 @@ pagetitle: Android Reverse Engineering
 ## Dynamic Reversing - ADB/Burpsuite
 - Use an Emulator - type doesn't matter, maybe use GenyMotion
   - I used Android Studio 
+    - Seems you can just drag and drop the apk file on the running device to install the apk
   - Setup:
     - Install Android Studio and run an emulated device
       - Tools below, like Frida and adb, will automatically detect a running device, which is quite nice
@@ -26,6 +27,14 @@ pagetitle: Android Reverse Engineering
 - `adb shell ps | grep -i {app packaging name}` to see running processes
 - `adb logcat --pid={process id from above}` to see log messages for application
 - BurpSuite can be a pain, but worth it - [https://portswigger.net/burp/documentation/desktop/mobile/config-android-device](https://portswigger.net/burp/documentation/desktop/mobile/config-android-device)
+
+## Drozer
+- Great multipurpose tool - [https://labs.withsecure.com/tools/drozer](https://labs.withsecure.com/tools/drozer)
+- Installed with `pipx install drozer`
+- Then, download the agent from [https://github.com/WithSecureLabs/drozer-agent](https://github.com/WithSecureLabs/drozer-agent) and install it with `adb install drozer-agent.apk`
+  - Then, in the emulator, go to the drozer app and start up the embedded server on port 31415
+  - To allow communication on the host, use `adb forward tcp:31415 tcp31415`
+- Then just run `drozer console connect`
 
 
 ## Frida
