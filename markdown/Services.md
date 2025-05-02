@@ -11,6 +11,16 @@ pagetitle: Attacking Services
 
 Wordpress
 - `wpscan --url {url} -e u,vp,vt --plugins-detection aggressive --api-token lT8xySbw7gMN4a2SoFlwpEXI8BzPdEyDn1GAcdaGKAE`
+  - Yes this is my wpscan free account api token with a whopping 25 scans per day
+
+Github
+- Use `gato-x` to enumerate entire organizations
+  - [https://github.com/AdnaneKhan/Gato-X](https://github.com/AdnaneKhan/Gato-X)
+  - `gato-x enum --target {org_name}`
+    - Requires a `GH_TOKEN` environment variable; just add `export GH_TOKEN="{token}"` to shell config file
+- Use `noseyparker` to scan entire organizations for passwords
+  - [https://github.com/praetorian-inc/noseyparker](https://github.com/praetorian-inc/noseyparker)
+  - `noseyparker scan --github-org={org_name}`
 
 Drupal
 - `droopescan scan drupal -u {url}`
