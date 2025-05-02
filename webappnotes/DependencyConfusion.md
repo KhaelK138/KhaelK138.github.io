@@ -3,6 +3,14 @@ layout: blank
 pagetitle: Dependency Confusion
 ---
 
+## Domain Name Takeovers
+- If source code refers to or uses domains that are no longer active, we can register them and supply malicious code
+- A couple examples:
+  - Python: `setup(name='my-internal-lib', url='https://internal.examplecorp.com/my-internal-lib', install_requires=['my-internal-lib'])`
+  - Node: `import('https://cdn.customcorp-internal.com/pkg.js');`
+  - Go: `import "internal.companytools.com/somepkg"`
+  - Docker: `FROM registry.dev.oldstartup.com/baseimage:latest`
+
 ## Node.js
 
 **Info**
