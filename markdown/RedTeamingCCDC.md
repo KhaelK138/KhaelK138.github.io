@@ -118,11 +118,6 @@ pagetitle: Red Teaming for CCDC
     - `pkill -t {result}` to then kill their session
   - `pkill -KILL -u {user}` - kill all of a user's processes
   - `kill -9 {pid}` to kill a specific process
-- Machine IPs:
-  - Kali1: 10.10.0.171
-  - Kali2: 10.10.0.184
-  - Ubuntu: 10.10.0.181
-  - Windows 10.10.0.136
 - Set date: `touch -d "4 May 2024"`
 
 
