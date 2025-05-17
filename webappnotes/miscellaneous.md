@@ -34,6 +34,9 @@ pagetitle: Miscellaneous Web Notes
 
 
 https://github.com/botesjuan/Burp-Suite-Certified-Practitioner-Exam-Study
+https://github.com/DingyShark/BurpSuiteCertifiedPractitioner
+https://bscp.guide/
 
 Usernames: https://portswigger.net/web-security/authentication/auth-lab-usernames
 Passwords: https://portswigger.net/web-security/authentication/auth-lab-passwords
+

@@ -86,6 +86,9 @@ pagetitle: Attacking Active Directory
 		- `enumdomusers` can get the domain users from within RPC, which we can then check again for preauth
 		- `queryuser {username}` to get user properties (passwords could be in descriptions)
 			- Can also just `querydispinfo`
+	- Could also have a null session (basically allowing anonymous users to connect and query info)
+    	- `enum4linux` will check for this
+    	- `rpcclient -U "" {IP} -N`
 
 **AS-REP Roasting**
 - Requires that Kerberos preauth is disabled, which prevents sending an AS-REQ on behalf of any user
