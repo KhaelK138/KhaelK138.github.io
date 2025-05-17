@@ -59,7 +59,7 @@ pagetitle: Red Teaming for CCDC
 - Can build from source with `sudo apt install golang-go`, `curl https://sliver.sh/install | sudo bash`, and `cd sliver && make`
 - To make sure we don't kill the mf server, let's operate from a client
   - Start up tmux and run `sliver-server`
-  - On the server: `new-operator --name malfuncti0nal --lhost localhost` and `multiplayer` to enable clients
+  - On the server: `new-operator --name {op_name} --lhost localhost` and `multiplayer` to enable clients
   - On the client, outside of tmux: `sliver-client import {config_file}` and `sliver-client` to join
 - `wg` can be used to start listening for incoming sessions on a sneaky wireguard udp (use mtls otherwise if we dont get a callback)
   - Seems it doesn't mix well with Windows, unfortunately. Plan on mtls for windows, wg for linux.
