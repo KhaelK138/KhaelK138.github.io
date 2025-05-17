@@ -3,6 +3,13 @@ layout: blank
 pagetitle: GraphQL Attacks
 ---
 
+**Automatic Exploitation**
+- GrapeQL will automatically enumerate a GraphQL endpoint and 
+  - Installed with pip
+  - `grapeql --api {url}/{graphql_endpoint} --report report.md`
+    - `--dos` to try denial of service attacks
+    - `--proxy {http://127.0.0.1:8080}` to proxy thru Burp
+- Use Damn Vulnerable GraphQL App as a testing ground
 
 **Finding GraphQL Endpoints**
 - Universal query - `query{__typename}`
