@@ -235,7 +235,7 @@ C:\Users\Public\reverseshell.exe
 	- Named pipes:
 		- Allow unrelated processes to share data between each other
 		- If we can coerce a a privileged process into connecting to a controlled named pipe, we can capture the authentication and use `SeImpersonatePrivilege` to impersonate the user account and perform operations in their security context
-		- *Sigma Potato (PrintSpoofer)*
+		- Sigma Potato (PrintSpoofer)
 			- Coerces NT AUTHORITY/SYSTEM into a named pipe
 			- Must be downloaded somehow
 			- Can be used when we have a user with `SeImpersonatePrivilege`

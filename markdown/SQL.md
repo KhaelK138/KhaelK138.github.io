@@ -3,6 +3,9 @@ layout: blank
 pagetitle: SQL Attacks
 ---
 
+**Viewing General Databases with Credentials**
+- Use `dbeaver` on kali, has a nice GUI and everything
+
 **MySQL**
 - MariaDB is an open-source fork
 - `mysql -u {username} -p -h {host IP} -P {port}`
