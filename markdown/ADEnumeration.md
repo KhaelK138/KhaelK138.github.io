@@ -7,13 +7,6 @@ AD Cheat Sheet - https://wadcoms.github.io/#
 
 AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_dark_classic_2025.03.excalidraw.svg
 
-## AD Intro
-- Organizational Units (OUs)
-	- Basically categories for group policy settings and permissions
-	- These can be hierarchical (for example, two OUs for two sub-organizations within a company)
-- Ensure to enumerate from all users we have access to
-- When using xfreerdp, use `/d:` for domain name
-
 ## Manual Enumeration
 
 **User Enumeration**
@@ -72,7 +65,7 @@ AD mindmap - https://orange-cyberdefense.github.io/ocd-mindmaps/img/mindmap_ad_d
 		- Users can have custom fields added, so check each user/group for passwords
 			- `| grep -iE "pass|pwd|secret|cred|auth|token|key"`
 			- If we find anonymous ldap bind, slowing down for 5-10 mins and just processing the entire output could be nice
-	- Checking lockout policy: `ldapsearch -D '{domain}' -w '{password}' -p 389 -h {IP} -b "dc={domain},dc={tld}" -s sub "*" | grep lockoutThreshold`
+	- Checking lockout policy: `ldapsearch -D '{user}@{user_domain}' -w '{user_password}' -p 389 -h {IP} -b "dc={target_domain},dc={tld}" -s sub "*" | grep lockoutThreshold`
 - Distinguished names (DNs)
 	- Uniquely identifies domain objects
 	- `CN={obj_name},CN={container},DC={domain_component1},DC={domain_component1}`
@@ -187,6 +180,8 @@ function LDAPSearch {
 - Capturing the system data with BloodHound:
 	- [SharpHound](https://github.com/BloodHoundAD/SharpHound/releases/tag/v1.1.1)
 		- Use version 1.1.1 for kali's 4.3.1 bloodhound
+    		- Upon further testing, it seems sharphound 2.6.5 works with bloodhound 4.3.1 (https://github.com/SpecterOps/BloodHound-Legacy/releases/tag/v4.3.1)
+    		- Don't yet know how to perform analysis on non-legacy bloodhound
 		- `Invoke-WebRequest {url} -Outfile {outfile}; Expand-Archive {outfile}`
 		- Use with `Import-Module .\SharpHound.ps1`
 	- `Invoke-BloodHound -CollectionMethod All -OutputDirectory {dir} -OutputPrefix {filename_prefix}`

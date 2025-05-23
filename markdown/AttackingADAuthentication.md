@@ -78,7 +78,7 @@ pagetitle: Attacking Active Directory
 	- AS-REP Roasting without credentials, described below
 - WinRM
 	- Indicated by port 5985/5986
-	- `evil-winrm -i {IP} -u {domain_user} -p {password}`
+	- `evil-winrm -i {IP} -u '{domain}\{domain_user}' -p '{password}'`
 	- Also accepts NTLM hashes `evil-winrm -i {IP} -u {user} -H {hash}`
 - RPC:
 	- Indicated by port 135,593

