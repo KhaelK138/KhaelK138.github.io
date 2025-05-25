@@ -19,8 +19,9 @@ sudo systemctl start nessusd
 
 ## Masscan
 - `sudo masscan -iL scope.txt --rate 1000 -oX masscan-sweep.xml -p <ports>`
-  - Best with top 25 ports from nmap: `80,23,443,21,22,25,3389,110,445,139,143,53,135,3306,8080,1723,111,995,993,5900,1025,587,8888,199,1720,6379`
+  - Best with top ports from nmap (and some additional services): `80,23,443,21,22,25,3389,110,445,139,143,53,135,3306,8080,1723,111,995,993,5900,1025,587,8888,199,1720,6379,1433,5432,9200,2049`
     - Find other # of top ports: `sort -r -k3 /usr/share/nmap/nmap-services | grep tcp | head -n {num_ports} | awk '{split($2, a, "/"); print a[1]}' | paste -sd ',' -`
+      - These can be a bit redundant, so make sure they have what you wanna scan for
 
 ## Webservers
 - Run gowitness on the IP ranges, enumerate mainly the 200s unless there's time for all

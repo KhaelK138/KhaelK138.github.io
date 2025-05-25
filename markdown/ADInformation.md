@@ -103,6 +103,10 @@ pagetitle: Active Directory Information and Enumeration
 		- For all IPs `Get-NetComputer | ForEach-Object { $_.dnshostname | ForEach-Object { [System.Net.Dns]::GetHostAddresses($_) | Select-Object IPAddressToString } }`
 	- `Find-LocalAdminAccess` - determines if our user has administrative permissions on any computers in the domain
 		- Uses the Service Control Manager, which maintains database of installed services and drivers on all Windows computers
+        - `PsLoggedOn.exe` - uses Remote Registry service to enumerate registry keys to see who's logged on to a system
+        	- Not enabled by default on workstations since Windows 8, but it enabled by default on servers like 2012, 2016, 2019, and 2022
+        	- Usage: `.\PsLoggedOn.exe \\{computer name}`
+        	- Works well with `Find-LocalAdminAccess` since we know where to target user hashes
 	- `Get-NetSession -ComputerName {computername} -Verbose `
 		- This one can return no data/wrong data depending on permissions
 	- `Get-ObjectAcl -Identity {user} > output.txt` - Returns all access control entries (forming an Access Control List) for the user
