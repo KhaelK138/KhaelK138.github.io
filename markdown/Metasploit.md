@@ -122,8 +122,8 @@ pagetitle: Metasploit
 	- Then set `VERSION`, `SRVHOST` as localhost, and `run -j`
 		- This will probably return the port 1080
 	- Then add `socks5 127.0.0.1 1080` to `/etc/proxychains4.conf`
-	- Can then use proxychains to run commands, such as `xfreerdp`
-		- `sudo proxychains xfreerdp /v:{internal_target_IP} /u:luiza`
+	- Can then use proxychains to run commands, such as `xfreerdp3`
+		- `sudo proxychains xfreerdp3 /v:{internal_target_IP} /u:luiza`
 - Can also use `portfwd`
 	- Use a meterpreter session with `sessions -i {session #}`
 	- Then, port forward with `portfwd add -l {local_port} -p {remote_port} -r {int_IP}`
