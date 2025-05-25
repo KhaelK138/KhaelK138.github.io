@@ -3,22 +3,81 @@ layout: blank
 pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 ---
 
-## Bluetooth info
-- 2.4GHz frequency
-- Is a Frequency-hopping spread spectrum (FHSS)
-  - This means that it doesn't just stick to one channel, like WiFi does - BLE hops between 37
-- Bluetooth Classic vs BLE
-  - Classic has higher power consumption; supports up to 3 Mbps over 80 channels
-  - BLE uses less power (duh); supports up to 2 Mbps (alongside 1 Mbps and 500 or 125 Kbps) over 3 advertising channels and 37 data channels
-- Controlling device, like a cellphone, is called the "Central" device and Bluetooth device is called "Peripheral" device
-
 ## BLE Stack
-- Link layer
-  - MAC address of client and server devices
-  - Encryption is performed at this layer
-- Host Controller Interface (HCI)
-  - This is where the software interacts with the hardware (implemented usually on the BLE chip)
-  - Where packet capture can occur
+- **RF Protocol** 
+  - Physical layer is wireless in ISM band in 2.4 GHz range (2400 MHz thru 2483.5 MHz)
+  - 40 Channels; basically 1-39 except 37 is at 2.400, 38 is around 2.425 with 39 at 2.480
+  - Each channel has 1 MHz bandwidth and 2MHz spacing between channels
+  - Channels 37-39 for advertising
+  - Frequency Hopping Spread Spectrum at a specific timing to reduce interference
+  - Transmit power from -20dBm (0.01 mW) to +20dBm (100mW)
+- **Link layer**
+  - On hardware, there's transistor logic that handles some stuff
+  - There's also a mix of software that can be installed that handles other stuff (instruction sets)
+  - Seven states
+    - Standby, advertising, scanning active, scanning passive, initiating, connection (master), connection (slave)
+  - Encryption sometimes handled here using AES-138
+- **Host Controller Interface (HCI)**
+  - Transports commands/events between host and controller components (previous layers of stack)
+    - This is what would say "we need to send 8 bytes over this channel"
+  - Can be exposed as a software API
+  - May appear as SPI or UART
+- **Logical Link Control & Adaptation (L2CAP)**
+  - Lowest layer on host
+  - Responsible for protocol multiplexing, segmentation, reassembly of data exchanged between host and controller
+  - Channel based, each endpoint has a channel identifier (CID)
+    - GATT protocol uses channel 0x0004
+  - Defines Packet Data Units, Max Transmission Unit (MTU), Maximum Packet Size for RF broadcast
+    - Every device must support 20 bytes; larger MTU support optional but not guaranteed
+  - Gives packets a L2CAP header providing metadata
+- **GAP Security Manager (SMP)**
+  - Enforces security by any means of encryption
+  - Mode 1 Level 1 is the default
+  - Security Mode 1:
+    - 4 levels of security in this mode:
+      - Level 1: No auth or encryption
+      - Level 2: Unauthenticated pairing with encryption
+      - Level 3: Authenticated pairing with encryption
+      - Level 4: Authenticated LE Secure Connections pairing with encryption
+    - Levels 3 and 4 are protected against MITM (Level 4 is recommended for secure connections)
+  - Security Mode 2: 
+    - Signing
+    - 2 levels:
+      - Unauthenticated pairing with data signing
+      - TODO - Authenticated pairing with data signing
+  - Security Mode 3:
+    - TODO
+  - Mode 1 levels 1-3 allow Legacy Pairing
+    - Generate a 138 bit temporary key used to generate a short term key used to encrypt the link
+    - Can be cracked easily with crackle - [https://github.com/mikeryan/crackle/](https://github.com/mikeryan/crackle/)
+  - LE Secure connections
+    - Uses Elliptic-Curve Diffie-Hellman (ECDH) cryptography to generate a public-private key pair. Devices exchange public keys to generate shared Long Term Key
+      - Can be MITM'd during the VERY first connection due to the reusing of the shared Long Term Key
+    - Bonding is storing a Long Term Key so you can connect again using the same key
+  - **All connections start lifetimes in Mode 1 Level 1**
+    - Can be later upgraded to any security level by means of pairing/authentication
+    - Out of Bound (OOB) - Uses additional information transferred by other means (QR code, NFC) alongside public key to generate LTK
+      - - Using this with Mode 1 Level 4 is the most secure
+- **Generic Access Profile (GAP)**
+  - Base of the BLE control plane
+  - Discover/connect with peers, broadcast data, establish secure connections using SMP
+  - GAP basic roles:
+    - Central - scans and initiates connections with peripherals
+    - Peripheral - advertises and accepts connections from centrals
+    - Broadcaster - peripheral device broadcasting advertisement packets without accepting connections (fails to finish handshake)
+    - Observer - central device that doesn't try to initiate a connection
+  - GAP discovery process
+    - Advertising
+      - Device announces presence with some limited information
+    - Scanning
+      - Collecting/listening for advertisements
+      - May request additional information via a scan request (called scanning a device)
+- **Attribute Protocol**
+  - Defines additional roles and formats for data access 
+  - Devices can be either server or client in a server/client architecture
+  - Handles range from 0x0000-0xFFFF
+  - GATT server (level 0) builds on top of it with services (level 1), characteristics (level 2), and values/descriptors (level 3)
+  - Characteristics are like APIs that hold a value
 
 ## BLE Communication
 - Peripheral device advertises willingness to connect on 1 of the 3 advertising channels
@@ -32,7 +91,6 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
   - Encryption requires pairing (key exchange between central and peripheral devices)
     - Legacy Pairing (BLE 4.0 and 4.1) is outdated and can be cracked easily with [https://github.com/mikeryan/crackle/](https://github.com/mikeryan/crackle/)
     - Secure Pairing (BLE 4.2+) uses an ECDH-based key exchange, and requires active MITM at pairing to compromise (which is pretty tough)
-
 
 ## Monitoring/Sniffing BLE
 **Tools**
@@ -55,7 +113,9 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 - After connecting nRF52840 dongle, we can use it to interact with nearby bluetooth devices via nRF Connect for Desktop Bluetooth Low Energy (downloaded from the nRF Connect for Desktop app)
 - Run scan to see devices that the dongle can see, and then we can connect to view the services available (along with their characteristics)
 
-
 ## Miscellaneous
 - Tool to lookup first three octets of a MAC address to see who it's from: https://www.wireshark.org/tools/oui-lookup.html
   - For example, `b8:c0:65`, returns `Universal Electronics, Inc.`
+- [ble_ctf](https://github.com/hackgnar/ble_ctf) is a BLE CTF installed on the ESP32; good practice
+- Nordic Security has a DevAcademy with a BLE fundamentals short course (https://academy.nordicsemi.com/courses/bluetooth-low-energy-fundamentals/)
+- *Always* use bettercap for enumeration (manual is a nightmare comparatively)
