@@ -105,6 +105,7 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - Can flash firmware to do fuzzing and custom advertising/spoofing
     - NovelBits has a [guide](https://novelbits.io/nordic-ble-sniffer-guide-using-nrf52840-wireshark/) for capturing BLE with Wireshark
   - Ubertooth One (not used that much)
+
 **Packet Captures**
 - Capturing BLE packets over the air is unreliable and encrypted, but might be the only option when Central and Peripheral devices aren't under control
 - Capturing from a controlled device before encryption is applied is better
