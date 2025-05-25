@@ -1,6 +1,6 @@
 ---
 layout: blank
-pagetitle: Active Directory Information and Enumeration
+pagetitle: Active Directory Information
 ---
 
 ## AD Authentication
