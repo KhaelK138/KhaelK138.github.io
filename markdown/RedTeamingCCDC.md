@@ -32,6 +32,14 @@ pagetitle: Red Teaming for CCDC
 - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
 - First, run [windows_add_payloads.ps1 -src {path_to_exe}](https://khaelkugler.com/scripts/windows_add_payloads.ps1.txt) to add the file to each of the locations
 - Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.txt)
+  - Removing persistence:
+    - Delete payloads from all locations
+    - Schtask: `Unregister-ScheduledTask -TaskName "WindowsUpdater" -Confirm:$false`
+    - Registry Run Key: Delete registry entries from both locations
+    - Shortcut in Startup: `rm 'C:\Users\$env:USERNAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\winupdater.lnk'`
+    - Service: `Stop-Service -Name "WinUpdaterSvc"` and `$service = Get-WmiObject -Class Win32_Service -Filter "Name='WinUpdaterSvc'"; $service.delete()`
+    - Registry UserInit: Remove 2nd path and 2nd comma from `HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon`
+    - Registry Logon Script: Remove path from `HKCU:\Environment`
 - Shells:
   - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`
   - 139/445 - use `psexec.py -hashes :{hash} '{domain}/{user}@{ip}'` or `smbexec`
