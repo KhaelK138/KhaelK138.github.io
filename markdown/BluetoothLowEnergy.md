@@ -97,6 +97,8 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 - Can use nRF Connect app (both iOS and Android surprisingly) to monitor nearby bluetooth devices
   - Can use [BlueSee](https://apps.apple.com/us/app/bluesee-ble-debugger/id1336679524?mt=12) on Mac
   - Also have nRF Connect for Desktop for PCs
+- `hcitool`
+  - `lescan` will scan for nearby BLE devices
 - Other tools used
   - Bluetooth Dongle
     - Just a USB BLE interface to provide bluetooth to an OS (like a VM)
@@ -106,6 +108,7 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - NovelBits has a [guide](https://novelbits.io/nordic-ble-sniffer-guide-using-nrf52840-wireshark/) for capturing BLE with Wireshark
   - Ubertooth One (not used that much)
 
+
 **Packet Captures**
 - Capturing BLE packets over the air is unreliable and encrypted, but might be the only option when Central and Peripheral devices aren't under control
 - Capturing from a controlled device before encryption is applied is better
@@ -113,6 +116,24 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 ## BLE Interaction
 - After connecting nRF52840 dongle, we can use it to interact with nearby bluetooth devices via nRF Connect for Desktop Bluetooth Low Energy (downloaded from the nRF Connect for Desktop app)
 - Run scan to see devices that the dongle can see, and then we can connect to view the services available (along with their characteristics)
+
+**Spoofing**
+- `bluez` is the Bluetooth/BLE stack for linux
+- Easy to interact with it using `bluetoothctl`
+- Advertising a device:
+  - `bluetoothctl` and `power on`
+  - Access advertise menu with `menu advertise`
+    - `manufacturer 0x{hexdata}` to set the manufacturer information
+    - `name {device_name}` to set the device name
+    - `back` to leave the advertising menu
+    - `uuids 0x{hexdata_uuid1} 0x{hexdata_uuid2}` to advertise services (naming convention is a bit weird it seems)
+    - `service 0x{hexdata_uuid} {service_info_bytesadvertis}` to advertise service data
+  - `advertise on` to start advertising
+- Adding services/characteristics:
+  - `menu gatt` to get to the gatt menu
+    - `register-service {128_bit_hex_UUID}`
+    - `register-characteristic 0x{hex_UUID_like_1111} {read,write,notify}` 
+    - `register-application` to tell BlueZ about the service/characteristics
 
 ## Miscellaneous
 - Tool to lookup first three octets of a MAC address to see who it's from: https://www.wireshark.org/tools/oui-lookup.html
