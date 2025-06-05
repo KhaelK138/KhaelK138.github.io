@@ -32,6 +32,8 @@ pagetitle: Miscellaneous Web Notes
 	- `HTTP User-Agent` can sometimes be displayed in logging pages, so modifying it could XSS or SQLi some sites
 	- `Server` response can reveal info about server
 
+## Testing SAML
+- [https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/](https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/) - great blog post
 
 https://github.com/botesjuan/Burp-Suite-Certified-Practitioner-Exam-Study
 https://github.com/DingyShark/BurpSuiteCertifiedPractitioner
