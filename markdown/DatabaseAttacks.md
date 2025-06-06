@@ -41,7 +41,8 @@ pagetitle: Database Attacks
   - `Get-SQLServerPasswordHash` gets SQL server login passwords
   - Inspecting linked servers: `Get-SQLServerLink` 
     	- With auth: `-Username {mssql_username} -Password {mssql_password}  -Instance {server_name} -Verbose`
-- Kali has `impacket-mssqlclient` to connect to MSSQL databases
+- **Impacket's MSSqlClient** 
+	- Kali has the very useful `impacket-mssqlclient` to connect to MSSQL databases
 	- `impacket-mssqlclient {database_username}:{password}@{host IP}`
 		- `-windows-auth` allows us to authenticate with windows credentials; `-k` to use `.ccache` kerberos auth 
 	- **Command Execution**
