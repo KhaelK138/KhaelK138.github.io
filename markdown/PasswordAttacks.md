@@ -27,6 +27,7 @@ pagetitle: Password Attacks
 - Make sure to save or delete the existing `datastore.np` before starting a new scan
 
 ## Password Cracking
+- Example hashes for each hashcat mode: [https://hashcat.net/wiki/doku.php?id=example_hashes](https://hashcat.net/wiki/doku.php?id=example_hashes)
 - Mutating Wordlists:
 	- https://github.com/frizb/Hashcat-Cheatsheet?tab=readme-ov-file
 	- Sometimes wordlists might not match the minimum requirements of a password for a location being tested, so the wordlist can drop all of the unneeded passwords

