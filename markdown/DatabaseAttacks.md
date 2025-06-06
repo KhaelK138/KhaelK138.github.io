@@ -27,7 +27,7 @@ pagetitle: Database Attacks
 ## MSSQL
 - Database management built into Windows
 	- `master` database for system-level details, `msdb` database for scheduling alerts/jobs, `model` database acts as blueprint for new mssqlservers, `resource` database for hosting system objects in read-only fashion, `tempdb` database as temporary storage area
-	- Users v.s. logins
+	- Users vs. logins
 		- Both users and logins are required to perform database operations
 		- Users dictate who can access the SQL server instance as a whole (but this doesn't provide any database access)
 			- These can be local database users, like `sa`, local Windows users, or Domain users
