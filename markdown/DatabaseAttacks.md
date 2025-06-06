@@ -1,6 +1,6 @@
 ---
 layout: blank
-pagetitle: SQL Attacks
+pagetitle: Database Attacks
 ---
 
 ## General Database viewer tools
