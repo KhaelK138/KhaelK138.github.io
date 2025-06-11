@@ -105,7 +105,7 @@ pagetitle: Database Attacks
 
 ## PostgreSQL
 - Use `psql` for to connect to PostgreSQL databases
-- Command execution with `COPY mytable TO PROGRAM 'whoami';`
+- Command execution with `COPY (SELECT '') TO PROGRAM 'bash -c "whoami"';`
 	- Requires superuser
 - Command execution with `SELECT pg_execute_server_program('id');`
 	- This won't require superuser, but will require `pg_execute_server_program`
