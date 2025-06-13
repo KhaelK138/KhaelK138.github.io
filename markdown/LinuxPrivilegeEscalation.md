@@ -37,9 +37,10 @@ pagetitle: Linux Privilege Escalation
 - Checking for `setuid` and `setgid` executables
 	- These files can be executed by users with the rights of the owner or owner's group
 	- Thus, getting commands through one of these executables allows privesc
+    	- For example, if python has the setuid bit, we can simply `os.setuid(0)` to elevate python to run as root
+    	- Any suid binary/script with capabilities to run user commands (or command injection AFTER the binary has increased its privileges) will do the trick
 	- Search for these files with `find / -perm -u=s -type f 2>/dev/null`
 		- Then, check if usable with GTFO bins
-		- `2>/dev/null` sends all errors to null
 
 **Automated Enumeration**
 - `linpeas`
