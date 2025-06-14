@@ -107,7 +107,7 @@ perl -e 'exec "/bin/sh";'
     
 ```
 
-Exfiltrate files off of a Windows system `sudo python3 app.py`
+Exfiltrate files off of a Windows system `sudo python3 app.py` (if [updog](https://github.com/sc0tfree/updog) isn't available)
 
 ```
 
