@@ -203,6 +203,8 @@ pagetitle: Red Teaming for CCDC
 - Windows:
   - Shutdown: `shutdown /s /t 0`
   - Reboot: `shutdown /r /t 0`
+  - See who's got an RDP session: `query user` or `query session`
+    - Hijack it with `tscon.exe {target_id} /dest:rdp-tcp#{our_rdp_session_number}`
   - Logoff user:
     - `query session` and `logoff {id}` to log off a specific user
   - Powershell save path: `(Get-PSReadlineOption).HistorySavePath`

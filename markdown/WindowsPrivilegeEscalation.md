@@ -83,6 +83,7 @@ pagetitle: Windows Privilege Escalation
 	- https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1
 - Seatbelt
 	- https://github.com/GhostPack/Seatbelt
+	- Full enum: `.\Seatbelt.exe -group=all`
 
 ## Leveraging Windows Services
 
