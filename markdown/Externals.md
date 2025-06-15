@@ -13,6 +13,13 @@ Uncovering assets:
 
 - Burp Enterprise is really good for automatically searching for classic bugs on a list of sites
 
+Viewing websites:
+- Run gowitness on the IP ranges/hosts, enumerate mainly the 200s unless there's time for all
+- `gowitness scan cidr --write-db --cidr {IP_range} --write-db`
+  - If we have a list of IPs: `gowitness scan file  --write-db -f {file_with_ips}`
+  - If we have a list of CIDRs: `gowitness scan cidr  --write-db --cidr-file {file_with_cidrs}`
+- Then just view the results by running `gowitness report server` in the same directory (with `gowitness.sqlite3`)
+
 Search documentation/internal resources for:
 
 ```
