@@ -167,6 +167,7 @@ pagetitle: Red Teaming for CCDC
 
 **Trolling**
 - By far the most important part of CCDC
+- `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
 - `wall "dance"`
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
