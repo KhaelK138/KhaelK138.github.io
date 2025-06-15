@@ -30,6 +30,15 @@ Joomla
 - `sudo python3 joomla-brute.py -u {url} -w passwords.txt -usr {username}
     - [https://github.com/ajnik/joomla-bruteforce](https://github.com/ajnik/joomla-bruteforce)
 
+Email
+- [smtp-user-enum](https://github.com/pentestmonkey/smtp-user-enum)
+  - `smtp-user-enum -M {VRFY/RCPT/EXPN} -U {username_list} -D {domain} -t {ip}`
+- [o365spray](https://github.com/0xZDH/o365spray)
+  - `python3 o365spray.py --enum -U {username_list} --domain {domain}`
+- Open relay (send emails from the server)
+  - nmap's `--script smtp-open-relay` will check
+  - To send an email: `swaks --from {from_email} --to {to_email} --header '{header}' --body '{body}' --server {ip}`
+
 PHP
 - [https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php\_reverse\_shell.php](https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php) - reverse shell (cross platform)
 
