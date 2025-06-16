@@ -20,6 +20,12 @@ Viewing websites:
   - If we have a list of CIDRs: `gowitness scan cidr  --write-db --cidr-file {file_with_cidrs}`
 - Then just view the results by running `gowitness report server` in the same directory (with `gowitness.sqlite3`)
 
+Finding user information and passwords:
+- Seems [dehashed](http://dehashed.com/) could be a good tool for enumeration
+  - `sudo python3 dehashed.py -q {domain_name} -p`
+- [linkedin2username](https://github.com/initstring/linkedin2username) to get corporate usernames
+
+
 Search documentation/internal resources for:
 
 ```
