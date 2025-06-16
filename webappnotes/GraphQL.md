@@ -39,6 +39,7 @@ pagetitle: GraphQL Attacks
     - Can return lots of information, so right click the response and `Save GraphQL queries to site map` 
     - Can use online visualizers, but it didn't show a mutation query
       - http://nathanrandal.com/graphql-visualizer/ (don't use on sensitive data, run visualizer locally)
+    - Can also use InQL to view the possible queries
 - Mutation queries
   - Will have `variables` parameter where input is specified
 
