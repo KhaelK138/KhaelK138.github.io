@@ -176,7 +176,9 @@ pagetitle: Red Teaming for CCDC
 ## Dealing with System Protections
 
 **Defender**
-- Disable with:
+- If we're local admin, we can just add an exclusion:
+  - `Add-MpPreference -ExclusionPath "{path_to_excluded_folder}"`
+- Permanently disable with:
   - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
   - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
   - Just run all of these in powershell and defender should be lobotomized by the end:
