@@ -31,6 +31,8 @@ pagetitle: Miscellaneous Web Notes
 	- Check for git with `.git`
 	- Make sure to fuzz default IIS servers (see general Services notes)
 
+## Next.js
+- Use `__BUILD_MANIFEST.sortedPages` to see a list of all pages
 
 ## Exploitation
 - Finding default passwords for HTTP basic auth
