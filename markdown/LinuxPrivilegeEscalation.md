@@ -66,6 +66,12 @@ pagetitle: Linux Privilege Escalation
 - If TCPdump sudo permissions have already been given to us, we can use it to monitor network traffic, which isn't normally allowed
 	- `sudo tcpdump -i lo -A | grep "pass"`
 
+**Searching for interesting files**
+- Many times, especially on engagements, there will be custom scripts everywhere
+  - These can have credentials or generally important system information, like accessing a local service
+- Search for these with `find . -name '*.sh' 2>/dev/null` (or `.py`, `.pl`, etc.)
+  - To exclude directories, use `-not -path '{path}/*'`
+    - For example, `find / -name '*.sh' -not -path '/snap/*' -not -path '/usr/src/linux*' 2>/dev/null`
 
 ## Insecure File Permissions
 
@@ -165,6 +171,39 @@ void dbquery() {
 	- We can then just run `PYTHONPATH=/tmp/ python3 ./{script}` with our malicious library and function, same as above
 		- This format just sets the environment variable's scope to the single command (as the first parameter)
 
+## Escaping Restricted Shells
+
+- Great resource: [https://0xffsec.com/handbook/shells/restricted-shells/](https://0xffsec.com/handbook/shells/restricted-shells/)
+
+**Common Restricted Shells**
+- Rbash - restricted Bourne shell (sh)
+  - Can't change directories, set/modify env vars, or execute commands in other directories
+- Rksh - restricted Korn shell
+  - Similar as above, can't cd, set/modify env, or exec commands in other directories
+- Rzsh - restricted Z shell
+  - Can't run scripts, defining aliases, and modifying env
+
+**Command Injection**
+- Using `$()` or `` ` `` to simply execute commands
+- Can also try doing something like `ls -l ${cmd}`
+- Using shell metacharacters to specify multiple commands, for example `ls;whoami` or `ls|whoami`
+
+**Modifying Environment Variables**
+- If some custom command uses an environment variable, we can modify it to gain full command execution
+- Alternatively, we can sometimes change our directory of execution via specifying a different directory in an environment variable
+	- If we can't see the environment variables, try echoing `$0` or `$PATH` directly
+
+**Shell Functions**
+- Create a function like `function asdf() { /bin/bash; }`, and then run `asdf`
+
+**Reading files**
+- Sometimes, the best we can do is reading files
+- We can see which commands we have by checking our PATH and seeing what commands we have at our disposal
+  - Alternatively, we can run something like `help` or `compgen -c` to see what we have
+- Then, use GTFObins or searching up online to see how we can abuse
+  - For example, if we have man, we can do `man -C {file}` to set the contents of the file as man config, which man will error out on
+  - This will inadvertently show where in the file contents the error is, allowing us to read the file
+
 ## Miscellaneous
 
 **No Root Squash Abuse**
@@ -189,6 +228,7 @@ void dbquery() {
   - Copy the file to `/tmp` directory on the NFS server - `cp {binary_name} /mnt`
   - Set the SUID bit - `chmod u+s /mnt/{binary_name}`
   - Swtich back to the low priv user session and execute to gain a shell
+
 
 
 **What to do once you have root?**

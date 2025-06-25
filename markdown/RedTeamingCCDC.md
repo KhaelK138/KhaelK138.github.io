@@ -167,8 +167,13 @@ pagetitle: Red Teaming for CCDC
 
 **Trolling**
 - By far the most important part of CCDC
-- `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
-- `wall "dance"`
+- Spawn message box on Windows:
+  - `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
+- Wall on linux:
+  - `wall "dance"`
+- Spawn 50 notepads:
+  - `1..50 | ForEach-Object {Start-Process notepad}`
+    - Can do something like `calc` or 
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 - `misc::wp /file:{path}` to set the current PC's wallpaper
@@ -201,7 +206,6 @@ pagetitle: Red Teaming for CCDC
 - Temp disable: `sudo setenforce 0` or `sudo setenforce permissive`
 - Permanent disable: set `SELINUX=enforcing` to `disabled` in `/etc/selinux/config` and reboot
 
-
 ## Misc
 - Windows:
   - Shutdown: `shutdown /s /t 0`
@@ -211,6 +215,10 @@ pagetitle: Red Teaming for CCDC
   - Logoff user:
     - `query session` and `logoff {id}` to log off a specific user
   - Powershell save path: `(Get-PSReadlineOption).HistorySavePath`
+  - Get processes: `ps`
+    - Kill a process: `taskkill /pid {id_from_ps} /f`
+  - Search results of a command: `| FINDSTR /NI "{string}"`
+    - `/N` gets line number, `/I` ignores case
 - Linux:
   - `reboot` to restart
   - `who` to see who's on a system
