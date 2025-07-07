@@ -72,6 +72,11 @@ pagetitle: Linux Privilege Escalation
 - Search for these with `find . -name '*.sh' 2>/dev/null` (or `.py`, `.pl`, etc.)
   - To exclude directories, use `-not -path '{path}/*'`
     - For example, `find / -name '*.sh' -not -path '/snap/*' -not -path '/usr/src/linux*' 2>/dev/null`
+- Useful `find` flags
+  - `-group {group}` - owned by a certain group
+  - `-user {user}` - owner by a certain user
+  - `-size {bytes}c` - number of bytes long
+    - Can add `+` or `-` in front of bytes to check larger/smaller than
 
 ## Insecure File Permissions
 
@@ -103,18 +108,21 @@ pagetitle: Linux Privilege Escalation
 
 **SetUID/SetGID**
 - Linpeas will check for `setuid` and `setgid` executables
-- These binaries can be executed by users with the rights of the owner or owner's group
-	- Thus, getting commands through one of these executables allows privesc
-	- Search for these files with `find / -perm -u=s -type f 2>/dev/null`
+- These binaries can be executed by users with the rights of the owner or owner's group (EUID changes)
+    - Search for these files with `find / -perm -u=s -type f 2>/dev/null`
 		- Then, check if abusable with GTFO bins
+	- Thus, getting commands (which respect a different EUID) through one of these executables is a privesc
+    	- Running `id` with command injection would result in `uid=1000({user}}) gid=1000({user_group}) euid=0(root) groups=1000({user_group})`
 - Scripts, like bash/python scripts, *can* have the suid bit, but will not execute as root until manually setting the UID to 0
 	- For example, if a python script has the setuid bit, it will need to `os.setuid(0)` before anything is run as root
-		- This is done for safety reasons due to a kernel race conditionw with loading and execution scripts
+		- This is done for safety reasons due to a kernel race condition with loading and execution scripts
 	- However, after these scripts elevate their privileges, we can modify our own path such that ANY binaries are ours
 		- `echo "echo 'root2:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd" > /tmp/cat` (replace cat with target binary)
 		- `chmod +x /tmp/cat`
 		- `export PATH=/tmp:$PATH` (placing `/tmp` at the front so our "binaries" come first)
 		- Then, just run the script. After privileges are elevated and any of our binaries are called, we'll get the user added to `/etc/passwd`
+- Additionally, some binaries, like `bash` or `sh`, will not use the EUID set by a suid binary
+  - This is done for safety reasons, so even if we spawn a bash shell, the new shell will run as our current user (uid)
 
 **Abuse Capabilities**
 - Capabilities provide fine-grain privilege granting to processes
