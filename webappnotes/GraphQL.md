@@ -4,7 +4,7 @@ pagetitle: GraphQL Attacks
 ---
 
 **Automatic Exploitation**
-- GrapeQL will automatically enumerate a GraphQL endpoint and 
+- [GrapeQL](https://github.com/AleksaZatezalo/grapeql.git) will automatically enumerate a GraphQL endpoint and attempt to find common web vulns
   - Installed with pip
   - `grapeql --api {url}/{graphql_endpoint} --report report.md`
     - `--dos` to try denial of service attacks
