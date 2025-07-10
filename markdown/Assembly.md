@@ -1,3 +1,8 @@
+---
+layout: blank
+pagetitle: Assembly
+---
+
 ## Assembly Notes
 
 **High-level vs. Low-level**
@@ -126,4 +131,37 @@ _start:
     - `-s` is used for strings, so we can get stuff from the `text` section
 
 **GDB**
-- 
+- GNU Debugger works as a great debugging tool for binaries given good integration with linux and system components
+- [GEF](https://github.com/hugsy/gef) - GDB Enhanced Features
+  - Plugin for GDB; very useful for reverse engineering
+  - Installed with `wget -O ~/.gdbinit-gef.py -q https://gef.blah.cat/py` and then `echo source ~/.gdbinit-gef.py >> ~/.gdbinit`
+    - Now, simply running `gdb {binary}` will open it up with GEF ready to go
+- Has many different useful commands
+- System information
+  - `help {command}` - display usage of individual gdb commands (like the ones below)
+  - `info {category}` - view general program information, such as functions, variables, breakpoints, or the stack
+  - `disas {function_name}` - disassemble a function
+  - `registers` - examine register contents
+- Setting breakpoints and stepping through execution
+  - `b {function_name}` - set an execution breakpoint on a function
+    - `b *0x{memory_address}` - set a breakpoint at a specific point in memory
+  - `d {breakpoint_id}` - delete a breakpoint 
+  - `n` - go to the next function
+  - `ni` - go to the next instruction (skipping function calls)
+    - Can also use `si` for a more detailed instruction step-through (every single machine instruction run on the processor)
+      - This will include things like calling `sum()`, whereas `ni` would skip over this
+  - `c` - continue to next breakpoint
+- Reading memory
+  - `x/{count}{format}{size} {$register_or_0xAddress}` - examine memory at a certain point
+    - `{count}` is the number of times to iterate
+    - `{format}` is `x` for hex, `s` for string, and `i` for instruction
+    - `{size}` is `b` for byte, `h` for halfword, `w` for word, `g` for giant (8 bytes)
+    - Thus, `x/4xb $rip` would examine the next 4 instructions in 8 byte portions starting at the memory address stored in `rip`
+- Modifying memory
+  - Use `patch` (via GEF) to modify memory at a given address
+    - `patch {type/size} {location} {values_to_change_to}`
+      - The type can be `byte`, `word`, `dword`, `qword`, or `string`
+  - If we don't have GEF, we can use `set` in GDB
+    - For example, set registers with `set ${reg}={value}`
+- Misc
+  - `!command` - run a shell command (useful for something like `!strings`)
