@@ -56,6 +56,7 @@ pagetitle: Assembly
       - Used to store specific important address pointers
       - `rbp` is the base stack pointer, keeping track of the beginning of the stack
       - `rsp` points to the current location within the stack (the top)
+        - This will be `argc` at the start of execution 
       - `rip` is the instruction pointer, showing the location of the next instructions
   - Sub-registers
     - Each register can be divided into sub-registers, which each divide by 2
@@ -151,6 +152,8 @@ _start:
     - Can also use `si` for a more detailed instruction step-through (every single machine instruction run on the processor)
       - This will include things like calling `sum()`, whereas `ni` would skip over this
   - `c` - continue to next breakpoint
+  - `r` - run the program
+    - `set args {args}` - can be used to set the arguments before execution
 - Reading memory
   - `x/{count}{format}{size} {$register_or_0xAddress}` - examine memory at a certain point
     - `{count}` is the number of times to iterate
@@ -165,3 +168,30 @@ _start:
     - For example, set registers with `set ${reg}={value}`
 - Misc
   - `!command` - run a shell command (useful for something like `!strings`)
+
+## Coding in Assembly
+
+**Data Movement**
+- `mov` to move a value into a register
+  - `mov rax, 1` - puts 1 in `rax`
+  - `mov rax, rsp` - moves the address in rsp into `rax`
+  - `mov rax, [rsp]` - moves the value at rsp into `rax`
+- `lea` to load an address with pointer arithmetic into a register
+  - `lea rax, [rsp + 10]` - load the address of `rsp` + `0xa` into `rax` 
+  - `lea rax, [rbx + rcx*4 + 32]` would load `rbx` + `rcx * 4` + `0x20` into `rax`
+
+**Arithmetic**
+- `inc` and `dec` to increment/decrement by 1
+- `add`, `sub`, and `imul` to add/subtract/multiply destination by source
+
+**Bitwise Instructions**
+- `and`, `or`, `not`, and `xor` will all perform their respective operations
+  - `or rax, rax` will just set `rax` to itself (same with `and`), whereas `xor` would set it to 0
+  - `not rax` would invert `rax`
+
+**Loops**
+- Number of iterations for a loop should be set in the `rcx` register
+  - `rcx` will be used, so if we forget to set our loop iterations here it could underflow from 0 lol
+- Define a loop like a function, with `{loop_name}:` and instructions following
+  - It should end in `loop {loop_name}`
+- We technically don't need to initially jump to our loop, as execution will fall through after the end of our `_start` function
