@@ -62,10 +62,11 @@ pagetitle: Assembly
     - Each register can be divided into sub-registers, which each divide by 2
       - For example: `rax` is 64 bits, `eax` is the lower 32 bits, `ax` is the lower 16 bites, and `al` is the lowest 8 bits
     - Sub-registers can be access/written-to on their own, so we don't need to use the full register with smaller amounts of data
-  - Syscalls
+  - **Syscalls**
     - On x86 systems, syscalls use the following format
       - `rax` is used for the syscall number - for example, `1` in `rax` means to print the data
-      - `rdi`, `rsi`, `rdx`, `r10`, `r8`, and `r9` are used (in order given) as arguments for the syscall
+        - This will also store the result of the call
+      - `rdi`, `rsi`, `rdx`, `rcx`, `r8`, and `r9` are used (in order given) as arguments for the syscall
 - Memory addresses
   - `0x0` to `0xffffffffffffffff` (on 64 bit systems)
   - Split among the various sections of RAM (like stack and heap)
@@ -87,6 +88,8 @@ pagetitle: Assembly
 - Also contains directives (like `global _start`), which tells code to begin execution at `_start`
 - Can define variables in the `.data` section using `db` for a list of bytes, `dw` for a list of words, `dd` for a list of digits
   - For example, `message db "Hello World!", 0x0a`
+    - `0x0a` is just a line feed (newline), placing it there just appends it to the string
+    - Strings can also use format specifiers, like `%d`, to specify what type of string it is
   - Can also use the `equ` instruction to evaluate an expression
     - Using this to define a label creates a constant that cannot be changed
     - `length equ $-message` would set `length` to equal the distance from where we're currently at to the value (which in this case is negative message), so `length` would be the length of `Hello World!`
@@ -195,3 +198,111 @@ _start:
 - Define a loop like a function, with `{loop_name}:` and instructions following
   - It should end in `loop {loop_name}`
 - We technically don't need to initially jump to our loop, as execution will fall through after the end of our `_start` function
+
+**Branching**
+- We can jump to a function unconditionally with `jmp`
+  - Since `jmp` doesn't decrement `rcx`, running `jmp` on the current function is basically a while true loop
+- We can jump conditionally using other jump functions, depending on the flags set
+  - `jz`/`jnz` - jump if destination equal to zero/not equal to zero
+  - `js`/`jns` - jump if destination negative/non-negative
+  - `jg`/`jge` - jump if destination greater than (or equal to) source
+  - `jl`/`jle` - jump if destination lesser than (or equal to) source
+- We can also use conditional functions, like `cmovz`, which moves the source into the destination if the zero flag is set
+  - Same idea applies to something like `cmovl` or `setz`
+- These conditions are met within the RFLAGS register
+  - In order, the bits represent `Carry`, {Reserved}, `Parity`, {Reserved}, `Auxiliary Carry`, {Reserved}, `Zero`, `Sign`, `Trap`, `Interrupt`, `Direction`, `Overflow`
+  - Aside from normal operations, we can set these flags with `cmp`, which will subtract the 2nd operand from the 1st and populate the flags accordingly
+    - This can be handy if we don't want to actually modify any registers
+
+**Using the Stack**
+- We can push/pop from the stack as a form of temporary data storage
+  - For example, perhaps before calling a function, we can `push rax` and then `pop` it afterward
+- However, we have to push/pop registers totaling a multiple of 16 in size, otherwise it won't be 16-byte aligned
+  - We can manually `sub` from `rsp` before calling a function if we aren't aligned, as long as we `add` to `rsp` afterward
+    - However, if we're already pushing an even number of registers all of the same size (for example, `rax` and `rbx`), then we don't need to worry about stack alignment
+- `rsp` points to the top, while `rbp` points to the base
+
+**Subroutines**
+- We can use subroutines to define functions, essentially
+- We can use `call` to call a function, which basically pushes the instruction pointer to the stack (so we know where to return to) and then jumps to the associated point in memory
+  - Then, within the function, we can `ret` to pop the address at `rsp` into `rip` and jump to it
+
+**Functions**
+- More complex than subroutines, as they must: 
+  - Save registers to the stack
+  - Pass function arguments
+  - Fix stack alignment
+  - Get function's return value and place in `rax`
+- We can import functions with `extern {function}`, such as `printf` or `scanf`
+  - Thus, in this case, we'd need to perform dynamic linking for the `libc` library within the `ld` function
+    - Performed with `-lc --dynamic-linker /lib64/ld-linux-x86-64.so.2`
+  - We can then move the format into `rdi` and the string to print into `rsi`, and then `call printf`
+- When reading input with `scanf`, we'll need a buffer to hold the input
+  - We can define this in the `.bss` section (after `.data`) with `{variable_name} resb {number_of_reserved_bytes}`
+
+
+## Shellcode
+
+- Shellcode is a hex representation of a binary's executable machine code
+
+**Pwntools**
+- Framework for sending shellcode to remote services
+- Can assemble any code into shellcode
+  - `pwn asm '{assembly}' -c '{arch_like_amd64}'`
+- Can also extract shellcode from a binary
+  - `python3 -c 'from pwn import *; file = ELF("{binary}"); print(file.section(".text").hex())'`
+  - However, this shellcode likely won't be fixed, so we won't be able to immediately run it
+- Can also run shellcode with `run_shellcode`:
+
+```
+from pwn import *; context(os="linux",arch="amd64",log_level="error")
+run_shellcode(unhex("{shellcode}")).interactive()
+```
+
+**Shellcoding Techniques**
+- To be proper shellcode, it must
+  - Not contain variables
+  - Not refer to direct memory addresses
+  - Not contain any null bytes
+- To not contain variables, we can repeatedly push data onto the stack
+  - For example, if we wanted to push "Hello World!", we'd do `mov rbx, 'rld!'`, `push rbx`, `mov rbx, 'Hello Wo`, `push rbx`
+  - Then, we can set `rsi` to `rsp` (`rsi` is the argument to print, and `rsp` is the current start of the string)
+- To remove addresses, we need to only reference labels or relative addresses
+  - This normally shouldn't be an issue, and if necessary we can push to the stack and use `rsp`
+- To not have null bytes, we need to use registers matching the data size
+  - For example, instead of `mov rax, 1`, we'd want to do `mov al, 1`
+
+**Shellcoding Tools**
+- We can disassemble assembly with `pwn disasm`
+  - `pwn disasm '{shellcode}' -c 'amd64'`
+- Crafting a `/bin/sh` using `execve` (syscall number 59)
+- Our final function would be `execve("/bin//sh", ["/bin//sh"], NULL)`
+  - We'll let `rax` hold `59` (syscall), `rdi` and `rsi` hold `['/bin//sh']` (pointer to program to execute and list of argument pointers), and `rdx` hold `NULL` (no env variables)
+    - Added a second `/` to `/bin/sh` so it's 8 bytes
+  - The assembly we'll end up running based on these constraints:
+
+```
+global _start
+
+section .text
+_start:
+  mov al, 59          ; execve syscall number
+  xor rdx, rdx        ; set env to NULL
+  push rdx            ; push NULL string terminator
+  mov rdi, '/bin//sh' ; first arg to /bin/sh
+  push rdi            ; push to stack 
+  mov rdi, rsp        ; move pointer to ['/bin//sh']
+  push rdx            ; push NULL string terminator
+  push rdi            ; push second arg to ['/bin//sh']
+  mov rsi, rsp        ; pointer to args
+  syscall
+```
+
+- `pwn` also has `shellcraft`, which we can use to generate a `/bin/sh` shell with `pwn shellcraft amd64.linux.sh`
+  - We can add on `-r` to run the shellcode
+- We can also use `msfvenom` to generate or encode a payload
+  - `msfvenom -p 'linux/x64/exec' CMD='sh' -a 'x64' --platform 'linux' -f 'hex'`
+    - To obfuscate(?) a payload (to evade some antivirus), we can use `-e 'x64/xor'`
+  - If we want to use msfvenom to encode a custom binary, we can write the bytes to a file and then pass to msfvenom
+    - `objcopy -O binary -j .text {binary} {binary_name}.bin`
+    - `msfvenom -p - -a 'x64' --platform 'linux' -f 'hex' < {binary_name}.bin` will give us the shellcode
