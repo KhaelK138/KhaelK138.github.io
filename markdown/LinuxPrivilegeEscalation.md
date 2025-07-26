@@ -237,11 +237,18 @@ void dbquery() {
   - Set the SUID bit - `chmod u+s /mnt/{binary_name}`
   - Swtich back to the low priv user session and execute to gain a shell
 
-
+**Using Symlinks**
+- Symlinks can be very useful if we know a root process is going to somehow modify a file we can control
+- If the process changes the permissions of a file (e.g. making it world-writeable):
+  - We can symlink it to `/etc/passwd` and then use the additional permissions to give ourselves a backdoor
+    - `ln -s /etc/passwd {path_to_overwritten_file}`
+    - Then `echo "attacker::0:0:attacker:/root:/bin/bash" >> /etc/passwd` and we're golden with `su attacker`
+- Alternatively, if we can control the contents overwriting the file we control:
+  - We can simply create our own version of `/etc/passwd` with a line appended onto it, and the process will overwrite the symlinked file
 
 **What to do once you have root?**
 - Look around the filesystem for passwords
-	- `/etc/shadow` for hashes
-	- Application config files 
-	- Log files (like apache)
-	- All users' home directories for interesting files/bash history
+  - `/etc/shadow` for hashes
+  - Application config files 
+  - Log files (like apache)
+  - All users' home directories for interesting files/bash history
