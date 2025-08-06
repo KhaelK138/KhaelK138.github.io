@@ -56,6 +56,11 @@ pagetitle: Linux Privilege Escalation
 
 ## Exposed Confidential Information
 
+**Noseyparker**
+- Automatically finds passwords within filesystems
+- Can get it from [https://github.com/praetorian-inc/noseyparker/releases/download/v0.24.0/noseyparker-v0.24.0-x86_64-unknown-linux-gnu.tar.gz](https://github.com/praetorian-inc/noseyparker/releases/download/v0.24.0/noseyparker-v0.24.0-x86_64-unknown-linux-gnu.tar.gz)
+- If we want to scan our current filesystem, noseyparker will often trip a lot of its own rules, so just `chmod 111 ./noseyparker` before running
+
 **Checking User History Files**
 - `.bashrc` can sometimes contains environment variables with credentials
 - `echo $HISTFILE`

