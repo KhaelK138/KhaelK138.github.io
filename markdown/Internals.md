@@ -30,5 +30,11 @@ sudo systemctl start nessusd
   - If we have a list of CIDRs: `gowitness scan cidr  --write-db --cidr-file {file_with_cidrs}`
 - Then just view the results by running `gowitness report server` in the same directory (with `gowitness.sqlite3`)
 
+## Finding internal subdomains
+- Let's say we have an internal server, like `test.local`
+- If we want to find subdomains, `gobuster` can serve us nicely
+- Place the IP and `test.local` in `/etc/hosts`, and then run `gobuster vhost -u test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 50  --append-domain > vhost`
+- Then simply grep `vhost` for `"Status: 200"`
+
 ## Active Directory
 - 99% of internals use Active Directory, so refer to the enumeration/exploitation notes instead
