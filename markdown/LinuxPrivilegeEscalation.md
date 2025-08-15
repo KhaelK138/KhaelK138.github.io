@@ -82,6 +82,8 @@ pagetitle: Linux Privilege Escalation
   - `-user {user}` - owner by a certain user
   - `-size {bytes}c` - number of bytes long
     - Can add `+` or `-` in front of bytes to check larger/smaller than
+  - `-exec grep -nir "{data}" {} \;` - search resulting files for data
+    - Can also throw on `-A 2 -B 2` for above and below 2 lines of grep
 
 ## Insecure File Permissions
 
@@ -250,6 +252,11 @@ void dbquery() {
     - Then `echo "attacker::0:0:attacker:/root:/bin/bash" >> /etc/passwd` and we're golden with `su attacker`
 - Alternatively, if we can control the contents overwriting the file we control:
   - We can simply create our own version of `/etc/passwd` with a line appended onto it, and the process will overwrite the symlinked file
+
+**Decrypting files using a key**
+- OpenSSL can handle a lot of decryption
+- For example, if we want to decrypt a file using AES-256 and using a key, we can run the following
+  - `openssl enc -d -aes256 -k {key} -in {file_to_decrypt} -out {where_to_put_decrypted_file}`
 
 **What to do once you have root?**
 - Look around the filesystem for passwords
