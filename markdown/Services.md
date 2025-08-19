@@ -77,7 +77,7 @@ RewriteBase /
 ## Joomla
 - [droopescan](https://github.com/SamJoan/droopescan)
   - `droopescan scan joomla -u {url}`
-- [JoomaScan](https://github.com/drego85/JoomlaScan)
+- [JoomlaScan](https://github.com/drego85/JoomlaScan)
   - Requires python 2.7 and some dependencies - `sudo python2.7 -m pip install urllib3 certifi bs4`
   - `python2.7 joomlascan.py -u {url}`
 - Can get version from `/README.txt`, `media/system/js/`, `administrator/manifests/files/joomla.xml`, or approx at `plugins/system/cache/cache.xml`
