@@ -243,6 +243,40 @@ interval = 10
 - This can be done automatically with [IIS-ShortName-Scanner](https://github.com/irsdl/IIS-ShortName-Scanner)
   `java -jar iis_shortname_scanner.jar 0 5 http://{server}/`
 
+## AEM (Adobe Experience Manager)
+- Enterprise CMS running on top of Apache Sling and a Java Content Repository
+- We can identify by finding filepaths ending in `.json` or `.pdf` or by a header like `X-Dispatcher: hu1`
+  - We'll also often see calls to `/etc.clientlibs/` for JS
+- [Hacktricks info](https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-web/aem-adobe-experience-cloud.html?highlight=AEM#aem-adobe-experience-manager-pentesting)
+
+**Automated Tooling**
+- [AEM hacker](github.com/0ang3el/aem-hacker) can enumerate much of this and automatically report back
+  - Based on these slides: [https://speakerdeck.com/0ang3el/hunting-for-security-bugs-in-aem-webapps](https://speakerdeck.com/0ang3el/hunting-for-security-bugs-in-aem-webapps)
+
+**High Value Endpoints**
+- Anonymous POST servlet at `/.json` or `/.1.json` allows planting new JCR nodes
+  - If blocked, can sometimes be bypassed (see slides above) with something like `/bin/querybuilder.json;%0aa.css?path=/home&type=rep:User`
+- `/bin/querybuilder.json?path=/` - leak of page tree, internal paths, usernames
+- `/system/console/status-*`, `/system/console/bundles` - bundle upload RCE
+- `/crx/packmgr/index.jsp` - authenticated JSP package upload
+- `/etc/groovyconsole/**` - groovy console, RCE if exposed
+- `/libs/cq/AuditlogSearchServlet.json` - info disclosure
+- `/libs/cq/ui/content/dumplibs.html` - XSS vector
+
+**Common Misconfigs**
+- Being able to POST to `/.json`, as `:operation=import` allows planting JCR nodes
+- Default read on `/home/users/**/profile/*`
+- Default creds of `admin:admin`, `author:author`, or `replication:replication`
+- Reflected XSS via `?debug=layout`
+
+Basic RCE:
+
+```
+:contentType=text/plain
+jcr:data=<% out.println("pwned"); %>
+:operation=import
+```
+
 ## Miscellaneous
 - Many of the below have plenty of CVEs, just look em up
 - Nagios - default creds of `nagiosadmin:PASSW0RD`
