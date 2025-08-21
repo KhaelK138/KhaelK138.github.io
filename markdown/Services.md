@@ -252,6 +252,7 @@ interval = 10
 **Automated Tooling**
 - [AEM hacker](github.com/0ang3el/aem-hacker) can enumerate much of this and automatically report back
   - Based on these slides: [https://speakerdeck.com/0ang3el/hunting-for-security-bugs-in-aem-webapps](https://speakerdeck.com/0ang3el/hunting-for-security-bugs-in-aem-webapps)
+- [AEM Scan](github.com/Raz0r/aemscan/tree/master/aemscan) will find and display as many interesting paths as possible (more than AEM hacker in my experience)
 
 **High Value Endpoints**
 - Anonymous POST servlet at `/.json` or `/.1.json` allows planting new JCR nodes
@@ -269,13 +270,15 @@ interval = 10
 - Default creds of `admin:admin`, `author:author`, or `replication:replication`
 - Reflected XSS via `?debug=layout`
 
-Basic RCE:
+Basic RCE upload via POST to `/content/evil.jsp`:
 
 ```
 :contentType=text/plain
 jcr:data=<% out.println("pwned"); %>
 :operation=import
 ```
+
+Admin RCE script available here: [https://github.com/0ang3el/aem-hacker/blob/master/aem-rce-sling-script.sh](https://github.com/0ang3el/aem-hacker/blob/master/aem-rce-sling-script.sh), which uploads a malicious app
 
 ## Miscellaneous
 - Many of the below have plenty of CVEs, just look em up
