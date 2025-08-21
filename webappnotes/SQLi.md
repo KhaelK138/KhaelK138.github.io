@@ -132,3 +132,5 @@ PentestMonkey Cheat Sheet: https://pentestmonkey.net/category/cheat-sheet/sql-in
 		- Then, either LFI the new file or straight up access it if possible
 	- Can also extract users/passwords and crack hashes
 	- Could search up phpmyadmin version to get RCE (LFI + session cookie can lead to RCE)
+- Not quite SQLi, but in MySQL string comparisons are case-insensitive
+  - Thus, if `Admin` and `admin` are different users within the application, we could register `Admin` as a user, which could be functionally treated the same on the backend and provided the same admin functionality
