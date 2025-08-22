@@ -57,6 +57,14 @@ pagetitle: Red Teaming for CCDC
     - Then update GP with `gpupdate /force`
 
 **Linux:**
+- Todo:
+  - Investigate these methods: 
+    - TCP Wrapped Services: `echo 'ALL: ALL: spawn ({backdoor}) & :allow' >> /etc/hosts.allow)` (or `hosts.deny`)
+    - [Prism](https://github.com/andreafabrizi/prism) ICMP backdoor (connects out to host machine)
+    - https://github.com/milabs/awesome-linux-rootkits - list of rootkits
+    - https://github.com/jarun/spy - grabs keyboard input and puts it in /sys/kernel/debug/kisni/keys
+    - https://github.com/ait-aecid/caraxes/ - hides files, could we use this to hide an ssh key?
+    - https://github.com/Aegrah/PANIX - Linux persistence framework (this seems REALLY REALLY good)
 - Run [linux_persistence.sh {ip}:{port} {sliver_payload_file} {pam_so_file}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
   - Make sure to point the script to the correct location to pull both files from
     - Make sure to generate sliver payloads beforehand
