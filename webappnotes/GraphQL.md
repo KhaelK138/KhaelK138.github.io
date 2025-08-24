@@ -69,10 +69,11 @@ query isValidDiscount($code: Int) {
     }
 }
 ```
+
 - Python script to generate JSON-friendly aliases given a file with a list of words (brute forcing usernames example):
   - Replace `[mutations_code_here]` with `\n{mutations}\n` (Github markdown issue)
 
-```
+```python
 import json
 with open("wordlist.txt") as f:
     passwords = [line.strip() for line in f]

