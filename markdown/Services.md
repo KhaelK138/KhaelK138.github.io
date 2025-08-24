@@ -280,6 +280,10 @@ jcr:data=<% out.println("pwned"); %>
 
 Admin RCE script available here: [https://github.com/0ang3el/aem-hacker/blob/master/aem-rce-sling-script.sh](https://github.com/0ang3el/aem-hacker/blob/master/aem-rce-sling-script.sh), which uploads a malicious app
 
+## Grafana
+- Find version info by performing a GET request on `/login` and searching for `"latestVersion"`
+- 
+
 ## Miscellaneous
 - Many of the below have plenty of CVEs, just look em up
 - Nagios - default creds of `nagiosadmin:PASSW0RD`
