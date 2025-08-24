@@ -38,7 +38,7 @@ Using SMTP with `swaks`
 If error `no PostgreSQL user name specified in startup packet`, make sure to:
 - add env variables:
 
-```
+```sh
 export PGUSER=postgres
 export PGDATABASE=postgres
 ```
@@ -70,7 +70,7 @@ Transfer files with xfreerdp3 - `xfreerdp3 /u:{u} /p:{p} /v:{IP} /drive:mydrive,
 
 Upgrading linux shell:
 
-```
+```sh 
 python -c 'import pty; pty.spawn("/bin/bash")'
 python3 -c 'import pty; pty.spawn("/bin/bash")'
 echo 'os.system('/bin/bash')'

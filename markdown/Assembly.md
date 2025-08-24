@@ -97,7 +97,7 @@ pagetitle: Assembly
   - This portion of the stack is read-only, which is why we define variables in the `Data` segment
 - Code template:
 
-```
+```S
 global _start
 
 section .data
@@ -254,7 +254,7 @@ _start:
   - However, this shellcode likely won't be fixed, so we won't be able to immediately run it
 - Can also run shellcode with `run_shellcode`:
 
-```
+```Python
 from pwn import *; context(os="linux",arch="amd64",log_level="error")
 run_shellcode(unhex("{shellcode}")).interactive()
 ```
@@ -281,7 +281,7 @@ run_shellcode(unhex("{shellcode}")).interactive()
     - Added a second `/` to `/bin/sh` so it's 8 bytes
   - The assembly we'll end up running based on these constraints:
 
-```
+```S
 global _start
 
 section .text

