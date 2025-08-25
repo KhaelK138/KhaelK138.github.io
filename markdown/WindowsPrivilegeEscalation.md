@@ -111,6 +111,15 @@ C:\Program Files\Windows PowerShell\*
 
 **Remote Access Tool Credentials**
 - Use [SessionGopher](https://github.com/Arvanaghi/SessionGopher) to extract saved PuTTY, WinSCP, FileZilla, SuperPuTTY, and RDP credentials
+  - `Import-Module .\SessionGopher.ps1` and then run `Invoke-SessionGopher -Thorough`
+
+**DPAPI Keys**
+- Master encryption keys used by the Data Protection API (DPAPI) to encrypt data like passwords/certs
+- Derived from logon passwords
+- We'll find the master key in `~\AppData\Roaming\Microsoft\Protect\{user_SID}\`, which we can decrypt using impacket:
+  - `dpapi.py masterkey -file {masterkey_file} -sid {user_SID} -password '{user_password}'`
+- We can then use the masterkey to decrypt credentials, which are commonly found in `~\Appdata\(Roaming/Local)\Microsoft\Credentials\` again using impacket:
+  - `dpapi.py credential -file {credential_file} -key '0x{master_key}'`
 
 ## Automated Tools
 

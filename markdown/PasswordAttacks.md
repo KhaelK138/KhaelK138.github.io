@@ -42,7 +42,16 @@ pagetitle: Password Attacks
 - Extracting hashes:
 	- Many methods, but here's a novel one:
 		- `Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue` will search for kdbx files (KeePass files) containing hashes
-		- keepass2john {keepass_database_file} to extract hash
+		- `keepass2john {keepass_database_file}` to extract hash
+    		- We can then list the passwords like so:
+
+```python
+from pykeepass import PyKeePass
+kp = PyKeePass('{db}.kdbx', password='{password}')
+for entry in kp.entries:
+    print(f"Title: {entry.title}, Username: {entry.username}, Password: {entry.password}")
+```
+
 - Determining hash type:
 	- `hashcat --help` will list a lot of info about types of hashes, so if we know where the hash is from, we can look it up here with `hashcat --help | grep -i "{identifier}`
 		- This should return the hashcat mode for the hash, which is a number like 13400
