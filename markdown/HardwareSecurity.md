@@ -9,12 +9,15 @@
   - Could be thought of as water pressure in two locations, where water will flow from high to low pressure areas
 - Pushes current through a circuit, measured in Volts (V)
 - Electrons flow through the device from the negative to the positive
+- This is how data is communicated, via differences in voltage
+  - For example, a 1 could be 3.3V and a 0 could be 0V
 
 **Ground**
 - Very important, acts as an unmoving reference
   - Typically the lowest voltage line in a circuit (with exceptions for things like audio processing and motor controls)
 - If something is 5V, it's 5V with respect to ground
   - This can differ between devices, so we need to connect the ground of our tools and devices so they have the same reference point
+  - Look for metal on a board, that'll usually be ground, or sometimes USB connector
 
 **Current**
 - Flow of electrical energy from one point to another
@@ -92,3 +95,67 @@
 - Described based on pitch, which is the distance between the centers of pins (usually 2.54mm)
 - Test points - pads used for production programming/validation/troubleshooting
   - Labeled with TP, will look like little exposed copper/tin pads
+
+## Testing a board
+
+**Checking voltages**
+- Set multimeter to DC V 20 (to measure up to 20 volts)
+  - This is on the left side, AC is on the right (but this will rarely be necessary)
+- Then connect black lead (ground) into COM section (common reference AKA ground) and the red lead into the voltage/ohm/amperage section
+- Tap the black probe to ground and then use the red probe to check voltages
+
+**Testing continuity**
+- Board should not be powered during continuity testing (else we risk shorting the circuit)
+- Set the multimeter to the Wifi looking thing
+  - This will send current through one of the probes and will check if receiving it through the other probe
+- This will tell us if the things we test are connected together
+  - For example, we could check to see which pin a test pad is connected to
+- Put black cable in COM and red cable in the voltage/ohm/amperage section
+- Then touch probes to two locations
+- We might have to 
+
+## UART
+
+- Universal Asynchronous Receiver-Transmitter
+- Hardware communication protocol allowing serial data exchange between devices without a shared clock signal (done via a Baud rate)
+- Active-high vs. active-low:
+  - Active-high - idling at 0V and sending data at higher voltage
+  - Active-low - idling at higher voltage and sending data at 0V
+
+**Identification**
+- 3 pins, ground, Receive, and Transmit, indicate UART
+  - Sometimes a 4th pin, Vcc
+- When connecting devices, Rx goes to Tx and Tx goes to Rx
+  - One device transmits data and the other receives data
+  - These can often be mislabeled, so often when debugging first step is to swap these
+- Frame:
+  - Start bit, data bits, parity bit, and 1-2 required stop bits
+  - Data is usually 8 bits, with least significant bit sent first
+- Can figure out Rx and Tx by tracing pins to the chip and checking the pinout
+  - We can also just connect it to the logic analyzer and see where the data comes from (all data out will come from the board's Tx pin)
+- Baud rate is a predefined speed of data measured in bits per second
+  - Common values: 115.2k, 9.6k (90% of baud rates), 57.6k, 19.2k, 4.8k
+  - Generally running through these 5 will result in a good chance of talking to the device
+  - Can also perform a measurement with a logic analyzer and calculate the baud rate 
+    - https://github.com/devttys0/baudrate/blob/master/baudrate.py
+- Parity start/stop bit is configured to off (99% of the time), even, or odd
+- Either 1 or 2 stop bits
+
+**Reading data**
+- Use a logic analyzer to connect to the pins
+- Connect either ground pin to ground
+- Take other two RX and connect to channel 0 and 1
+- Open up [Logic2 application](https://www.saleae.com/pages/downloads) to view the data
+  - Hovering over the "smallest slice" in Logic2 will show us the baud rate, given by the `width`
+  - Settings in the top right to configure if we get buffer errors and such
+- Move to analyzer tab and select `Async Serial`
+  - Enter baud rate, channel with activity, and guess the standard 8N1 scheme (8bits, no parity, 1 stop bit)
+  - After saving, we can right click and change to ascii
+- This is better for signal analysis, rather than something like UART to USB
+
+**Interacting with UART**
+- Can vary wildly based on tools
+  - USB to UART is pretty standard - hook it up and then use `screen /dev/ttyUSB0 {baud_rate}` to receive the data
+  - Using PiFex - Connect board Tx to PiFex IO15 | RX | TCK, Rx to IO14 | TX | TMS, and GND to GND
+- Might initially show an empty window, but we can try sending data blindly or power cycling/resetting the device
+- If we get hit with an auth page, we can use `pyserial` to try and brute force over a serial connection
