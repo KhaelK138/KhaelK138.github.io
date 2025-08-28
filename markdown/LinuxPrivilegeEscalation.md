@@ -159,7 +159,7 @@ pagetitle: Linux Privilege Escalation
 	- `ldd {executable_name}`
 - Can compile the code below into an so file with `gcc {c_code_file} -fPIC -shared -o {output_so_file}` and move the file to the correct location
 
-```C
+```cpp
 #include<stdio.h>
 #include<stdlib.h>
 #include<unistd.h>
@@ -226,7 +226,7 @@ void dbquery() {
 - Exploitation steps:
 	- Create suid binary that executes `/bin/sh` on kali machine
 
-```C
+```cpp
 #include <stdio.h>
 #include <sys/types.h>
 #include <unistd.h>

