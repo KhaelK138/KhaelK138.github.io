@@ -9,6 +9,17 @@ pagetitle: GraphQL Attacks
   - `grapeql --api {url}/{graphql_endpoint} --report report.md`
     - `--dos` to try denial of service attacks
     - `--proxy {http://127.0.0.1:8080}` to proxy thru Burp
+  - If we don't have introspection enabled, but we do have a schema, we can patch `client.py` to allow for passing a schema:
+
+```python
+response, error = await self.graphql_query(query)
+        
+if os.path.exists("schema.json"):
+    with open("schema.json", "r") as f:
+        response = json.load(f)
+        schema_data = response.get("data", {}).get("__schema")
+elif error or not response:
+```
 - Use Damn Vulnerable GraphQL App as a testing ground
 
 **Finding GraphQL Endpoints**
@@ -29,7 +40,7 @@ pagetitle: GraphQL Attacks
 - Suggestions
   - Apollo GraphQL will suggest amendments when errors occur, like `There is no entry for 'productInfo'. Did you mean 'productInformation' instead?`
   - These can be used to glean information about the schema
-  - **Clairvoyance** uses suggestions to recover the schema
+  - [Clairvoyance](https://github.com/nikitastupin/clairvoyance) uses suggestions to recover the schema
 - Introspection queries
   - Built-in function that allows querying schema information
     - `query{__schema}`
@@ -37,8 +48,7 @@ pagetitle: GraphQL Attacks
   - Description fields can sometimes have sensitive info
   - Introspection query can be sent via **{right click} > GraphQL > Set introspection query**
     - Can return lots of information, so right click the response and `Save GraphQL queries to site map` 
-    - Can use online visualizers, but it didn't show a mutation query
-      - http://nathanrandal.com/graphql-visualizer/ (don't use on sensitive data, run visualizer locally)
+    - Can use online visualizers if desired, such as [GraphQL Voyager](https://apis.guru/graphql-voyager/)
     - Can also use InQL to view the possible queries
 - Mutation queries
   - Will have `variables` parameter where input is specified
