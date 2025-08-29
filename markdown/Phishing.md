@@ -3,6 +3,14 @@ layout: blank
 pagetitle: Phishing
 ---
 
+## Phishing Pages
+
+**Spoofing a site**
+- [SingleFile](https://chromewebstore.google.com/detail/singlefile/mpiodijhokgodhhofbcjdecpffjipkle?hl=en) is good for downloading pages to spoof
+  - Make sure preferences don't include JavaScript
+  - Strip out SingleFile comment (near top) along with anything with an "sf" prefix and links to the original site
+
+
 ## Fake Arbitrary Redirect
 
 **Techniques**
