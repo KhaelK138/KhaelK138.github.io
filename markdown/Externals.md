@@ -11,6 +11,8 @@ Uncovering assets:
 - Bug bounty/dorking search engine: https://nitinyadav00.github.io/Bug-Bounty-Search-Engine/
 - Awesome censys queries: https://github.com/thehappydinoa/awesome-censys-queries
 
+- Neat new domain-based search engine: https://chaos.projectdiscovery.io/
+
 - Burp Enterprise is really good for automatically searching for classic bugs on a list of sites
 
 Viewing websites:

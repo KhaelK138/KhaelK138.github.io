@@ -30,6 +30,13 @@ pagetitle: Red Teaming for CCDC
 ## Machine Persistence
 
 **Windows:**
+- Todo
+  - Investigate hiding services with ACLs: https://www.sans.org/blog/red-team-tactics-hiding-windows-services
+    - This seems extremely good
+  - Hidden RDP
+    - Patching termsrv - https://freedium.cfd/https://samdecrock.medium.com/patching-microsofts-remote-desktop-service-yourself-db25a4d8bc64
+      - This allows multiple users RDP as one user
+    - Found a repo: https://github.com/f3di006/hRDP
 - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
 - First, run [windows_add_payloads.ps1 -src {path_to_exe}](https://khaelkugler.com/scripts/windows_add_payloads.ps1.txt) to add the file to each of the locations
 - Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.txt)

@@ -44,8 +44,10 @@ pagetitle: Path Traversal Attacks
 		- `data://text/plain,<php echo system('ls'); ?>` in an LFI could cause RCE
 		- b64 version: `data://text/plain;base64,`
 - Remote File Inclusion - very similar, but rare - passing PHP file as an HTTP link
-- Things to include:
-	- **/var/www/html/backup.php**
-	- **/opt/admin.bak.php**
-	- **/opt/install.txt** (or **C:\\Users\\install.txt**)
-	- **/opt/passwords**
+- Things to include will vary from app to app, so search it up
+  - For example, in a NextJS app:
+    - `{../}app/package.json`
+    - `{../}app/.env`
+    - `{../}app/.next/server/middleware-manifest.json`
+    - We can also get compiled routes, such as next auth:
+      - `{../}app/.next/server/pages/api/auth/%5B...nextauth%5D.js`
