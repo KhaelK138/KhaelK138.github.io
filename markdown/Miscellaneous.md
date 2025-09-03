@@ -91,6 +91,10 @@ Mount a Windows vhd:
 - `guestmount --add {vhd_file} --inspector --ro -v /mnt/{dir_to_mount_to}`
   - `-ro` is readonly
 
+- Activate Windows with [https://github.com/massgravel/Microsoft-Activation-Scripts](https://github.com/massgravel/Microsoft-Activation-Scripts)
+  - Uses [https://get.activated.win/](https://get.activated.win/)
+- Use [https://uupdump.net/](https://uupdump.net/) to make Windows images (uses Microsoft servers so we get base images without all of the bloat)
+
 Exfiltrate files off of a Windows system `sudo python3 app.py` (if [updog](https://github.com/sc0tfree/updog) isn't available)
 
 ```python
