@@ -154,6 +154,11 @@ if (request.getParameter("cmd") != null) {
   - nmap's `--script smtp-open-relay` will check
   - To send an email: `swaks --from {from_email} --to {to_email} --header '{header}' --body '{body}' --server {ip}`
 
+## SNMP
+- Run `snmpwalk` and check output for sensitive information, such as usernames, passwords, shell scripts run, etc.
+  - Pass read string with `-c {string}`
+  - Default read string is `public`
+
 ## PHP
 - [https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php\_reverse\_shell.php](https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php) - reverse shell (cross platform)
 
