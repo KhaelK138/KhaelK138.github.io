@@ -34,13 +34,9 @@ pagetitle: Miscellaneous Web Notes
 ## Next.js
 - Use `__BUILD_MANIFEST.sortedPages` to see a list of all pages
 
-## Exploitation
-- Finding default passwords for HTTP basic auth
-	- Use [LoginHunter](https://github.com/InfosecMatter/default-http-login-hunter) with a list of hosts to find things like cameras w default passwords
-	- Can be very useful on internal engagements with hundreds/thousands of webservers
-- HTTP Headers:
-	- `HTTP User-Agent` can sometimes be displayed in logging pages, so modifying it could XSS or SQLi some sites
-	- `Server` response can reveal info about server
+## CICD
+- Use [Gato](https://github.com/praetorian-inc/gato) for enumerating/attacking Github pipeline
+- Use [Glato](https://github.com/praetorian-inc/glato) for enumerating/attacking GitLab in general
 
 ## Miscellaneous Tricks
 - On password registrations, modify the URL parameter to contain two emails to see what happens
@@ -55,6 +51,8 @@ pagetitle: Miscellaneous Web Notes
 
 ## Testing SAML
 - [https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/](https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/) - great blog post
+
+## BSCP stuff
 
 https://github.com/botesjuan/Burp-Suite-Certified-Practitioner-Exam-Study
 https://github.com/DingyShark/BurpSuiteCertifiedPractitioner

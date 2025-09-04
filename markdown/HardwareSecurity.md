@@ -144,18 +144,21 @@
 **Reading data**
 - Use a logic analyzer to connect to the pins
 - Connect either ground pin to ground
-- Take other two RX and connect to channel 0 and 1
+- Take other two TX/RX and connect to channel 0 and 1
 - Open up [Logic2 application](https://www.saleae.com/pages/downloads) to view the data
   - Hovering over the "smallest slice" in Logic2 will show us the baud rate, given by the `width`
   - Settings in the top right to configure if we get buffer errors and such
-- Move to analyzer tab and select `Async Serial`
-  - Enter baud rate, channel with activity, and guess the standard 8N1 scheme (8bits, no parity, 1 stop bit)
-  - After saving, we can right click and change to ascii
+- Move to analyzer tab (2nd on right side) and select `Async Serial`
+  - Enter baud rate, channel with activity, and guess the scheme (usually 8bits, no parity, 1 stop bit)
+  - After saving, we can view the hex data above the captured data
+    - Right click data and change to ASCII to read plaintext
 - This is better for signal analysis, rather than something like UART to USB
 
 **Interacting with UART**
 - Can vary wildly based on tools
   - USB to UART is pretty standard - hook it up and then use `screen /dev/ttyUSB0 {baud_rate}` to receive the data
+    - We can detach from screen with `CTRL A` then `D`, and reattach with `screen -r`, or `CTRL A` then `K` to kill the screen
   - Using PiFex - Connect board Tx to PiFex IO15 | RX | TCK, Rx to IO14 | TX | TMS, and GND to GND
+    - Then, connect with `screen /dev/ttyS0 {baud_rate}`
 - Might initially show an empty window, but we can try sending data blindly or power cycling/resetting the device
 - If we get hit with an auth page, we can use `pyserial` to try and brute force over a serial connection
