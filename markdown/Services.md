@@ -155,9 +155,17 @@ if (request.getParameter("cmd") != null) {
   - To send an email: `swaks --from {from_email} --to {to_email} --header '{header}' --body '{body}' --server {ip}`
 
 ## SNMP
-- Run `snmpwalk` and check output for sensitive information, such as usernames, passwords, shell scripts run, etc.
-  - Pass read string with `-c {string}`
-  - Default read string is `public`
+- Protocol used to monitor devices in a network
+  - Uses a Management Information Base (MIB) for information storage
+    - Text file where queryable objects are listed in a hierarchy, containing unique object identifiers (OIDs), access rights, and descriptions (which could have passwords)
+      - OIDs are basically numbers like `1.3.6.1.4.1.1452.1.2.5.1.3.21.1.4.7` with each number meaning some BS about what org and stuff
+- Run `snmpwalk {IP}` and check output for sensitive information, such as usernames, passwords, shell scripts run, etc.
+  - If version 1 or 2, use `-v {number}` and pass read string with `-c {string}`
+    - Default read string is `public` and default write string is `private`, which are used for authentication
+- [braa](https://github.com/mteg/braa) can enumerate hidden data quickly
+  - `braa {community_string}@{IP}:.1.3.6.*`
+  - Then grep for `trap` to find the private community string, `login` or `fail` to search for failed logins, or `@` for email addresses
+- Can be used for RCE given a few caveats: [https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-snmp/snmp-rce.html](https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-snmp/snmp-rce.html)
 
 ## PHP
 - [https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php\_reverse\_shell.php](https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php) - reverse shell (cross platform)

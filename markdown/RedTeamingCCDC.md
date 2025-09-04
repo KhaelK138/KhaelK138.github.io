@@ -33,10 +33,17 @@ pagetitle: Red Teaming for CCDC
 - Todo
   - Investigate hiding services with ACLs: https://www.sans.org/blog/red-team-tactics-hiding-windows-services
     - This seems extremely good
+  - C2s
+    - BOAZ: https://github.com/thomasxm/BOAZ_beta
+    - ChromeAlone: https://github.com/praetorian-inc/ChromeAlone
+    - HiddenDesktop: https://github.com/WKL-Sec/HiddenDesktop
+    - Test out some payloads
   - Hidden RDP
     - Patching termsrv - https://freedium.cfd/https://samdecrock.medium.com/patching-microsofts-remote-desktop-service-yourself-db25a4d8bc64
       - This allows multiple users RDP as one user
     - Found a repo: https://github.com/f3di006/hRDP
+  - DarkLnk - creates disguised .lnk files that run powershell but look like something else
+    - https://github.com/wariv/Darklnk
 - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
 - First, run [windows_add_payloads.ps1 -src {path_to_exe}](https://khaelkugler.com/scripts/windows_add_payloads.ps1.txt) to add the file to each of the locations
 - Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.txt)
@@ -254,3 +261,4 @@ pagetitle: Red Teaming for CCDC
   - `pkill -KILL -u {user}` - kill all of a user's processes
   - `kill -9 {pid}` to kill a specific process
 - Set date: `touch -d "4 May 2024"`
+

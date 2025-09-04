@@ -30,6 +30,11 @@ sudo systemctl start nessusd
   - If we have a list of CIDRs: `gowitness scan cidr  --write-db --cidr-file {file_with_cidrs}`
 - Then just view the results by running `gowitness report server` in the same directory (with `gowitness.sqlite3`)
 
+**Common Passowrds**
+- Finding default passwords for HTTP basic auth can be a pretty good first step
+	- Use [LoginHunter](https://github.com/InfosecMatter/default-http-login-hunter) with a list of hosts to find servers with default passwords
+  - [Ingram](https://github.com/jorhelp/Ingram) is a pretty solid tool for vuln/pass scanning on CCTV
+
 ## Finding internal subdomains
 - Let's say we have an internal server, like `test.local`
 - If we want to find subdomains, `gobuster` can serve us nicely

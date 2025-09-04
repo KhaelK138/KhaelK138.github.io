@@ -54,8 +54,9 @@ pagetitle: Windows Privilege Escalation
 **Searching for Sensitive Information**
 - Check common folders for passwords - it's pretty common (can use functions below)
 	- Check hidden directories/files with `{dir/ls} -force`
-- Example: search XAMPP for config files (could also do keepass databases or the like):
+- Example: search directories for config files:
 	- `Get-ChildItem -Path C:\Users -Include *.txt, *.ini, -File -Recurse -ErrorAction SilentlyContinue -force`
+    	- For sensitive files in general, try `.kdbx`, `.ssh`, `.rdp`, etc.
 - Search contents of files
 	- `findstr /sim {password/pass/pwd/cred/vnc} *.{txt/ini/xml/config} (*.{txt/ini/xml/config})`
 - Using sensitive information
