@@ -66,6 +66,7 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - Peripheral - advertises and accepts connections from centrals
     - Broadcaster - peripheral device broadcasting advertisement packets without accepting connections (fails to finish handshake)
     - Observer - central device that doesn't try to initiate a connection
+  - A device can have multiple GAP roles at once (peripheral to some devices, central to others)
   - GAP discovery process
     - Advertising
       - Device announces presence with some limited information
@@ -77,6 +78,8 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
   - Devices can be either server or client in a server/client architecture
   - Handles range from 0x0000-0xFFFF
   - GATT server (level 0) builds on top of it with services (level 1), characteristics (level 2), and values/descriptors (level 3)
+    - Services are like categories of characteristics, whereas the characteristics themselves can be interacted with
+      - For example, there could be a device information service, with characteristics like manufacturer name, firmware version, etc.
   - Characteristics are like APIs that hold a value
 
 ## BLE Communication
@@ -92,6 +95,17 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - Legacy Pairing (BLE 4.0 and 4.1) is outdated and can be cracked easily with [https://github.com/mikeryan/crackle/](https://github.com/mikeryan/crackle/)
     - Secure Pairing (BLE 4.2+) uses an ECDH-based key exchange, and requires active MITM at pairing to compromise (which is pretty tough)
 
+## Enumerating BLE
+- [Bettercap](https://www.bettercap.org/project/introduction/) is almost always the best choice here
+  - I've had quite a few issues attempting to install it on a pi; would recommend the docker route (`docker run -it --privileged --net=host --platform linux/arm64 bettercap/bettercap`)
+- Use the `ble.recon` module on some Linux device (like a pi)
+- Turn on with `ble.recon on`
+- Recon:
+  - `ble.show` to show discovered BLE devices
+    - `ble.clear` to clear cached devices collected
+  - `ble.enum {mac}` to enumerate services and characteristics for a given device
+  - `ble.write {mac} {characteristic_uuid} {hex}` to write hex data to a device's characteristic
+
 ## Monitoring/Sniffing BLE
 **Tools**
 - Can use nRF Connect app (both iOS and Android surprisingly) to monitor nearby bluetooth devices
@@ -105,7 +119,11 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
   - nRF52840
     - Microcontroller supporting all BLE 5 features (along with other 2.4Ghz protocols)
     - Can flash firmware to do fuzzing and custom advertising/spoofing
-    - NovelBits has a [guide](https://novelbits.io/nordic-ble-sniffer-guide-using-nrf52840-wireshark/) for capturing BLE with Wireshark
+      - Follow guide [here](https://wiki.makerdiary.com/nrf52840-mdk-usb-dongle/guides/ble-sniffer/installation/), use [this](https://github.com/makerdiary/nrf52840-mdk-usb-dongle/tree/main/firmware/ble_sniffer)
+    - Makerdiary has a guide for sniffing using Wireshark [here](https://wiki.makerdiary.com/nrf52840-mdk-usb-dongle/guides/ble-sniffer/installation/#installing-the-nrf-sniffer-capture-tool)
+    - Then, in Wireshark, we can watch BLE traffic
+      - To filter for advertising, use `btle.advertising_address == {MAC}` (or `btle.scanning_address`)
+      - For actual communication, use `bthci_acl.src.bd_addr == {MAC} || bthci_acl.dst.bd_addr == {MAC}`
   - Ubertooth One (not used that much)
 
 
@@ -121,9 +139,14 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 - `bluez` is the Bluetooth/BLE stack for linux
 - Easy to interact with it using `bluetoothctl`
 - Advertising a device:
+  - Try to use nRFconnect with an nRF52840 if possible. The app is a lot easier to use and doesn't give headaches like bluetoothctl
+    - After connecting to a device connected via USB, we can set the GATT information in the `Server Setup` page
+    - In terms of advertising data, we can set `Manufacturer Data` with a custom AD type of `0xFF` and then passing data in little-endian format
+      - Other data, like services (which is `0x03` AD type) can be looked up
   - `bluetoothctl` and `power on`
   - Access advertise menu with `menu advertise`
-    - `manufacturer 0x{hexdata}` to set the manufacturer information
+    - `manufacturer 0x{2_byte_manufacturer_name} 0x{1st_byte_info} 0x{2nd_byte_info}` to set the manufacturer information
+      - This seems to cause many issues with bluez, so try `sudo /etc/init.d/bluetooth restart` if failing
     - `name {device_name}` to set the device name
     - `back` to leave the advertising menu
     - `uuids 0x{hexdata_uuid1} 0x{hexdata_uuid2}` to advertise services (naming convention is a bit weird it seems)
@@ -140,4 +163,3 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
   - For example, `b8:c0:65`, returns `Universal Electronics, Inc.`
 - [ble_ctf](https://github.com/hackgnar/ble_ctf) is a BLE CTF installed on the ESP32; good practice
 - Nordic Security has a DevAcademy with a BLE fundamentals short course (https://academy.nordicsemi.com/courses/bluetooth-low-energy-fundamentals/)
-- *Always* use bettercap for enumeration (manual is a nightmare comparatively)

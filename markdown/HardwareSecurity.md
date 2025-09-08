@@ -162,3 +162,66 @@
     - Then, connect with `screen /dev/ttyS0 {baud_rate}`
 - Might initially show an empty window, but we can try sending data blindly or power cycling/resetting the device
 - If we get hit with an auth page, we can use `pyserial` to try and brute force over a serial connection
+
+## SPI
+
+**Information**
+- Serial Peripheral Interface
+  - Very common with flash memory chips, sensors, displays, and SD cards
+- Characteristics:
+  - Synchronous - clock signal is shared and controlled by the controller device
+  - Controller/peripheral architecture - single controller with multiple peripherals
+  - No frame structure - transmits data without start/stop/parity
+
+**Using SPI**
+- No spec for SPI, so each device has implementation details
+  - Datasheet will contain implementation details
+  - Watch for the Clock Polarity (CPOL) and Clock Phase (CPHA)
+    - These describe when lines should be sampled/toggled
+    - Quite often mode 0, where polarity and phase are set to 0
+      - Worst-case, these can be brute-forced (only four combinations between 00, 01, 10, and 11)
+- Will usually not have a pinout, so we use pcbytes kits or micrograbbers to create a pin out
+  - We can also use a SOIC clip to try and clip onto a flash chip
+- Is a bus, so multiple devices can use the same shared wires
+  - SCK - shared clock
+  - MOSI/COPI (master-out slave-in/central-out peripheral-in)
+    - Essentially transmit from the controller
+    - We'll see a request coming from the controller on this line
+  - MISO/CIPO (master-in slave-out/central-in peripheral-out)
+    - Essentially receive on the controller
+    - We'll see the peripheral device's response to the controller's request on this line
+- Multiple peripherals are handled by multiple chip select (CS) lines
+  - Can also be called slave select lines (SS)
+  - These are not shared between peripherals, controller will send out an active low signal over CS lines to signify when it's a peripheral's turn to discuss
+
+**Analyzing SPI on a Logic Analyzer**
+- We'll have to zoom in pretty far, since it's a very fast protocol
+- Look for challenge response to identify MISO/MOSI, but sometimes it could just be the controller sending data
+  - This would be pretty common when sending data to flash, for example
+- Choose `SPI` in analysis, set MOSI/MISO/Clock channels, set `polarity`/`phase` to 0, and data should be shown
+
+**Extracting SPI Flash Memory**
+- Peripherals don't usually verify controller authenticity
+- Since we have datasheets, we can often just talk to the flash chips directly
+  - Will usually use the same pinout as SPI
+  - Need to be careful about voltages necessary, as we can easily fry the chip giving 5V to a 3.3V chip
+- Sometimes, the controller can try to talk to the flash as the same time as us
+  - We can attempt to hold the controller in reset or wait until the controller isn't talking
+    - Can just hold the reset button the entire time, but dumping could be very slow, so this isn't smart
+    - Instead, we can connect the microcontroller's reset pin to ground or 3.3V
+  - Alternatively, we can attempt to remove and resolder the SPI flash
+  - Also, we can often run into bit corruptions
+    - Thus, dump three times and hash until we have a match
+- After we're connected to the chip, we'll use `flashrom` to dump the contents
+  - `sudo flashrom -p {programmer} -r {outfile}.bin`
+    - `programmer` can be something like `ch341a_spi` for the clip
+    - If using raspberry pi, we'd specify `linux_spi:dev=/dev/spidev0.0,spispeed=8000` as the programmer
+
+## I2C
+- Used for inter-chip communication
+- Has `SDA` and `SCL` pins, using address-based communication
+- Logic2 can analyze after identifying the pins
+
+
+## Misc
+- Sometimes, we'll only want to power a section of the board, like a daughterboard
