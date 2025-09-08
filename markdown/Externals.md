@@ -27,6 +27,15 @@ Finding user information and passwords:
   - `sudo python3 dehashed.py -q {domain_name} -p`
 - [linkedin2username](https://github.com/initstring/linkedin2username) to get corporate usernames
 
+**Shodan**
+- Super powerful, has a lot of stuff indexed
+- Initialize with `shodan init {API_key}`
+- Search with `shodan download --limit 5000 {out_file} "port:37777"`
+  - [Searching Cheat Sheet](https://denizhalil.com/2023/12/19/shodan-dork-cheat-sheet/)
+  - This will give us a gz json file with lots of data per IP, such as `product`, `ip_str`, and `port`
+- We can then filter data with `shodan parse`
+  - `shodan parse --fields ip_str,product {out_file}.json.gz`
+
 
 Search documentation/internal resources for:
 
