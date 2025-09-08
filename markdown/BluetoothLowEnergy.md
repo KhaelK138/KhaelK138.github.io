@@ -66,6 +66,7 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - Peripheral - advertises and accepts connections from centrals
     - Broadcaster - peripheral device broadcasting advertisement packets without accepting connections (fails to finish handshake)
     - Observer - central device that doesn't try to initiate a connection
+  - A device can have multiple GAP roles at once (peripheral to some devices, central to others)
   - GAP discovery process
     - Advertising
       - Device announces presence with some limited information
@@ -77,6 +78,8 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
   - Devices can be either server or client in a server/client architecture
   - Handles range from 0x0000-0xFFFF
   - GATT server (level 0) builds on top of it with services (level 1), characteristics (level 2), and values/descriptors (level 3)
+    - Services are like categories of characteristics, whereas the characteristics themselves can be interacted with
+      - For example, there could be a device information service, with characteristics like manufacturer name, firmware version, etc.
   - Characteristics are like APIs that hold a value
 
 ## BLE Communication
