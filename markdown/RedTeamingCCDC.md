@@ -33,6 +33,7 @@ pagetitle: Red Teaming for CCDC
 - Todo
   - Investigate hiding services with ACLs: https://www.sans.org/blog/red-team-tactics-hiding-windows-services
     - This seems extremely good
+  - Pivoting with netsh port proxy
   - C2s
     - BOAZ: https://github.com/thomasxm/BOAZ_beta
     - ChromeAlone: https://github.com/praetorian-inc/ChromeAlone
