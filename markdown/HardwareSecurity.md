@@ -217,11 +217,92 @@
     - `programmer` can be something like `ch341a_spi` for the clip
     - If using raspberry pi, we'd specify `linux_spi:dev=/dev/spidev0.0,spispeed=8000` as the programmer
 
-## I2C
+**I2C**
 - Used for inter-chip communication
 - Has `SDA` and `SCL` pins, using address-based communication
 - Logic2 can analyze after identifying the pins
 
+## Using/Exploiting Debug Interfaces
+- These aid engineers during development and should not be present in production
+- Common ones are JTAG/SWD, and sometimes UART
+
+**SWD/JTAG**
+- Core capabilities: halt/resume execution, memory read/write, registry manipulation, hardware breakpoint management, and access to real-time variables
+- Can be used to bypass security checks, memory exploration, and dumping firmware
+- Will usually be either JTAG or SWD on a board
+
+**SWD Overview**
+- ARM Serial Wire Debug protocol
+- SWDIO (data input/output) and SWCLK (clock) signals
+- Debug Access Port (DAP architecture)
+
+**Joint Test Action Group (JTAG) Overview**
+- Signals: TCK (test clock), TMS (test mode select), TDI (test data in), TDO (test data out)
+- Lots of different pinouts (usually 2x4 to 2x10)
+  - Can also look for a cluster of test pads with 4 and 4 pins around it, as this is very indicative of tag connect
+    - They've removed the headers but they have cables that can press down and connect
+- State machine under the hood
+  - We start in a reset mode, and every clock cycle we check our `TMS` pin value. If it's 1, we stay, but if it's 0, we move to `run test idle`
+  - The rest of JTAG works like this
+
+**Interacting with JTAG**
+- Make sure to figure out the pinout first
+  - `go-jtagenum` is a good tool for bruteforcing 
+    - Connect ground, then connect the rest of the pins to all the IO pins, and then run the tool with each of the pins mapped
+    - `go-jtagenum -pins '{ "io2": 2, "io3": 3, "io14": 14, {etc.}}' -command scan_idcode -delay-tck 50`
+      - Can also do `-command scan_bypass` to tell us what each of the pins can be
+  - JTAGulator is pretty good for this
+- A debugger is the best for interacting with JTAG, such as Segger Jlink (but that's pretty expensive)
+  - GDB/OpenOCD can be good
+- For hardware interaction, can use JTAG adapters, Pifex, or Bus Pirate
+- Connect GND to GND, 3.3V to 3.3V, `IO2 | SDA | TDI` on pifex to `TDI`, `IO3 | SCL | TDO` to `TDO`, `IO14 | TX | TMS` to `TMS`, and `IO15 | RX | |TCK` to `TCK` on board
+- We can then run `openocd` command to dump
+  - `sudo openocp -f raspberrypi-native.cfg-swd -f stm32f1x.cgf`
+    - This is a pretty common config file
+      - If on a pi, we may need to use `sysfsgpio-raspberrypi.cfg` as the config file due to some linux kernel shit
+  - We can then `telnet` into the locally-opened port on 4444 to access the shell
+  - Should immediately run `halt` after getting into the shell
+- Getting the initial memory address from the datasheet is really important, as we can use it to dump
+  - `dump_image internal.bin 0x0{starting_address} 30000`
+    - 30000 is a good number for dumping
+  - Then, do it again and compare the hashes
+
+**JTAG protection mechanisms**
+- Fuse bits and lock bits
+  - Physical fuse within the chip
+  - Apply a voltage between two pins for a certain amount of time, which will blow a fuse and disable JTAG
+  - This is a pretty good control
+- Read-out protection levels
+  - Have RDP levels, such as 0, where everything is accessible, and gets less accessible up to level 2
+  - Can be glitched down
+- Debug interface disable methods
+  - Software-level methods to disable results for interacting with debugging interface
+  - Different for each vendor, but can be broken depending on implementation
+
+## Firmware Analysis
+
+**Binwalk Analysis**
+- Common FS formats: SquashFS, JFFS2, ext4, and UBIFS
+  - There are custom tools to extract the files, but binwalk can do it automatically
+  - If we want to do it ourselves, find the header and size and use `dd`
+- Once inside, want to check for:
+  - Debug info: `/sys`, `/proc`, `/dev`, `/debug`
+  - Logs: `/var/log`, `/tmp/log`, `/logs`, `/data/logs`
+  - Update files: `/tmp/update`, `/mnt/flash`, `/firmware`, `/factory`, `/backup`
+  - Update scripts: `/bin`, `/sbin`, `/usr/local/bin`, `/usr/sbin`
+  - Network configurations: `/etc/network/interfaces`, `/etc/wpa_supplicant.conf`, `/etc/hostapd.conf`, `/etc/dnsmasq.conf`, `/etc/hosts`
+  - Look for passwords to crack (`/etc/shadow`, `/etc/ssl/certs`, `/etc/ssl/private`, `/etc/keys`)
+  - Initialization scripts in `/etc/init.d`
+
+**Firmware Manipulation**
+- Tools like firmware analysis toolkit can unpack/repack firmware
+- Can also do firmware emulation 
+
+**Reflashing**
+- Get another session and write to memory rather than reading
+- On RTOS, will need to repackage changes back into the initial format (e.g. packing a filesystem back into SquashFS)
+  - Flashrom can handle reflashing
+- Reflashing can occur via UART, SPI, JTAG, USB, or even over-the-air (OTA) methods
 
 ## Misc
 - Sometimes, we'll only want to power a section of the board, like a daughterboard

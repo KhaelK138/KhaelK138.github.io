@@ -98,7 +98,7 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 ## Enumerating BLE
 - [Bettercap](https://www.bettercap.org/project/introduction/) is almost always the best choice here
   - I've had quite a few issues attempting to install it on a pi; would recommend the docker route (`docker run -it --privileged --net=host --platform linux/arm64 bettercap/bettercap`)
-- Use the `ble.recon` module on some Linux device (like a pi)
+  - Unsupported on Mac/Windows, so necessary to use some linux machine of some kind
 - Turn on with `ble.recon on`
 - Recon:
   - `ble.show` to show discovered BLE devices
