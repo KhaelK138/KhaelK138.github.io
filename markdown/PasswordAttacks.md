@@ -70,3 +70,7 @@ for entry in kp.entries:
 	- Can use mutation rules, placed at the end of /etc/john/john.conf
 	- `john --wordlist={password_list} --rules=sshRules {hash}` to crack
 
+## Misc notes
+- Yescrypt [isn't actually supported](https://github.com/hashcat/hashcat/issues/2816) by hashcat, despite being pretty common in Linux
+  - These would be hashes starting with `$y$`
+  - Instead, we can use `john {hashfile} --format=crypt --wordlist={wordlist_file}`
