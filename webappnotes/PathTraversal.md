@@ -51,3 +51,9 @@ pagetitle: Path Traversal Attacks
     - `{../}app/.next/server/middleware-manifest.json`
     - We can also get compiled routes, such as next auth:
       - `{../}app/.next/server/pages/api/auth/%5B...nextauth%5D.js`
+
+**PHP Filter Chains**
+- Some wizard shit, good job [Synacktiv](https://www.synacktiv.com/en/publications/php-filters-chain-what-is-it-and-how-to-use-it.html) on figuring it out
+- There's a tool to generate a php filter chain from synacktiv: [https://github.com/synacktiv/php_filter_chain_generator](https://github.com/synacktiv/php_filter_chain_generator)
+  - `php_filter_chain_generator.py --chain '<?php system("{command}"); ?>  '` will generate a chain to use, which will output
+- If our output must end with something, like `dashboard.php` or something, we can simply prepend the chain to `,dashboard.php`, and it will still function, which is really handy

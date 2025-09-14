@@ -9,7 +9,7 @@ pagetitle: Database Attacks
 ## MySQL
 - MariaDB is an open-source fork
 - `mysql -u {username} -p -h {host IP} -P {port}`
-- Specifying multiple parameters `SELECT user, passhash FROM mysql.user WHERE user = '{username}'`
+- Specifying multiple parameters `SELECT user, authentication_string FROM mysql.user WHERE user = '{username}'`
 - Enumeration:
 	- List all databases: `SELECT * FROM information_schema.tables;` (or `show databases;`)
     	- Use a database with `use {db_name};` and enum tables with `show tables;`
