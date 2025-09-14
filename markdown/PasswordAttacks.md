@@ -39,6 +39,8 @@ pagetitle: Password Attacks
 	- These modifications can be stored in files and used when cracking--for example:
 		- `hashcat -m 0 {hash} {password_list} -r {modification_file} --force`
 - Ensure to find the type of hash before cracking to save time
+  - `hashcat -h | grep "{information}"` can help find the number to user
+  - `hashcat -m {number} --example-hash` can provide a good example that hashcat can understand
 - Extracting hashes:
 	- Many methods, but here's a novel one:
 		- `Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue` will search for kdbx files (KeePass files) containing hashes
@@ -53,12 +55,12 @@ for entry in kp.entries:
     print(f"Title: {entry.title}, Username: {entry.username}, Password: {entry.password}")
 ```
 
-- Determining hash type:
-	- `hashcat --help` will list a lot of info about types of hashes, so if we know where the hash is from, we can look it up here with `hashcat --help | grep -i "{identifier}`
-		- This should return the hashcat mode for the hash, which is a number like 13400
 - Cracking the hash:
 	- `hashcat -m {hashcat_mode (e.g. 13400)} {hash} {wordlist} -r {mutation} --force`
 		- Increase speed with `-O -w 4 --opencl-device-types 1,2`
+- Using a salt
+  - If we have a salt used, there seem to be hashcat version that support that
+  - For example, if we have a salted password hash encrypted with sha256, we can use `hashcat -m 1410 '{password}:{salt}' {wordlist}` to crack it
 
 ## SSH Private Key Passphrase
 - `ssh2john {private RSA SSH key file} > ssh.hash` will put the hash in a crack-able format
