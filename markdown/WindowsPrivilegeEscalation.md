@@ -49,6 +49,8 @@ pagetitle: Windows Privilege Escalation
 
 ## Collecting Sensitive Information or Credentials
 
+- Seems a very common method of privilege escalation would be checking installed programs for configuration passwords
+  - This is pretty much as simple as looking in `C:\`, `C:\Program Files\`, and `C:\Program Files (x86)\` for unusual applications
 - For automatic enumeration, use `LaZagne` (see below section)
 
 **Searching for Sensitive Information**

