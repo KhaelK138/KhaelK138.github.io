@@ -32,7 +32,7 @@ pagetitle: Red Teaming for CCDC
 **Windows:**
 - Todo
   - Write a persistence script that does the following 
-    - (maybe) Creates an exclusion for ProgramData
+    - (maybe) Creates an exclusion for ProgramData AND/OR disables defender
     - Downloads and executes Mimikatz's skeleton key module
     - Downloads sliver shell and creates a sliver service hidden with ACLs
   - Investigate hiding services with ACLs: https://www.sans.org/blog/red-team-tactics-hiding-windows-services
@@ -80,7 +80,7 @@ pagetitle: Red Teaming for CCDC
   - Write a persistence script that does the following
     - Backdoors PAM and adds the master password
     - Adds a sliver script somewhere in the system
-    - Runs prism
+    - Runs prism (on startup perhaps)
     - Hides all of the above with a rootkit
   - Investigate these methods: 
     - TCP Wrapped Services: `echo 'ALL: ALL: spawn ({backdoor}) & :allow' >> /etc/hosts.allow)` (or `hosts.deny`)
