@@ -35,7 +35,7 @@ pagetitle: Password Attacks
 	- `hashcat -r "$1 c $!" {password_list}` will capitalize the first letter of each password, append "1" to the end of each password, and then append "!" to the end of that password
 		- Putting these rules into a file with newlines will create a new password for each newline, adding that lines modifications to that password
 		- Hashcat provides some rules in `/usr/share/hashcat/rules/`, like `rockyou-30000`
-			- They always seem to use `best64.rule`
+			- Praetorian has a good ruleset: [Hob0Rules](https://github.com/praetorian-inc/Hob0Rules)
 	- These modifications can be stored in files and used when cracking--for example:
 		- `hashcat -m 0 {hash} {password_list} -r {modification_file} --force`
 - Ensure to find the type of hash before cracking to save time
