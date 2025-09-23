@@ -257,7 +257,7 @@
 - For hardware interaction, can use JTAG adapters, Pifex, or Bus Pirate
 - Connect GND to GND, 3.3V to 3.3V, `IO2 | SDA | TDI` on pifex to `TDI`, `IO3 | SCL | TDO` to `TDO`, `IO14 | TX | TMS` to `TMS`, and `IO15 | RX | |TCK` to `TCK` on board
 - We can then run `openocd` command to dump
-  - `sudo openocp -f raspberrypi-native.cfg-swd -f stm32f1x.cgf`
+  - `sudo openocd -f raspberrypi-native.cfg-swd -f stm32f1x.cgf`
     - This is a pretty common config file
       - If on a pi, we may need to use `sysfsgpio-raspberrypi.cfg` as the config file due to some linux kernel shit
   - We can then `telnet` into the locally-opened port on 4444 to access the shell

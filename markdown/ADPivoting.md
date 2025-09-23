@@ -162,6 +162,9 @@ Enter-PSSession {PSSession_ID_returned}
 	- `secretsdump.py -k -no-pass fakeuser@kingslanding.sevenkingdoms.local`
 	  - This would require a `cifs/` service ticket, as dumping secrets is done through SMB
 
+**ACL Abuse**
+- Check out [OUned](https://github.com/synacktiv/OUned) for a pretty neat enumeration tool
+
 ## Delegation
 - Resource-based Constrained Delegation (RBCD) is basically allowing one entity to perform some action on behalf of another user
 - It's very useful for giving granular permissions, for example if a service user needs to access only some resources on behalf of another user

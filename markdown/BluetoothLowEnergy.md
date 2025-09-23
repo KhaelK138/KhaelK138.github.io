@@ -41,14 +41,16 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
       - Level 4: Authenticated LE Secure Connections pairing with encryption
     - Levels 3 and 4 are protected against MITM (Level 4 is recommended for secure connections)
   - Security Mode 2: 
-    - Signing
+    - Much rarer, uses data signing (but not encryption)
+      - Useful for integrity but chip can't support encryption
     - 2 levels:
       - Unauthenticated pairing with data signing
-      - TODO - Authenticated pairing with data signing
+      - Authenticated pairing with data signing
   - Security Mode 3:
-    - TODO
+    - Isochronous data that is specifically meant to be broadcasted 
+    - Used with BLE audio
   - Mode 1 levels 1-3 allow Legacy Pairing
-    - Generate a 138 bit temporary key used to generate a short term key used to encrypt the link
+    - Generate a 128 bit temporary key used to generate a short term key used to encrypt the link
     - Can be cracked easily with crackle - [https://github.com/mikeryan/crackle/](https://github.com/mikeryan/crackle/)
   - LE Secure connections
     - Uses Elliptic-Curve Diffie-Hellman (ECDH) cryptography to generate a public-private key pair. Devices exchange public keys to generate shared Long Term Key
@@ -56,8 +58,10 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - Bonding is storing a Long Term Key so you can connect again using the same key
   - **All connections start lifetimes in Mode 1 Level 1**
     - Can be later upgraded to any security level by means of pairing/authentication
-    - Out of Bound (OOB) - Uses additional information transferred by other means (QR code, NFC) alongside public key to generate LTK
-      - - Using this with Mode 1 Level 4 is the most secure
+      - Passkey Display - One device displays a random six-digit passkey and the other side enters it
+      - Out of Band (OOB) - Uses additional information transferred by other means (QR code, NFC, magnetic) alongside public key to generate LTK
+        - Using this with Mode 1 Level 4 is the most secure
+      - Numeric Comparison - comparison of generated numeric values, and thus MITM won't work unless unmatched values are accepted
 - **Generic Access Profile (GAP)**
   - Base of the BLE control plane
   - Discover/connect with peers, broadcast data, establish secure connections using SMP
@@ -98,21 +102,36 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 ## Enumerating BLE
 - [Bettercap](https://www.bettercap.org/project/introduction/) is almost always the best choice here
   - I've had quite a few issues attempting to install it on a pi; would recommend the docker route (`docker run -it --privileged --net=host --platform linux/arm64 bettercap/bettercap`)
-  - Unsupported on Mac/Windows, so necessary to use some linux machine of some kind
-- Turn on with `ble.recon on`
+  - Unsupported on Mac/Windows, so necessary to use some linux machine (or Kali VM with connected BLE dongle) of some kind
+- Turn on with `ble.recon on` (make sure we have a usable BLE dongle/device with `sudo hciconfig`)
 - Recon:
   - `ble.show` to show discovered BLE devices
     - `ble.clear` to clear cached devices collected
-  - `ble.enum {mac}` to enumerate services and characteristics for a given device
-  - `ble.write {mac} {characteristic_uuid} {hex}` to write hex data to a device's characteristic
+  - `ble.enum {MAC}` to enumerate services and characteristics for a given device
+    - This will give us a nice table on the device, after which we can turn `ble.recon off`
+  - `ble.write {MAC} {characteristic_uuid} {hex}` to write hex data to a device's characteristic
+
+**Hciconfig**
+- `sudo hciconfig` to show the connected devices, and note down the identifier
+- Bring a device online with `sudo hciconfig {device} up`
+  - Then recheck to make sure it's `UP` and `RUNNING`
+
+**Hcitool**
+- `sudo hcitool lescan`
+- List nearby devices that we can see 
+  - Smart to remove "unknown" and known devices using `grep` from this output
+- From this, we can grab the MAC address
+
+**Gatttool**
+- Useful for reading/writing specific data
+- TODO: `gatttool -i {hci_interface} -b {MAC} ...`
 
 ## Monitoring/Sniffing BLE
+
 **Tools**
 - Can use nRF Connect app (both iOS and Android surprisingly) to monitor nearby bluetooth devices
   - Can use [BlueSee](https://apps.apple.com/us/app/bluesee-ble-debugger/id1336679524?mt=12) on Mac
   - Also have nRF Connect for Desktop for PCs
-- `hcitool`
-  - `lescan` will scan for nearby BLE devices
 - Other tools used
   - Bluetooth Dongle
     - Just a USB BLE interface to provide bluetooth to an OS (like a VM)
@@ -126,7 +145,6 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
       - For actual communication, use `bthci_acl.src.bd_addr == {MAC} || bthci_acl.dst.bd_addr == {MAC}`
   - Ubertooth One (not used that much)
 
-
 **Packet Captures**
 - Capturing BLE packets over the air is unreliable and encrypted, but might be the only option when Central and Peripheral devices aren't under control
 - Capturing from a controlled device before encryption is applied is better
@@ -134,6 +152,12 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 ## BLE Interaction
 - After connecting nRF52840 dongle, we can use it to interact with nearby bluetooth devices via nRF Connect for Desktop Bluetooth Low Energy (downloaded from the nRF Connect for Desktop app)
 - Run scan to see devices that the dongle can see, and then we can connect to view the services available (along with their characteristics)
+
+**Bleak**
+- General multipurpose BLE tool, available [here](https://github.com/hbldh/bleak)
+- This is a great python tool for engagement testing, especially scripting
+- Easy to install with `pip install bleak`
+  - Examples for scanning/reading in the repo
 
 **Spoofing**
 - `bluez` is the Bluetooth/BLE stack for linux
@@ -158,7 +182,12 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - `register-characteristic 0x{hex_UUID_like_1111} {read,write,notify}` 
     - `register-application` to tell BlueZ about the service/characteristics
 
+**MITM tools**
+- [Gattacker](https://github.com/securing/gattacker) and [BTLEjuice](https://github.com/DigitalSecurity/btlejuice) are the classic tools
+  - These are pretty outdated, though
+
 ## Miscellaneous
+- If using VMWare, uncheck `Share Bluetooth devices with Linux` (somewhat unexpectedly) allowing us to see the BLE dongles as USB devices
 - Tool to lookup first three octets of a MAC address to see who it's from: https://www.wireshark.org/tools/oui-lookup.html
   - For example, `b8:c0:65`, returns `Universal Electronics, Inc.`
 - [ble_ctf](https://github.com/hackgnar/ble_ctf) is a BLE CTF installed on the ESP32; good practice
