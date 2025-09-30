@@ -1,4 +1,7 @@
-
+---
+layout: blank
+pagetitle: Hardware Security
+---
 
 ## Basics and Components of Hardware
 
