@@ -183,6 +183,7 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - `register-application` to tell BlueZ about the service/characteristics
 
 **MITM tools**
+- Seems [ESP32-Gattacker](github.com/p0px/ESP32-Gattacker) is the go-to here
 - [Gattacker](https://github.com/securing/gattacker) and [BTLEjuice](https://github.com/DigitalSecurity/btlejuice) are the classic tools
   - These are pretty outdated, though
 

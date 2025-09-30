@@ -157,7 +157,7 @@
 **Interacting with UART**
 - Can vary wildly based on tools
   - USB to UART is pretty standard - hook it up and then use `screen /dev/ttyUSB0 {baud_rate}` to receive the data
-    - We can detach from screen with `CTRL A` then `D`, and reattach with `screen -r`, or `CTRL A` then `K` to kill the screen
+    - We can detach from screen with `CTRL a` then `d`, and reattach with `screen -r`, or `CTRL A` then `K` to kill the screen
   - Using PiFex - Connect board Tx to PiFex IO15 | RX | TCK, Rx to IO14 | TX | TMS, and GND to GND
     - Then, connect with `screen /dev/ttyS0 {baud_rate}`
 - Might initially show an empty window, but we can try sending data blindly or power cycling/resetting the device
@@ -200,6 +200,12 @@
   - This would be pretty common when sending data to flash, for example
 - Choose `SPI` in analysis, set MOSI/MISO/Clock channels, set `polarity`/`phase` to 0, and data should be shown
 
+**Using the CH341a, SPI SOIC-8 clip, and Raspberry pi**
+- Pinout is super common, CH341a/SOIC-8 clip will assume it
+- SOIC-8 red wire is pin 1, which is the CS pin. Make sure red wire lines up pin 1 on both the chip itself and on the CH341A
+  - Half circle on right side of CH341A will show which set of 8 has pin 1 - then we just set it up so the numbers are facing the front of the stick
+- Then plug into raspberry pi and do below
+
 **Extracting SPI Flash Memory**
 - Peripherals don't usually verify controller authenticity
 - Since we have datasheets, we can often just talk to the flash chips directly
@@ -212,10 +218,13 @@
   - Alternatively, we can attempt to remove and resolder the SPI flash
   - Also, we can often run into bit corruptions
     - Thus, dump three times and hash until we have a match
+      - `sha256sum *.bin`
 - After we're connected to the chip, we'll use `flashrom` to dump the contents
   - `sudo flashrom -p {programmer} -r {outfile}.bin`
     - `programmer` can be something like `ch341a_spi` for the clip
-    - If using raspberry pi, we'd specify `linux_spi:dev=/dev/spidev0.0,spispeed=8000` as the programmer
+      - Run `-h` for examples
+    - If using raspberry pi instead of CH341A, we'd specify `linux_spi:dev=/dev/spidev0.0,spispeed=8000` as the programmer
+- Then, we can just `xxd {bin_file} | head -n {lines_to_output}` to read it
 
 **I2C**
 - Used for inter-chip communication
@@ -235,6 +244,13 @@
 - ARM Serial Wire Debug protocol
 - SWDIO (data input/output) and SWCLK (clock) signals
 - Debug Access Port (DAP architecture)
+- Connect `GND` to `GND` on the pi, `3.3` to `3.3`, `SWDCLK` to `IO9|SDI|SCLK`, `SWDIO` to `IO11|CLK|SWDIO`
+- Then, run `sudo openocd -f raspberrypi-native.cfg-swd -f stm32f1x.cgf`
+  - These config files come from [https://github.com/openocd-org/openocd/tree/master/tcl/target](https://github.com/openocd-org/openocd/tree/master/tcl/target), but we'll need to edit them a bit to set the correct pins. See [here](https://voidstarsec.com/blog/brushing-up-part-3) for info
+- We can then connect via telnet to `localhost 4444`, after which we can perform lots of actions
+  - Dump memory with `dump_image {out_file}.bin {starting_address_of_flash} {number_of_bytes_to_dump}`
+    - We can find where internal flash memory is based on the microcontroller's datasheet
+  - Then grep/strings for interesting info
 
 **Joint Test Action Group (JTAG) Overview**
 - Signals: TCK (test clock), TMS (test mode select), TDI (test data in), TDO (test data out)
@@ -247,25 +263,56 @@
 
 **Interacting with JTAG**
 - Make sure to figure out the pinout first
-  - `go-jtagenum` is a good tool for bruteforcing 
+  - Connect ground to ground, 3.3 to 3.3, and then figure out if any of the other JTAG pins are 3.3 or ground before brute-forcing
+  - [go-jtagenum](https://github.com/gremwell/go-jtagenum) is a good tool for bruteforcing 
     - Connect ground, then connect the rest of the pins to all the IO pins, and then run the tool with each of the pins mapped
     - `go-jtagenum -pins '{ "io2": 2, "io3": 3, "io14": 14, {etc.}}' -command scan_idcode -delay-tck 50`
-      - Can also do `-command scan_bypass` to tell us what each of the pins can be
-  - JTAGulator is pretty good for this
+      - Then do `-command scan_bypass` with no `delay-tck` to double check what each of the pins can be
+  - JTAGulator is also pretty good for this
 - A debugger is the best for interacting with JTAG, such as Segger Jlink (but that's pretty expensive)
   - GDB/OpenOCD can be good
 - For hardware interaction, can use JTAG adapters, Pifex, or Bus Pirate
 - Connect GND to GND, 3.3V to 3.3V, `IO2 | SDA | TDI` on pifex to `TDI`, `IO3 | SCL | TDO` to `TDO`, `IO14 | TX | TMS` to `TMS`, and `IO15 | RX | |TCK` to `TCK` on board
 - We can then run `openocd` command to dump
-  - `sudo openocd -f raspberrypi-native.cfg-swd -f stm32f1x.cgf`
+  - `sudo openocd -f raspberrypi-native.cfg-swd -f stm32f1x.cfg`
     - This is a pretty common config file
       - If on a pi, we may need to use `sysfsgpio-raspberrypi.cfg` as the config file due to some linux kernel shit
-  - We can then `telnet` into the locally-opened port on 4444 to access the shell
+  - We can then `telnet` into the locally-opened port on `4444` to access the shell
   - Should immediately run `halt` after getting into the shell
 - Getting the initial memory address from the datasheet is really important, as we can use it to dump
   - `dump_image internal.bin 0x0{starting_address} 30000`
     - 30000 is a good number for dumping
   - Then, do it again and compare the hashes
+
+**Debugging with JTAG**
+- Run `halt` inside the `4444` service opened by `openocd`
+  - This will halt execution and put us in debug-mode
+- `reg` to view registers
+- Back on the pi, we can use `gdb-multiarch` for a gdb session to step through execution
+  - We can then use `openocd`'s gdb service, which is hosted locally on `3333`
+    - Run `target remote 127.0.0.1:3333` within GDB
+      - To continue execution (after setting desired breakpoints from Ghidra) we should continue, or `c`
+      - Then, once we hit our breakpoint, we can read/set memory as necessary and such
+  - Then, since we aren't debugging an executable, we'll need to use memory addresses
+    - Referring back to the datasheet, we know internal flash starts at `0x08000000`
+      - We can dump 30000 bytes starting there into a binary file, and have Ghidra analyze it
+- Ghidra process:
+  - Import the bin file, and select the architecture of the chip
+    - For example, `ARM:LE:32:Cortex:default`
+  - Don't analyze it yet, as we need to set the base address
+    - Go to Window -> Memory Map
+    - Click the home icon in the top right
+    - Set the base address
+  - Now we can analyze the bin file
+    - Go to Analysis -> Auto-analyze
+  - Profit!
+
+**JTAG and UART at the Same Time**
+- Since they use overlapping pins on the pifex (namely IO14 and IO15), we can move them around
+- Still use UART `RX` -> `IO14 TX` and `TX` -> `IO15 RX` on the board
+- Move JTAG `TCK` to `IO10` and `TMS` to `IO9`
+  - Then need to edit `sysfsgpio-raspberrypi.cfg` to modify remapped pins
+    - Change `sysfsgpio jtag_nums 15 14 2 3` to `sysfsgpio jtag_nums 10 9 2 3`
 
 **JTAG protection mechanisms**
 - Fuse bits and lock bits
