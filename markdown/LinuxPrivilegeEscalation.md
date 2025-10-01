@@ -39,6 +39,7 @@ pagetitle: Linux Privilege Escalation
 **Automated Enumeration**
 - `linpeas`
 	- `https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh`
+  	- Won't check if the sudo version is vulnerable, though, so needs to be checked manually
 - `unix-privesc-check`
 	- Checks for misconfigurations that can be used for privescs
 	- Located in kali at /usr/bin/unix-privesc-check
