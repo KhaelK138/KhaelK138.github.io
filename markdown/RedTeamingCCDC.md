@@ -89,11 +89,10 @@ pagetitle: Red Teaming for CCDC
 - [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
-  - Touch up script
-    - Make sure all dates are changed as necessary
-    - Fix script not self-deleting
-    - Fix boopkit invocation
-    - Test on arch? Def test on centos/fedora
+  - Get something going for alpine
+    - Add a second location for SSH keys 
+    - Add another user via /etc/passwd
+  - Test Nixos?
 - [Boopkit](https://github.com/krisnova/boopkit)
   - Sneaky amazing backdoor that functions via back checksum TCP packets
   - `wget https://github.com/kris-nova/boopkit/archive/refs/tags/v1.4.1.tar.gz`
