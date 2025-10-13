@@ -36,6 +36,7 @@ pagetitle: Red Teaming for CCDC
     - (maybe) Creates an exclusion for ProgramData AND/OR disables defender
     - Downloads and executes Mimikatz's skeleton key module
     - Downloads sliver shell and creates a sliver service hidden with ACLs
+  - Check out [RealBindingEDR](https://github.com/myzxcg/RealBlindingEDR)
   - Investigate hiding services with ACLs: https://www.sans.org/blog/red-team-tactics-hiding-windows-services
     - This seems extremely good
   - Pivoting with netsh port proxy
