@@ -4,7 +4,10 @@ pagetitle: GraphQL Attacks
 ---
 
 **Automatic Exploitation**
-- [GrapeQL](https://github.com/AleksaZatezalo/grapeql.git) will automatically enumerate a GraphQL endpoint and attempt to find common web vulns
+- [GraphQL-Cop](https://github.com/dolevf/graphql-cop)
+  - Automatically tests for DoS, CSRF, Info Leaks (including suggestions), Introspection
+  - Seems really good
+- [GrapeQL](https://github.com/AleksaZatezalo/grapeql.git) will automatically enumerate a GraphQL endpoint and attempt to find common web vulns, like command/sql injection
   - Installed with pip
   - `grapeql --api {url}/{graphql_endpoint} --report report.md`
     - `--dos` to try denial of service attacks
