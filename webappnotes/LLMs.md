@@ -24,3 +24,7 @@ pagetitle: LLMs
 
 **Tooling**
 - Try [PromptMap2](https://github.com/utkusen/promptmap) to automatically scan LLM apps for attacks like prompt injection
+
+**Misc**
+- [AsciiSmuggler](https://embracethered.com/blog/ascii-smuggler.html)
+  - Can be used to hide text using ASCII tags, which LLMs will see but will not render

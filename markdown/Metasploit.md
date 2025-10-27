@@ -37,6 +37,7 @@ pagetitle: Metasploit
 	- Use CTRL+Z to exit a shell but keep it in the background
 	- `sessions -l` to list available sessions
 	- `sessions -i {session_number}` to switch (interact) with a session
+	- `sessions -c 'command' -a` to run a command on all sessions
 
 **SearchSploit**
 - `sudo apt install exploitdb`
