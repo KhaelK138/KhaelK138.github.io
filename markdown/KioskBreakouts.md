@@ -27,6 +27,7 @@ Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk
 - Can place direct commands in `.bat` or `.cmd` files, such as something as simple as `powershell`
   - For a full list of executable file types: [https://aerorock.co.nz/list-of-executable-file-extensions-windows/](https://aerorock.co.nz/list-of-executable-file-extensions-windows/)
 - Can run Visual Basic inside a `.vbs` file with the following `set objApp = CreateObject("WScript.Shell"): objApp.Run "powershell"`
+- Can simply right-click and say "open in terminal", which can surprisingly work sometimes
 
 **Bypassing Disabled Interactive Sessions**
 - If `cmd` is run with `/K` or `/C`, it won't allow for interactive commands
@@ -76,3 +77,12 @@ End Sub
 
 **LOLBAS**
 - Check out the binaries that can execute commands at [https://lolbas-project.github.io/#/execute](https://lolbas-project.github.io/#/execute)
+
+## Linux
+
+**Bypassing Read-Only File Systems**
+- If we have a filesystem or directory we can't write to as root, we can try mounting over the directory instead
+  - For example, let's say we can't write to `/etc/passwd`, even as root, but we want persistence
+  - We can create our own version and put it in `/tmp/passwd` and then run `sudo mount -o bind /tmp/passwd /etc/passwd`
+  - Now, anything that reads `/etc/passwd` will read our version, even though actual `/etc/passwd` is unchanged
+
