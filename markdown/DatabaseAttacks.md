@@ -131,3 +131,5 @@ pagetitle: Database Attacks
 
 ## MongoDB
 - Dumping MongoDB: `mongodump --host [host] --port [port] --username [user] --password [password] --out ./mongodb_dump`
+- Connecting to a MongoDB: use `mongosh` or `mongo`
+  - `mongo --host {IP}:{port} -u {username} -p {password} --authenticationDatabase {database_with_auth_info} ({database_to_use})`
