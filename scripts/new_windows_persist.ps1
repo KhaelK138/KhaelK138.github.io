@@ -7,8 +7,7 @@ param (
 # Store current working directory
 $CWD = Get-Location
 
-# Create directory and navigate
-New-Item -ItemType Directory -Path "C:\ProgramData" -Force
+# Navigate
 Set-Location "C:\ProgramData"
 
 # Disable Windows Defender

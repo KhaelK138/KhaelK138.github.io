@@ -10,17 +10,25 @@ MAX_WORKERS = 20
 SSH_TIMEOUT = 120  # seconds per host
 
 def parse_ip_range(ip_range):
-    pattern = r'^(\d+)\.(\d+)\.(\d+(?:-\d+)?)\.(\d+(?:-\d+)?)$'
-    m = re.match(pattern, ip_range)
-    if not m:
+    # Split IP into four octets
+    parts = ip_range.split('.')
+    if len(parts) != 4:
         raise SystemExit("Invalid IP range format")
-    a, b, c_part, d_part = m.groups()
+
     def expand(part):
-        if '-' in part:
-            s,e = map(int, part.split('-'))
-            return range(s, e+1)
-        v = int(part); return range(v, v+1)
-    return [f"{a}.{b}.{c}.{d}" for c in expand(c_part) for d in expand(d_part)]
+        # supports 1, 1-3, 1,2,3-5 etc.
+        vals = []
+        for section in part.split(','):
+            if '-' in section:
+                s, e = map(int, section.split('-'))
+                vals.extend(range(s, e + 1))
+            else:
+                vals.append(int(section))
+        return vals
+
+    expanded = [expand(p) for p in parts]
+    return [f"{a}.{b}.{c}.{d}" for a in expanded[0] for b in expanded[1] for c in expanded[2] for d in expanded[3]]
+
 
 def run_command(ip, username, password, command, timeout=SSH_TIMEOUT):
     # build remote command: echo 'pass' | sudo -S bash -c 'command'
@@ -49,7 +57,7 @@ def run_command(ip, username, password, command, timeout=SSH_TIMEOUT):
 
 def main():
     if len(sys.argv) != 5:
-        print("Usage: ssh_across_ips.py <ip_range> <username> <password> <command>")
+        print("Usage: python3 ssh_across_ips.py <ip_range> <username> <password> <command>")
         raise SystemExit(1)
     ip_range, username, password, command = sys.argv[1:5]
     ips = parse_ip_range(ip_range)
