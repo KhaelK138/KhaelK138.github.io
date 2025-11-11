@@ -36,6 +36,7 @@ pagetitle: Password Attacks
 		- Putting these rules into a file with newlines will create a new password for each newline, adding that lines modifications to that password
 		- Hashcat provides some rules in `/usr/share/hashcat/rules/`, like `rockyou-30000`
 			- Praetorian has a good ruleset: [Hob0Rules](https://github.com/praetorian-inc/Hob0Rules)
+			- Another good one [here](https://github.com/NotSoSecure/password_cracking_rules/tree/master), which combined the top performers from Praetorian's ruleset and a few others
 	- These modifications can be stored in files and used when cracking--for example:
 		- `hashcat -m 0 {hash} {password_list} -r {modification_file} --force`
 - Ensure to find the type of hash before cracking to save time
