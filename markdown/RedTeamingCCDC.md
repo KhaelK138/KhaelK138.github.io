@@ -243,6 +243,15 @@ pagetitle: Red Teaming for CCDC
 - `sc.exe stop dns` to stop dns
 - `powershell -c "Get-ADUser -Filter * | ForEach-Object { Remove-ADUser $_ -Confirm:$false }"` to delete domain users
 
+## Networking
+
+**Getting new IPs**
+- It can be a pretty easy defense for blue teams to just block your IP
+  - Changing IP isn't too difficult, but requires a bit of manual setup
+- Instead, create 1 machine which has hundreds of IPs allocated to it, and cycles through them with each request made
+- Then, set up proxychains/ligolo on that host, and point kali box to it
+- Now, every new request from kali (whose IP we don't have to change) will hit the target boxes with a new IP
+
 ## Dealing with System Protections
 
 **Defender**

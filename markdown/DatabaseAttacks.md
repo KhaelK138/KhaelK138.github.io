@@ -113,6 +113,12 @@ pagetitle: Database Attacks
 - We can read files with `.read {filename}`
 
 ## PostgreSQL
+
+**Installation**
+- `sudo apt install libpq-dev`
+- `sudo apt-get install --reinstall postgresql-client`
+  
+**Usage**
 - Use `psql -U {username}` for to connect to PostgreSQL databases (with `-d {db_name}` for a database)
   - Then, we can list databases with `\l` and use `\c {db_name}` to connect to the database
   - `\d` to list the tables once connected
@@ -128,6 +134,14 @@ pagetitle: Database Attacks
 - Read files using `COPY`
   - Start by creating a table with `CREATE TABLE demo(t text);`
   - Then `COPY demo FROM '{filename}';`, and then we can just read from the demo table
+
+**Errors**
+- If we get error `no PostgreSQL user name specified in startup packet`, make sure to add env variables:
+
+```sh
+export PGUSER={username}
+export PGDATABASE={database_name}
+```
 
 ## Oracle
 - Comand execution with `EXEC dbms_java.runjava('java.lang.Runtime.getRuntime().exec("{command}")');`

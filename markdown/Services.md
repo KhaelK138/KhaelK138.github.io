@@ -21,6 +21,7 @@ pagetitle: Attacking Services
 	- `sudo wpscan --password-attack xmlrpc -t {threads_eg_20} -U {username} -P /usr/share/wordlists/rockyou.txt --url {wp_site}`
 
 **Misc**
+- Seems the WP admin creds (if there even are some) are no longer admin/test, but rather admin/password
 - xmlrpc.php
   - Can be exploited in a number of ways
   - [https://github.com/1N3/Wordpress-XMLRPC-Brute-Force-Exploit/tree/master](https://github.com/1N3/Wordpress-XMLRPC-Brute-Force-Exploit/tree/master) - password brute forcing tool
