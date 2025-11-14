@@ -137,6 +137,11 @@ pagetitle: Database Attacks
 - Dumping MongoDB: `mongodump --host [host] --port [port] --username [user] --password [password] --out ./mongodb_dump`
 - Connecting to a MongoDB: use `mongosh` or `mongo`
   - `mongo --host {IP}:{port} -u {username} -p {password} --authenticationDatabase {database_with_auth_info} ({database_to_use})`
+- List and use dbs with `show dbs` and `use {db}`
+  - List collections with `show collections`
+  - Get collection data with `db.{collection}.find()`
+- If we have the privileges, we can update our roles or change the password of an admin
+  - Examples [here](https://hackviser.com/tactics/pentesting/services/MongoDB)
 - Get user hashes and format for cracking:
 ```
 use admin

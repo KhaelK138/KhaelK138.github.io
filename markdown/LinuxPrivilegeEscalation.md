@@ -82,6 +82,8 @@ pagetitle: Linux Privilege Escalation
     - Can add `+` or `-` in front of bytes to check larger/smaller than
   - `-exec grep -nir "{data}" {} \;` - search resulting files for data
     - Can also throw on `-A 2 -B 2` for above and below 2 lines of grep
+- Can also check out files with ACLs, as these are almost always custom files with specific permissions given to users
+  - `getfacl -t -s -R -p /bin /etc /home /opt /root /sbin /usr /tmp 2>/dev/null`
 
 ## Insecure File Permissions
 
@@ -108,7 +110,7 @@ pagetitle: Linux Privilege Escalation
 ## Abusing System Linux Components
 
 **PATH Abuse**
-- If we can write executables to PATH (linpeas will let us know if we can), we can replace common binaries with our custom malicious ones
+- If we can write executables to PATH, and other users share that PATH, we can replace common binaries with our custom malicious ones
 - For example, if we can write to `/usr/sbin`, we could add a file there called `cat` with `echo 'root2:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd` inside
 	- Since `/usr/sbin` comes first in `$PATH` (and is shared among users), scripts run by root that call `cat` would run our binary
 	- These can be startup scripts or application scripts, we just need root to run it
