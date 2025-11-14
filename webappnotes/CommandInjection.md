@@ -1,6 +1,6 @@
 ---
 layout: blank
-pagetitle: Command Injection
+pagetitle: Command Injection & Reverse Shells
 ---
 
 ## Command Injection
