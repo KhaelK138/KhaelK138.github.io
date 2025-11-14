@@ -79,6 +79,8 @@ Other example payloads:
 
 - Sending a phishing email with the share:
 	- `sudo swaks -t {to_email} -t {to_email} --from {from_email} --attach @config.Library-ms --server {mail_server} --body @body.txt --header "Subject: Staging Script" --suppress-data -ap`
+- Using SMTP with `swaks`:
+  - To use an SMTP server, we need a user whose credentials we know on the domain `swaks --server {IP_with_SMTP} --body @{body_txt_file} -ap --from {user@domain} --to {target@domain} --auth-user {user@domain} --auth-password {password} --attach @{file_to_attach} --header "{header_text}"`
 
 ## Misc
 
