@@ -3,7 +3,28 @@ import subprocess
 import re
 import sys
 
+def parse_ip_range(ip_range):
+    # Split IP into four octets
+    parts = ip_range.split('.')
+    if len(parts) != 4:
+        raise SystemExit("Invalid IP range format")
+
+    def expand(part):
+        # supports 1, 1-3, 1,2,3-5 etc.
+        vals = []
+        for section in part.split(','):
+            if '-' in section:
+                s, e = map(int, section.split('-'))
+                vals.extend(range(s, e + 1))
+            else:
+                vals.append(int(section))
+        return vals
+
+    expanded = [expand(p) for p in parts]
+    return [f"{a}.{b}.{c}.{d}" for a in expanded[0] for b in expanded[1] for c in expanded[2] for d in expanded[3]]
+
 def run_zero_shot():
+    print("uh")
     
 
 def parse_input(text):
@@ -91,13 +112,14 @@ def run_chain(domain, user, target, nthash, command):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: chain.py <inputfile> [command]")
+        print("Usage: chain.py <ip_range> [command]")
         sys.exit(1)
 
-    inputfile = sys.argv[1]
+    ip_range = sys.argv[1]
     command = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "whoami"
 
-    data = open(inputfile, "r", errors="ignore").read()
+    ips = parse_ip_range(ip_range)
+    data = run_zero_shot()
     parsed = parse_input(data)
 
     # Validate results
