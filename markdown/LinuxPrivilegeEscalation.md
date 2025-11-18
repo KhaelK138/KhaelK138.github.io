@@ -35,6 +35,8 @@ pagetitle: Linux Privilege Escalation
 - List attached printers with `lpstat`
 - Check kernel modules with `lsmod`
 	- To investigate certain modules, use `/sbin/modinfo {module_name}`
+- Find Apache webserver locations with `grep -nirE "ProxyPass |Alias " /etc/apache2`
+  - Can also just manually explore `/etc/apache2/vhosts.d/`
 
 **Automated Enumeration**
 - `linpeas`
