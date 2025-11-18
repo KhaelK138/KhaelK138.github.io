@@ -92,6 +92,7 @@ pagetitle: Red Teaming for CCDC
   - Make malware that:
     - Makes it so you can only run a certain number of commands before being logged out
     - Makes it so you have to solve a times-table equation to see the result of your command
+    - Changes the language of the system to german (`loadkeys de`, `localectl set-locale de_DE.UTF-8`, `localectl set-keymap de` maybe in bashrc?)
   - Get something going for alpine/Nixos
     - Alpine
       - Add a second location for SSH keys 
