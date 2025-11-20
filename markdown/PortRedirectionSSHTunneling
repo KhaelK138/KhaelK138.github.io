@@ -48,6 +48,14 @@ pagetitle: Port Redirection and SSH Tunneling
 	- `listener_add --addr 0.0.0.0:1339 --to 127.0.0.1:8000`
 		- Forwarding all traffic that reaches DMZ on 1339 to kali on 8000
 	- Now, we `iwr/wget {DMZ_IP}:1339/{file}`
+
+**Running the proxy/server on Windows**
+- Download [Wintun](https://www.wintun.net/) driver and put `wintun.dll` in the Ligolo folder
+- Then after starting server and connecting like normal:
+  - Select the session within Ligolo and run `start`, which will install the driver and set up the interface
+  - Show interfaces with: `netsh int ipv4 show interfaces`
+    - Get the `idx` from the one labeled `ligolo`, which was set up after running `start`
+  - Then set up routing with: `route add 192.168.0.0 mask 255.255.255.0 0.0.0.0 if {interface_index}`
 	
 ## SSH Tunneling
 - Can also be referred to as "SSH Port Forwarding"
