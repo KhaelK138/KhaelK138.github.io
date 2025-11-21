@@ -25,3 +25,36 @@ Not making networking its own section for a while (I'm not cracked enough)
 **Issues**
 - Macs might try to use switch over WiFi automatically, but you can go to the bottom of Networking settings and change the priority of each network interface
 - Mac might even say the interface is "Not connected" after disabling IPv4, but we'll still be receiving the traffic on the interface, so WireShark will still work
+
+## Firewalling
+
+- Rules are usually taken in order, so first rules take precedence
+- TODO: fill out from https://docs.google.com/presentation/d/1VX4EFOVBW5znfWVw5AJtrkmAt5-dFTOOfjsqqNbRJcw/edit?pli=1&slide=id.g3a339518901_0_10#slide=id.g3a339518901_0_10
+
+**Iptables**
+- Changes are automatically applied
+- `iptables --list-rules`
+- Accept traffic on a port: `iptables -A {INPUT/OUTPUT/FORWARD} -p {tcp/udp} --dport {port} -j {ACCEPT/DROP/LOG}`
+  - Can pass a specific table with `-t {table_like_NAT}`
+  - `-s {IP}` to pass an IP (range) for allowing/denying
+  - To delete a rule, replace `-A` with `-D` and keep the rest of the rule the same
+- Flush all rules: `iptables -F INPUT/OUTPUT/FORWARD`
+
+**ufw**
+- `ufw {enable/disable}`
+- Status of a rule `ufw status {rule_num}`
+- Allow a port: `ufw allow 22/tcp`
+- Allow from IP: `ufw allow from {IP}`
+  - Can add `to any port 22`
+- Deny all outgoing by default: `ufw default deny outgoing`
+- `firewalld` is similar and present on RHEL
+
+**nftables**
+- Conf in `/etc/nftables.conf`
+- `nft list ruleset` to list rules, flush with `nft flush ruleset`
+- Add port with `nft add rule inet filter input tcp dport 80`
+- Block IP with `nft add rule inet filter input ip saddr {IP} drop`
+- Delete rule with `nft delete rule inet filter input handle {rule_number}`
+
+**Windows**
+- Allow a port: `New-NetFirewallRule -DisplayName "{name}" -Direction Inbound -LocalPort {port} -Protocol TCP -Action Allow`

