@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khael Kugler | Windows 11</title>
+    <style>
+        /* --- SYSTEM VARIABLES & RESET --- */
+        :root {
+            --bg-dark: #202020;
+            --win-bg: rgba(255, 255, 255, 0.85); /* Mica effect base */
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+            --win-shadow: 0 0 0 1px rgba(0,0,0,0.03), 0 4px 14px rgba(0,0,0,0.1);
+            --win-shadow-active: 0 0 0 1px rgba(0,0,0,0.05), 0 20px 50px rgba(0,0,0,0.15);
+            --taskbar-bg: rgba(243, 243, 243, 0.85);
+            --accent-color: #0067c0;
+            --hover-bg: rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; user-select: none; outline: none; }
+        
+        body {
+            margin: 0; padding: 0;
+            width: 100vw; height: 100vh;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+            background: url('https://winblogs.thesourcemediaassets.com/sites/2/2021/10/Windows-11-Bloom-Screensaver-Dark-1600x900.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* --- DESKTOP --- */
+        .desktop {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: calc(100% - 48px);
+            padding: 10px;
+            display: flex; flex-direction: column; flex-wrap: wrap; gap: 2px;
+            align-content: flex-start;
+        }
+
+        .desktop-icon {
+            width: 76px; height: 90px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start;
+            border-radius: 4px; border: 1px solid transparent;
+            cursor: default;
+            transition: 0.1s;
+            color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+            padding-top: 10px;
+        }
+
+        .desktop-icon:hover { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); }
+        .desktop-icon:active { background: rgba(255,255,255,0.2); }
+        
+        .desktop-icon img { width: 40px; height: 40px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+        .desktop-icon span { font-size: 11px; text-align: center; line-height: 1.3; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+        /* --- TASKBAR --- */
+        .taskbar {
+            position: absolute; bottom: 0; width: 100%; height: 48px;
+            background: var(--taskbar-bg);
+            backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; border-top: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .taskbar-center { height: 100%; display: flex; align-items: center; gap: 4px; }
+        
+        .tb-icon {
+            width: 40px; height: 40px;
+            border-radius: 4px;
+            display: flex; justify-content: center; align-items: center;
+            transition: 0.2s; position: relative;
+        }
+        .tb-icon:hover { background: rgba(255,255,255,0.5); }
+        .tb-icon:active { transform: scale(0.95); }
+        .tb-icon img { width: 24px; height: 24px; transition: 0.2s; }
+        .tb-icon:hover img { transform: translateY(-2px); }
+
+        .tb-icon.active::after {
+            content: ''; position: absolute; bottom: 0; width: 16px; height: 3px;
+            background: var(--accent-color); border-radius: 2px;
+            transition: width 0.2s;
+        }
+        .tb-icon.active:active::after { width: 10px; }
+
+        /* System Tray */
+        .tray {
+            position: absolute; right: 0; height: 100%;
+            display: flex; align-items: center; gap: 4px;
+            padding-right: 12px;
+        }
+        .tray-icon-group {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 8px; border-radius: 4px;
+            transition: 0.2s;
+        }
+        .tray-icon-group:hover { background: rgba(255,255,255,0.5); }
+        .tray img { width: 16px; height: 16px; opacity: 0.8; }
+        
+        .clock {
+            display: flex; flex-direction: column; align-items: flex-end;
+            padding: 4px 8px; border-radius: 4px; font-size: 11px;
+            line-height: 1.3; color: #111; cursor: default;
+        }
+        .clock:hover { background: rgba(255,255,255,0.5); }
+
+        /* --- START MENU --- */
+        .start-menu {
+            position: absolute; bottom: -700px; left: 50%; transform: translateX(-50%);
+            width: 640px; height: 700px;
+            background: rgba(243, 243, 243, 0.95);
+            backdrop-filter: blur(40px);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            transition: bottom 0.35s cubic-bezier(0.19, 1, 0.22, 1);
+            z-index: 9998; padding: 24px 24px 60px 24px;
+            display: flex; flex-direction: column;
+        }
+        .start-menu.show { bottom: 60px; }
+
+        .search-box {
+            background: #fff; border-radius: 4px; border-bottom: 2px solid var(--accent-color);
+            padding: 8px 12px; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 25px;
+        }
+        .search-box input { border: none; width: 100%; font-size: 14px; color: #333; }
+
+        .pinned-grid {
+            display: grid; grid-template-columns: repeat(6, 1fr); row-gap: 20px;
+        }
+        .pinned-app {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 10px; border-radius: 4px; transition: 0.1s;
+        }
+        .pinned-app:hover { background: rgba(255,255,255,0.5); }
+        .pinned-app img { width: 32px; height: 32px; }
+        .pinned-app span { font-size: 11px; color: #333; }
+
+        .start-footer {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 54px;
+            background: rgba(0,0,0,0.03); border-top: 1px solid rgba(0,0,0,0.05);
+            border-radius: 0 0 8px 8px;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+        }
+        .user-profile { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: #333; }
+        .power-btn { padding: 8px; border-radius: 4px; cursor: pointer; }
+        .power-btn:hover { background: rgba(0,0,0,0.1); }
+
+        /* --- WINDOWS SYSTEM --- */
+        .window {
+            position: absolute; background: var(--win-bg);
+            border-radius: 8px;
+            box-shadow: var(--win-shadow);
+            border: 1px solid rgba(150, 150, 150, 0.2);
+            display: flex; flex-direction: column;
+            overflow: hidden; opacity: 0; transform: scale(0.95);
+            transition: transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 0.2s, width 0s, height 0s;
+            pointer-events: none;
+            backdrop-filter: blur(20px);
+        }
+        .window.open { opacity: 1; transform: scale(1); pointer-events: auto; box-shadow: var(--win-shadow-active); }
+        .window.minimized { opacity: 0; transform: scale(0.7) translateY(200px); pointer-events: none; transition: 0.3s; }
+        .window.maximized { top: 0 !important; left: 0 !important; width: 100% !important; height: calc(100% - 48px) !important; border-radius: 0; }
+
+        .title-bar {
+            height: 36px; display: flex; justify-content: space-between; align-items: center;
+            padding-left: 12px; flex-shrink: 0;
+        }
+        .title-drag { flex-grow: 1; height: 100%; display: flex; align-items: center; font-size: 12px; color: #444; }
+        .title-drag img { width: 14px; height: 14px; margin-right: 8px; }
+        
+        .controls { display: flex; height: 100%; }
+        .control-btn {
+            width: 46px; height: 100%; display: flex; justify-content: center; align-items: center;
+            font-size: 14px; transition: 0.1s; color: #333;
+        }
+        .control-btn:hover { background: #e5e5e5; }
+        .control-btn.close:hover { background: #c42b1c; color: white; }
+
+        .content { flex-grow: 1; overflow: hidden; position: relative; background: rgba(255,255,255,0.6); }
+
+        /* --- SPECIFIC APP STYLES --- */
+
+        /* FILE EXPLORER (Portfolio) */
+        .explorer-layout { display: flex; height: 100%; }
+        .sidebar { width: 180px; background: rgba(240,240,240,0.5); padding: 10px; border-right: 1px solid rgba(0,0,0,0.05); }
+        .main-view { flex-grow: 1; padding: 0; background: #fff; overflow-y: auto; }
+        .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 6px 10px; font-size: 12px; border-radius: 3px; color: #444; }
+        .sidebar-item:hover { background: rgba(0,0,0,0.05); }
+        .sidebar-item.active { background: rgba(0,0,0,0.08); color: var(--accent-color); }
+        
+        .explorer-toolbar { padding: 8px 15px; border-bottom: 1px solid #eee; display: flex; gap: 15px; background: #fff; }
+        .toolbar-btn { font-size: 12px; display: flex; align-items: center; gap: 5px; color: #444; }
+        
+        .file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); padding: 20px; gap: 10px; }
+        .file-item { display: flex; flex-direction: column; align-items: center; padding: 10px; border-radius: 4px; text-align: center; }
+        .file-item:hover { background: #e5f3ff; }
+        .file-item img { width: 40px; height: 40px; margin-bottom: 5px; }
+        .file-item span { font-size: 12px; word-break: break-word; color: #333; }
+
+        .readme-content { padding: 40px; max-width: 800px; margin: 0 auto; color: #333; line-height: 1.6; }
+        .readme-content h1 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .readme-content code { background: #f0f0f0; padding: 2px 5px; border-radius: 3px; font-family: consolas; }
+
+        /* CHROME */
+        .chrome-nav { display: flex; align-items: center; padding: 6px; background: #fff; border-bottom: 1px solid #dfe1e5; gap: 8px; }
+        .nav-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: transparent; cursor: pointer; color: #5f6368; font-size: 14px; }
+        .nav-btn:hover { background: rgba(0,0,0,0.05); }
+        .omnibox { flex-grow: 1; background: #f1f3f4; border-radius: 14px; padding: 6px 16px; font-size: 13px; border: none; display: flex; align-items: center; color: #333; }
+        .omnibox:focus { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .browser-frame { width: 100%; height: calc(100% - 41px); border: none; background: white; }
+
+        /* VS CODE */
+        .vscode-layout { display: flex; height: 100%; background: #1e1e1e; color: #ccc; font-family: 'Consolas', monospace; font-size: 13px; }
+        .activity-bar { width: 48px; background: #333333; display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 15px; }
+        .activity-bar img { width: 24px; opacity: 0.6; }
+        .activity-bar img.active { opacity: 1; border-left: 2px solid white; }
+        .sidebar-vs { width: 200px; background: #252526; padding: 10px; }
+        .editor-area { flex-grow: 1; background: #1e1e1e; }
+        .tab-bar { background: #2d2d2d; display: flex; }
+        .tab { background: #1e1e1e; padding: 8px 15px; color: #fff; border-top: 1px solid #0078d4; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        .code-content { padding: 20px; line-height: 1.5; }
+        .line-num { color: #858585; margin-right: 15px; user-select: none; }
+        .kwd { color: #569cd6; } .str { color: #ce9178; } .func { color: #dcdcaa; } .com { color: #6a9955; }
+
+        /* CALCULATOR */
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 4px; height: 100%; background: #f9f9f9; }
+        .calc-out { grid-column: span 4; background: transparent; text-align: right; font-size: 48px; font-weight: 600; border: none; padding: 20px; color: #202020; }
+        .btn-calc { background: #fff; border: 1px solid #eee; border-radius: 4px; font-size: 16px; cursor: pointer; transition: 0.1s; }
+        .btn-calc:hover { background: #f5f5f5; border-color: #ddd; }
+        .btn-calc.blue { background: var(--accent-color); color: white; border: none; }
+        .btn-calc.blue:hover { background: #005a9e; }
+
+    </style>
+</head>
+<body>
+
+    <div class="desktop">
+        <div class="desktop-icon" ondblclick="wm.open('explorer')">
+            <img src="https://img.icons8.com/fluency/96/folder-invoices--v1.png">
+            <span>This PC</span>
+        </div>
+        <div class="desktop-icon" ondblclick="wm.open('chrome')">
+            <img src="https://img.icons8.com/fluency/96/chrome.png">
+            <span>Google Chrome</span>
+        </div>
+        <div class="desktop-icon" ondblclick="wm.open('vscode')">
+            <img src="https://img.icons8.com/fluency/96/visual-studio-code-2019.png">
+            <span>VS Code</span>
+        </div>
+        <div class="desktop-icon" ondblclick="wm.open('calc')">
+            <img src="https://img.icons8.com/fluency/96/calculator.png">
+            <span>Calculator</span>
+        </div>
+        <div class="desktop-icon" ondblclick="wm.open('notepad')">
+            <img src="https://img.icons8.com/fluency/96/notepad.png">
+            <span>Notepad</span>
+        </div>
+    </div>
+
+    <div class="start-menu" id="startMenu">
+        <div class="search-box">
+            <img src="https://img.icons8.com/ios-glyphs/30/666666/search--v1.png" width="16">
+            <input type="text" placeholder="Type here to search">
+        </div>
+        <div style="font-weight: 600; margin-bottom: 15px; display:flex; justify-content:space-between; font-size: 13px;">
+            <span>Pinned</span>
+            <span style="background:#fff; padding:2px 8px; border-radius:4px; font-size:11px; border:1px solid #eee">All apps ></span>
+        </div>
+        <div class="pinned-grid">
+            <div class="pinned-app" onclick="wm.open('chrome'); toggleStart()">
+                <img src="https://img.icons8.com/fluency/48/chrome.png"><span>Chrome</span>
+            </div>
+            <div class="pinned-app" onclick="wm.open('explorer'); toggleStart()">
+                <img src="https://img.icons8.com/fluency/48/folder-invoices--v1.png"><span>Files</span>
+            </div>
+            <div class="pinned-app" onclick="wm.open('vscode'); toggleStart()">
+                <img src="https://img.icons8.com/fluency/48/visual-studio-code-2019.png"><span>Code</span>
+            </div>
+            <div class="pinned-app" onclick="wm.open('calc'); toggleStart()">
+                <img src="https://img.icons8.com/fluency/48/calculator.png"><span>Calc</span>
+            </div>
+            <div class="pinned-app" onclick="wm.open('notepad'); toggleStart()">
+                <img src="https://img.icons8.com/fluency/48/notepad.png"><span>Notepad</span>
+            </div>
+            <div class="pinned-app" onclick="alert('Spotify not installed'); toggleStart()">
+                <img src="https://img.icons8.com/fluency/48/spotify.png"><span>Spotify</span>
+            </div>
+        </div>
+
+        <div style="font-weight: 600; margin-top: 30px; margin-bottom: 15px; font-size: 13px;">Recommended</div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 10px; align-items: center; padding: 5px;">
+                <img src="https://img.icons8.com/fluency/48/pdf.png" width="28">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 12px; font-weight: 500;">Resume_2024.pdf</span>
+                    <span style="font-size: 11px; color: #666;">2h ago</span>
+                </div>
+            </div>
+             <div style="display: flex; gap: 10px; align-items: center; padding: 5px;">
+                <img src="https://img.icons8.com/fluency/48/image.png" width="28">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-size: 12px; font-weight: 500;">Project_Screenshot.png</span>
+                    <span style="font-size: 11px; color: #666;">Yesterday at 4:20 PM</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="start-footer">
+            <div class="user-profile">
+                <img src="https://img.icons8.com/fluency/48/user-male-circle.png" width="30">
+                <span>Khael Kugler</span>
+            </div>
+            <div class="power-btn">
+                <img src="https://img.icons8.com/ios-glyphs/30/000000/shutdown.png" width="18">
+            </div>
+        </div>
+    </div>
+
+    <div id="explorer" class="window" style="width: 800px; height: 550px; left: 100px; top: 80px;">
+        <div class="title-bar">
+            <div class="title-drag"><img src="https://img.icons8.com/fluency/48/folder-invoices--v1.png"> File Explorer</div>
+            <div class="controls">
+                <div class="control-btn" onclick="wm.minimize('explorer')">─</div>
+                <div class="control-btn" onclick="wm.maximize('explorer')">◻</div>
+                <div class="control-btn close" onclick="wm.close('explorer')">✕</div>
+            </div>
+        </div>
+        <div class="content explorer-layout">
+            <div class="sidebar">
+                <div style="font-size: 11px; color: #888; margin-bottom: 5px; padding-left: 10px;">Quick Access</div>
+                <div class="sidebar-item active"><img src="https://img.icons8.com/fluency/48/star.png" width="16"> Home</div>
+                <div class="sidebar-item"><img src="https://img.icons8.com/fluency/48/desktop.png" width="16"> Desktop</div>
+                <div class="sidebar-item"><img src="https://img.icons8.com/fluency/48/documents.png" width="16"> Documents</div>
+                <div class="sidebar-item"><img src="https://img.icons8.com/fluency/48/downloads.png" width="16"> Downloads</div>
+                <div style="margin-top: 15px; font-size: 11px; color: #888; margin-bottom: 5px; padding-left: 10px;">This PC</div>
+                <div class="sidebar-item"><img src="https://img.icons8.com/color/48/windows-10.png" width="16"> Local Disk (C:)</div>
+            </div>
+            <div class="main-view" id="explorer-content">
+                <div class="explorer-toolbar">
+                    <div class="toolbar-btn"><span>➕ New</span></div>
+                    <div style="border-left: 1px solid #ddd; margin: 0 5px;"></div>
+                    <div class="toolbar-btn"><img src="https://img.icons8.com/ios/50/cut.png" width="14"></div>
+                    <div class="toolbar-btn"><img src="https://img.icons8.com/ios/50/copy.png" width="14"></div>
+                    <div class="toolbar-btn"><img src="https://img.icons8.com/ios/50/paste.png" width="14"></div>
+                    <div class="toolbar-btn"><img src="https://img.icons8.com/ios/50/delete.png" width="14"></div>
+                </div>
+                <div id="folder-view" class="file-grid">
+                    <div class="file-item" onclick="openFile('about')">
+                        <img src="https://img.icons8.com/fluency/96/txt.png">
+                        <span>About_Me.txt</span>
+                    </div>
+                    <div class="file-item" onclick="openFile('skills')">
+                        <img src="https://img.icons8.com/fluency/96/console.png">
+                        <span>Skills.sh</span>
+                    </div>
+                    <div class="file-item" onclick="openFile('projects')">
+                        <img src="https://img.icons8.com/fluency/96/folder-invoices--v1.png">
+                        <span>Projects</span>
+                    </div>
+                    <div class="file-item" onclick="openFile('contact')">
+                        <img src="https://img.icons8.com/fluency/96/contact-card.png">
+                        <span>Contact.vcf</span>
+                    </div>
+                </div>
+                <div id="file-reader" class="readme-content" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chrome" class="window" style="width: 900px; height: 600px; left: 150px; top: 100px;">
+        <div class="title-bar" style="background: #dee1e6; height: 40px;">
+            <div class="title-drag" style="background: #fff; height: 80%; margin-top: 6px; border-radius: 8px 8px 0 0; padding: 0 10px; width: 200px; margin-left: 8px;">
+                <img src="https://img.icons8.com/color/48/google-logo.png" style="width: 14px; height: 14px;"> New Tab
+            </div>
+            <div class="controls">
+                <div class="control-btn" onclick="wm.minimize('chrome')">─</div>
+                <div class="control-btn" onclick="wm.maximize('chrome')">◻</div>
+                <div class="control-btn close" onclick="wm.close('chrome')">✕</div>
+            </div>
+        </div>
+        <div class="content" style="display: flex; flex-direction: column;">
+            <div class="chrome-nav">
+                <button class="nav-btn">←</button>
+                <button class="nav-btn">→</button>
+                <button class="nav-btn">↻</button>
+                <input type="text" class="omnibox" id="chrome-url" value="Google Search" onkeydown="handleUrl(event)">
+            </div>
+            <iframe id="browser-frame" class="browser-frame" src="https://www.wikipedia.org"></iframe>
+        </div>
+    </div>
+
+    <div id="vscode" class="window" style="width: 850px; height: 600px; left: 200px; top: 120px; background: #1e1e1e;">
+        <div class="title-bar" style="background: #1e1e1e; color: #ccc;">
+            <div class="title-drag"><img src="https://img.icons8.com/fluency/48/visual-studio-code-2019.png"> portfolio.js - VS Code</div>
+            <div class="controls">
+                <div class="control-btn" style="color:white" onclick="wm.minimize('vscode')">─</div>
+                <div class="control-btn" style="color:white" onclick="wm.maximize('vscode')">◻</div>
+                <div class="control-btn close" onclick="wm.close('vscode')">✕</div>
+            </div>
+        </div>
+        <div class="content vscode-layout">
+            <div class="activity-bar">
+                <img src="https://img.icons8.com/ios/50/ffffff/copy.png" class="active">
+                <img src="https://img.icons8.com/ios/50/ffffff/search--v1.png">
+                <img src="https://img.icons8.com/ios/50/ffffff/git.png">
+            </div>
+            <div class="sidebar-vs">
+                <div style="font-size: 11px; font-weight: bold; margin-bottom: 10px;">EXPLORER</div>
+                <div style="font-size: 13px;">
+                    <div style="padding: 2px;">> KHAEL_PORTFOLIO</div>
+                    <div style="padding-left: 10px; color: #569cd6;">JS portfolio.js</div>
+                    <div style="padding-left: 10px; color: #e8bd72;">CSS styles.css</div>
+                </div>
+            </div>
+            <div class="editor-area">
+                <div class="tab-bar">
+                    <div class="tab">
+                        <img src="https://img.icons8.com/color/48/javascript.png" width="14"> portfolio.js <span style="margin-left:5px">×</span>
+                    </div>
+                </div>
+                <div class="code-content">
+                    <div><span class="line-num">1</span> <span class="kwd">const</span> <span class="func">developer</span> = {</div>
+                    <div><span class="line-num">2</span> &nbsp;&nbsp;<span class="kwd">name</span>: <span class="str">"Khael Kugler"</span>,</div>
+                    <div><span class="line-num">3</span> &nbsp;&nbsp;<span class="kwd">role</span>: <span class="str">"Hackerman"</span>,</div>
+                    <div><span class="line-num">4</span> &nbsp;&nbsp;<span class="kwd">skills</span>: [<span class="str">"React"</span>, <span class="str">"Node.js"</span>, <span class="str">"Cybersecurity"</span>],</div>
+                    <div><span class="line-num">5</span> &nbsp;&nbsp;<span class="kwd">hire</span>: <span class="kwd">async</span> <span class="kwd">function</span>() {</div>
+                    <div><span class="line-num">6</span> &nbsp;&nbsp;&nbsp;&nbsp;<span class="kwd">return</span> <span class="str">"Let's build something awesome."</span>;</div>
+                    <div><span class="line-num">7</span> &nbsp;&nbsp;}</div>
+                    <div><span class="line-num">8</span> };</div>
+                    <div><span class="line-num">9</span> </div>
+                    <div><span class="line-num">10</span> <span class="com">// Run system diagnostics...</span></div>
+                    <div><span class="line-num">11</span> <span class="func">console</span>.<span class="func">log</span>(<span class="func">developer</span>.<span class="func">hire</span>());</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="calc" class="window" style="width: 320px; height: 500px; left: 400px; top: 200px;">
+        <div class="title-bar">
+            <div class="title-drag">Calculator</div>
+            <div class="controls">
+                <div class="control-btn" onclick="wm.minimize('calc')">─</div>
+                <div class="control-btn" onclick="wm.maximize('calc')">◻</div>
+                <div class="control-btn close" onclick="wm.close('calc')">✕</div>
+            </div>
+        </div>
+        <div class="content" style="background: #f9f9f9;">
+            <div class="calc-grid">
+                <div style="grid-column: span 4; padding: 10px; font-size: 14px; text-align: right; color: #666;">Standard</div>
+                <input class="calc-out" id="calc-display" readonly value="0">
+                
+                <button class="btn-calc" onclick="cInput('%')">%</button>
+                <button class="btn-calc" onclick="cClear()">CE</button>
+                <button class="btn-calc" onclick="cClear()">C</button>
+                <button class="btn-calc" onclick="cInput('/')">⌫</button>
+
+                <button class="btn-calc" onclick="cInput('7')">7</button>
+                <button class="btn-calc" onclick="cInput('8')">8</button>
+                <button class="btn-calc" onclick="cInput('9')">9</button>
+                <button class="btn-calc" onclick="cInput('*')">×</button>
+
+                <button class="btn-calc" onclick="cInput('4')">4</button>
+                <button class="btn-calc" onclick="cInput('5')">5</button>
+                <button class="btn-calc" onclick="cInput('6')">6</button>
+                <button class="btn-calc" onclick="cInput('-')">-</button>
+
+                <button class="btn-calc" onclick="cInput('1')">1</button>
+                <button class="btn-calc" onclick="cInput('2')">2</button>
+                <button class="btn-calc" onclick="cInput('3')">3</button>
+                <button class="btn-calc" onclick="cInput('+')">+</button>
+
+                <button class="btn-calc" onclick="cInput('neg')">+/-</button>
+                <button class="btn-calc" onclick="cInput('0')">0</button>
+                <button class="btn-calc" onclick="cInput('.')">.</button>
+                <button class="btn-calc blue" onclick="cEval()">=</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notepad" class="window" style="width: 500px; height: 400px; left: 300px; top: 250px;">
+        <div class="title-bar">
+            <div class="title-drag"><img src="https://img.icons8.com/fluency/48/notepad.png"> Untitled - Notepad</div>
+            <div class="controls">
+                <div class="control-btn" onclick="wm.minimize('notepad')">─</div>
+                <div class="control-btn" onclick="wm.maximize('notepad')">◻</div>
+                <div class="control-btn close" onclick="wm.close('notepad')">✕</div>
+            </div>
+        </div>
+        <div class="content">
+            <div style="padding: 2px 10px; background: #fff; border-bottom: 1px solid #eee; font-size: 12px; display:flex; gap: 15px;">
+                <span>File</span> <span>Edit</span> <span>View</span>
+            </div>
+            <textarea style="width: 100%; height: 100%; border: none; padding: 10px; font-family: 'Consolas', monospace; font-size: 14px; resize: none;"></textarea>
+        </div>
+    </div>
+
+
+    <div class="taskbar">
+        <div class="taskbar-center">
+            <div class="tb-icon" onclick="toggleStart()">
+                <img src="https://img.icons8.com/fluency/96/windows-11.png">
+            </div>
+            <div class="tb-icon" id="tb-explorer" onclick="wm.toggle('explorer')">
+                <img src="https://img.icons8.com/fluency/96/folder-invoices--v1.png">
+            </div>
+            <div class="tb-icon" id="tb-chrome" onclick="wm.toggle('chrome')">
+                <img src="https://img.icons8.com/fluency/96/chrome.png">
+            </div>
+            <div class="tb-icon" id="tb-vscode" onclick="wm.toggle('vscode')">
+                <img src="https://img.icons8.com/fluency/96/visual-studio-code-2019.png">
+            </div>
+            <div class="tb-icon" id="tb-calc" onclick="wm.toggle('calc')">
+                <img src="https://img.icons8.com/fluency/96/calculator.png">
+            </div>
+             <div class="tb-icon" id="tb-notepad" onclick="wm.toggle('notepad')">
+                <img src="https://img.icons8.com/fluency/96/notepad.png">
+            </div>
+        </div>
+
+        <div class="tray">
+            <div class="tray-icon-group">
+                <img src="https://img.icons8.com/ios-filled/50/000000/wifi.png">
+                <img src="https://img.icons8.com/ios-filled/50/000000/speaker.png">
+                <img src="https://img.icons8.com/ios-filled/50/000000/battery-level.png">
+            </div>
+            <div class="clock" id="clock">
+                <span id="time">12:00</span>
+                <span id="date">10/20/2023</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- WINDOW MANAGER ---
+        class WindowManager {
+            constructor() {
+                this.z = 100;
+                this.wins = {};
+                document.querySelectorAll('.window').forEach(w => {
+                    this.wins[w.id] = w;
+                    this.makeDraggable(w);
+                    w.addEventListener('mousedown', () => this.focus(w.id));
+                });
+            }
+
+            focus(id) {
+                this.z++;
+                const w = this.wins[id];
+                w.style.zIndex = this.z;
+                
+                // Update taskbar active state
+                document.querySelectorAll('.tb-icon').forEach(t => t.classList.remove('active'));
+                const tb = document.getElementById('tb-' + id);
+                if(tb) tb.classList.add('active');
+            }
+
+            open(id) {
+                const w = this.wins[id];
+                w.classList.remove('minimized');
+                w.classList.add('open');
+                this.focus(id);
+                // Create taskbar indicator effect
+                const tb = document.getElementById('tb-' + id);
+                if(tb) tb.style.background = 'rgba(255,255,255,0.4)';
+            }
+
+            close(id) {
+                const w = this.wins[id];
+                w.classList.remove('open');
+                w.classList.remove('maximized'); // reset max state
+                
+                const tb = document.getElementById('tb-' + id);
+                if(tb) {
+                    tb.classList.remove('active');
+                    tb.style.background = '';
+                }
+            }
+
+            minimize(id) {
+                const w = this.wins[id];
+                w.classList.add('minimized');
+                w.classList.remove('open'); // visually hide but keep "running" logic
+            }
+
+            maximize(id) {
+                const w = this.wins[id];
+                w.classList.toggle('maximized');
+            }
+
+            toggle(id) {
+                const w = this.wins[id];
+                if (w.classList.contains('open') && !w.classList.contains('minimized')) {
+                    this.minimize(id);
+                } else {
+                    this.open(id);
+                }
+            }
+
+            makeDraggable(elm) {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                const header = elm.querySelector(".title-bar");
+                
+                header.onmousedown = dragMouseDown;
+
+                function dragMouseDown(e) {
+                    if(e.target.classList.contains('control-btn')) return;
+                    e.preventDefault();
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    document.onmouseup = closeDragElement;
+                    document.onmousemove = elementDrag;
+                }
+
+                function elementDrag(e) {
+                    e.preventDefault();
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    
+                    if (!elm.classList.contains('maximized')) {
+                        elm.style.top = (elm.offsetTop - pos2) + "px";
+                        elm.style.left = (elm.offsetLeft - pos1) + "px";
+                    }
+                }
+
+                function closeDragElement() {
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }
+            }
+        }
+
+        const wm = new WindowManager();
+
+        // --- START MENU ---
+        const start = document.getElementById('startMenu');
+        function toggleStart() {
+            start.classList.toggle('show');
+        }
+        document.querySelector('.desktop').addEventListener('click', () => start.classList.remove('show'));
+
+        // --- CLOCK ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('time').innerText = now.toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'});
+            document.getElementById('date').innerText = now.toLocaleDateString();
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- CHROME LOGIC (THE WORKAROUND) ---
+        function handleUrl(e) {
+            if (e.key === 'Enter') {
+                const input = document.getElementById('chrome-url');
+                const frame = document.getElementById('browser-frame');
+                let url = input.value;
+                
+                // Real websites like Google block iframes. 
+                // We route the "search" to Wikipedia search, which allows iframes.
+                // This simulates a functional browser.
+                
+                if (url.includes('.')) {
+                    // It looks like a domain, but we can't load it due to security headers.
+                    // Fallback to wikipedia search for that domain/term
+                     frame.src = `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(url)}`;
+                } else {
+                     frame.src = `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(url)}`;
+                }
+                
+                // Specific "allowed" demo sites (uncomment to test)
+                // if(url === 'vscode') frame.src = 'https://vscode.dev'; 
+            }
+        }
+
+        // --- FILE EXPLORER CONTENT SYSTEM ---
+        const contentArea = document.getElementById('folder-view');
+        const readerArea = document.getElementById('file-reader');
+        
+        const files = {
+            'about': `<h1>About Khael</h1><p>I am a developer specializing in web technologies and system administration. Welcome to my OS.</p>`,
+            'skills': `<h1>Technical Skills</h1><ul><li>JavaScript / React / Node</li><li>Python / Django</li><li>Linux Administration</li><li>Network Security</li></ul>`,
+            'contact': `<h1>Contact Card</h1><p>Email: contact@khaelkugler.com</p><p>GitHub: @khaelkugler</p>`,
+            'projects': `<h1>Projects</h1><p>1. <b>Win11 React Clone</b>: A web-based OS.</p><p>2. <b>Security Auditor</b>: Python script for pentesting.</p>`
+        };
+
+        function openFile(fileId) {
+            contentArea.style.display = 'none';
+            readerArea.style.display = 'block';
+            readerArea.innerHTML = `
+                <div onclick="backToFolder()" style="cursor:pointer; margin-bottom:20px; color:#0067c0;">← Back to Folder</div>
+                ${files[fileId] || 'File corrupted.'}
+            `;
+        }
+
+        function backToFolder() {
+            readerArea.style.display = 'none';
+            contentArea.style.display = 'grid';
+        }
+
+        // --- CALCULATOR ---
+        let calcVal = "0";
+        function cInput(v) {
+            const disp = document.getElementById('calc-display');
+            if(calcVal === '0') calcVal = '';
+            calcVal += v;
+            disp.value = calcVal;
+        }
+        function cClear() {
+            calcVal = "0";
+            document.getElementById('calc-display').value = calcVal;
+        }
+        function cEval() {
+            try {
+                // simple safe eval replacement
+                calcVal = new Function('return ' + calcVal)();
+                document.getElementById('calc-display').value = calcVal;
+            } catch {
+                document.getElementById('calc-display').value = 'Error';
+                calcVal = "";
+            }
+        }
+
+        // Init
+        setTimeout(() => wm.open('explorer'), 500);
+
+    </script>
+</body>
+</html>
