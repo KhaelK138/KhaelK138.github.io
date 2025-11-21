@@ -66,6 +66,10 @@ pagetitle: Antivirus Evasion
 - DLL injection without touching disk
     - Share the DLL remotely with `sudo impacket-smbserver share ./`
 
+## Writing different types of Malware
+
+Check out [https://github.com/captain-woof/malware-study/tree/main](https://github.com/captain-woof/malware-study/tree/main), seems to be a really good resource of someone's exploration into different malware types
+
 ## AMSI
 - [Anti-Malware Scanning Interface](https://learn.microsoft.com/en-us/windows/win32/amsi/antimalware-scan-interface-portal)
 - Can be bypassed using a number of tricks, but the scripts are all recognized by AMSI
