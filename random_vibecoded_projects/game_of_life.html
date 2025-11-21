@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Game of Life v4 - Colors</title>
+    <style>
+        :root {
+            --bg-color: #11111b;
+            --grid-color: #232330;
+            --text-color: #cdd6f4;
+            --ui-bg: rgba(30, 30, 46, 0.9);
+            --accent: #89b4fa;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+        }
+
+        canvas { display: block; cursor: crosshair; }
+
+        /* --- Bottom UI --- */
+        #bottom-ui-container {
+            position: absolute;
+            bottom: 30px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        #bottom-ui {
+            background: var(--ui-bg);
+            color: var(--text-color);
+            padding: 14px 28px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.08);
+            display: flex; gap: 20px; align-items: center;
+        }
+
+        .separator { opacity: 0.3; }
+
+        kbd {
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        #status { font-weight: bold; color: var(--accent); min-width: 80px; }
+
+        /* --- Settings Panel (Top Right) --- */
+        #settings-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        #settings-toggle {
+            background: var(--ui-bg);
+            color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.08);
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px);
+            margin-bottom: 10px;
+            transition: transform 0.3s ease;
+        }
+        #settings-toggle:hover { transform: rotate(45deg); }
+
+        #settings-panel {
+            background: var(--ui-bg);
+            color: var(--text-color);
+            padding: 20px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; gap: 15px;
+            width: 200px;
+            transform-origin: top right;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .panel-hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+        }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px;}
+        select, input[type=color] {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            outline: none;
+        }
+        input[type=color] { padding: 0; width: 40px; height: 28px; border: none; overflow: hidden;}
+        input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type=color]::-webkit-color-swatch { border: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="settings-container">
+        <button id="settings-toggle">⚙️</button>
+        <div id="settings-panel" class="panel-hidden">
+            <div class="setting-row" style="font-weight: bold; margin-bottom: 5px;">Appearance</div>
+            <div class="setting-row">
+                <label>Mode</label>
+                <select id="color-mode-select">
+                    <option value="solid">Solid</option>
+                    <option value="age" selected>Cell Age (Zen)</option>
+                    <option value="grad-v">Screen Vertical</option>
+                    <option value="grad-r">Screen Radial</option>
+                </select>
+            </div>
+            <div class="setting-row">
+                <label>Color 1</label>
+                <input type="color" id="color1-picker" value="#89b4fa">
+            </div>
+            <div class="setting-row" id="color2-row">
+                <label>Color 2</label>
+                <input type="color" id="color2-picker" value="#a6e3a1">
+            </div>
+        </div>
+    </div>
+
+    <div id="bottom-ui-container">
+        <div id="bottom-ui">
+            <div><kbd>Left</kbd> Draw <kbd>Right</kbd> Erase</div>
+            <span class="separator">|</span>
+            <div><kbd>Shift</kbd> Pan <kbd>Ctrl</kbd>+Scroll Zoom</div>
+            <span class="separator">|</span>
+            <div id="status">Paused</div>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        const statusEl = document.getElementById('status');
+
+        // UI Elements
+        const settingsToggle = document.getElementById('settings-toggle');
+        const settingsPanel = document.getElementById('settings-panel');
+        const colorModeSelect = document.getElementById('color-mode-select');
+        const color1Picker = document.getElementById('color1-picker');
+        const color2Picker = document.getElementById('color2-picker');
+        const color2Row = document.getElementById('color2-row');
+
+        // --- Configuration ---
+        const MIN_CELL_SIZE = 2;
+        const MAX_CELL_SIZE = 200;
+        const MIN_INTERVAL = 10; const MAX_INTERVAL = 1000;
+        const AGE_MAX_COLOR_STEPS = 60; // Age at which cell reaches Color 2
+
+        // --- State ---
+        let cellSize = 20;
+        let offsetX = window.innerWidth / 2;
+        let offsetY = window.innerHeight / 2;
+        let isRunning = false;
+        let simulationInterval = 100;
+        
+        // Value: Age of cell (int)
+        let cells = new Map();
+
+        // Appearance State
+        let colorMode = 'age';
+        let color1 = '#89b4fa';
+        let color2 = '#a6e3a1';
+        let ageColorCache = new Map(); // Cache for age gradient generation
+
+        // Inputs
+        let isDragging = false; let isDrawing = false; let isErasing = false;
+        let lastMouseX = 0; let lastMouseY = 0;
+        let lastTime = 0;
+
+        // --- Core Systems ---
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            draw();
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function getKey(x, y) { return `${x},${y}`; }
+        function getCoords(key) {
+            const p = key.split(','); return { x: parseInt(p[0]), y: parseInt(p[1]) };
+        }
+        function screenToWorld(sx, sy) {
+            return {
+                x: Math.floor((sx - offsetX) / cellSize),
+                y: Math.floor((sy - offsetY) / cellSize)
+            };
+        }
+
+        // --- Color Utilities ---
+
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+        }
+
+        function interpolateColor(c1, c2, factor) {
+            // factor between 0 and 1
+            const rgb1 = hexToRgb(c1);
+            const rgb2 = hexToRgb(c2);
+            const r = Math.round(rgb1[0] + factor * (rgb2[0] - rgb1[0]));
+            const g = Math.round(rgb1[1] + factor * (rgb2[1] - rgb1[1]));
+            const b = Math.round(rgb1[2] + factor * (rgb2[2] - rgb1[2]));
+            return `rgb(${r},${g},${b})`;
+        }
+
+        function getAgeColor(age) {
+            if (age > AGE_MAX_COLOR_STEPS) age = AGE_MAX_COLOR_STEPS;
+            const cacheKey = `${age}-${color1}-${color2}`;
+            if (ageColorCache.has(cacheKey)) return ageColorCache.get(cacheKey);
+
+            const factor = age / AGE_MAX_COLOR_STEPS;
+            const color = interpolateColor(color1, color2, factor);
+            ageColorCache.set(cacheKey, color);
+            if(ageColorCache.size > AGE_MAX_COLOR_STEPS * 2) ageColorCache.clear(); // Poor man's cache eviction
+            return color;
+        }
+
+        // --- Game Logic ---
+
+        function update() {
+            const counts = new Map();
+            const toCheck = new Set();
+
+            for (const key of cells.keys()) {
+                const { x, y } = getCoords(key);
+                toCheck.add(key);
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        if (dx === 0 && dy === 0) continue;
+                        toCheck.add(getKey(x + dx, y + dy));
+                    }
+                }
+            }
+
+            const nextGen = new Map();
+            for (const key of toCheck) {
+                const { x, y } = getCoords(key);
+                let neighbors = 0;
+                for (let dx = -1; dx <= 1; dx++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        if (dx === 0 && dy === 0) continue;
+                        if (cells.has(getKey(x + dx, y + dy))) neighbors++;
+                    }
+                }
+
+                const currentAge = cells.get(key);
+                const isAlive = currentAge !== undefined;
+
+                if (isAlive && (neighbors === 2 || neighbors === 3)) {
+                    nextGen.set(key, currentAge + 1); // Survive & age up
+                } else if (!isAlive && neighbors === 3) {
+                    nextGen.set(key, 0); // Born at age 0
+                }
+            }
+            cells = nextGen;
+        }
+
+        // --- Rendering ---
+
+        function draw() {
+            ctx.fillStyle = '#11111b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Grid Lines
+            if (cellSize >= 8) {
+                ctx.strokeStyle = '#232330'; ctx.lineWidth = 1;
+                ctx.beginPath();
+                const startCol = Math.floor(-offsetX / cellSize);
+                const endCol = startCol + (canvas.width / cellSize) + 1;
+                const startRow = Math.floor(-offsetY / cellSize);
+                const endRow = startRow + (canvas.height / cellSize) + 1;
+                for (let c = startCol; c <= endCol; c++) {
+                    const x = Math.floor(c * cellSize + offsetX) + 0.5;
+                    ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+                }
+                for (let r = startRow; r <= endRow; r++) {
+                    const y = Math.floor(r * cellSize + offsetY) + 0.5;
+                    ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+                }
+                ctx.stroke();
+            }
+
+            // Set Fill Style based on Mode
+            if (colorMode === 'solid') {
+                ctx.fillStyle = color1;
+            } else if (colorMode === 'grad-v') {
+                const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                grad.addColorStop(0, color1); grad.addColorStop(1, color2);
+                ctx.fillStyle = grad;
+            } else if (colorMode === 'grad-r') {
+                const cx = canvas.width / 2; const cy = canvas.height / 2;
+                const radius = Math.max(canvas.width, canvas.height) / 1.5;
+                const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+                grad.addColorStop(0, color1); grad.addColorStop(1, color2);
+                ctx.fillStyle = grad;
+            }
+
+            // Glow effect (using color1 as base)
+            ctx.shadowBlur = (cellSize > 8 && colorMode !== 'age') ? 6 : 0;
+            ctx.shadowColor = color1;
+
+            // Draw Cells
+            if (colorMode !== 'age') ctx.beginPath();
+
+            for (const [key, age] of cells.entries()) {
+                const { x, y } = getCoords(key);
+                const screenX = Math.floor(x * cellSize + offsetX);
+                const screenY = Math.floor(y * cellSize + offsetY);
+                const size = Math.ceil(cellSize);
+
+                if (screenX > -size && screenX < canvas.width && screenY > -size && screenY < canvas.height) {
+                    const gap = cellSize > 8 ? 1 : 0;
+                    
+                    if (colorMode === 'age') {
+                        // Age mode needs individual fill styles, so we can't batch path
+                        ctx.fillStyle = getAgeColor(age);
+                        ctx.shadowColor = ctx.fillStyle;
+                        ctx.shadowBlur = cellSize > 8 ? 6 : 0;
+                        ctx.fillRect(screenX + gap, screenY + gap, size - gap*2, size - gap*2);
+                    } else {
+                        // Other modes use one big path for performance
+                        ctx.rect(screenX + gap, screenY + gap, size - gap*2, size - gap*2);
+                    }
+                }
+            }
+            if (colorMode !== 'age') ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        function loop(ts) {
+            if (isRunning && ts - lastTime > simulationInterval) {
+                update(); lastTime = ts;
+            }
+            draw(); requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        // --- Inputs ---
+
+        canvas.addEventListener('mousedown', e => {
+            if (e.shiftKey || e.button === 1) {
+                isDragging = true; canvas.style.cursor = 'grabbing';
+            } else {
+                const { x, y } = screenToWorld(e.clientX, e.clientY);
+                const key = getKey(x, y);
+                if (e.button === 2) { isErasing = true; cells.delete(key); }
+                // Reset age to 0 on manual draw
+                else if (e.button === 0) { isDrawing = true; cells.set(key, 0); }
+            }
+            lastMouseX = e.clientX; lastMouseY = e.clientY;
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (isDragging) {
+                offsetX += e.clientX - lastMouseX; offsetY += e.clientY - lastMouseY;
+            } else if (isDrawing || isErasing) {
+                const { x, y } = screenToWorld(e.clientX, e.clientY);
+                const key = getKey(x, y);
+                if (isDrawing) cells.set(key, 0);
+                if (isErasing) cells.delete(key);
+            }
+            lastMouseX = e.clientX; lastMouseY = e.clientY;
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false; isDrawing = false; isErasing = false;
+            canvas.style.cursor = 'crosshair';
+        });
+
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            if (e.ctrlKey || e.metaKey) {
+                const mouseX = e.clientX; const mouseY = e.clientY;
+                const delta = -Math.sign(e.deltaY);
+                let newCellSize = cellSize * (1 + (delta * 0.1));
+                newCellSize = Math.max(MIN_CELL_SIZE, Math.min(MAX_CELL_SIZE, newCellSize));
+                const worldX = (mouseX - offsetX) / cellSize;
+                const worldY = (mouseY - offsetY) / cellSize;
+                offsetX = mouseX - (worldX * newCellSize);
+                offsetY = mouseY - (worldY * newCellSize);
+                cellSize = newCellSize;
+                statusEl.innerText = "Zoom: " + Math.round(cellSize);
+            } else {
+                simulationInterval = e.deltaY < 0 ? Math.max(MIN_INTERVAL, simulationInterval * 0.8) : Math.min(MAX_INTERVAL, simulationInterval * 1.2);
+                statusEl.innerText = "Speed: " + Math.round(1000/simulationInterval) + " GPS";
+            }
+        }, { passive: false });
+
+        window.addEventListener('keydown', e => {
+            if (e.code === 'Space') {
+                isRunning = !isRunning; statusEl.innerText = isRunning ? "Playing" : "Paused";
+            }
+        });
+        canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        // --- UI Event Listeners ---
+        settingsToggle.addEventListener('click', () => {
+            settingsPanel.classList.toggle('panel-hidden');
+        });
+
+        colorModeSelect.addEventListener('change', (e) => {
+            colorMode = e.target.value;
+            color2Row.style.display = colorMode === 'solid' ? 'none' : 'flex';
+            ageColorCache.clear();
+            draw();
+        });
+
+        color1Picker.addEventListener('input', (e) => { color1 = e.target.value; ageColorCache.clear(); draw(); });
+        color2Picker.addEventListener('input', (e) => { color2 = e.target.value; ageColorCache.clear(); draw(); });
+
+
+        // --- Initial Pattern (Gosper Glider Gun) ---
+        const gun = [[1,5],[1,6],[2,5],[2,6],[11,5],[11,6],[11,7],[12,4],[12,8],[13,3],[13,9],[14,3],[14,9],[15,6],[16,4],[16,8],[17,5],[17,6],[17,7],[18,6],[21,3],[21,4],[21,5],[22,3],[22,4],[22,5],[23,2],[23,6],[25,1],[25,2],[25,6],[25,7],[35,3],[35,4],[36,3],[36,4]];
+        const startX = Math.floor(-offsetX/cellSize) + 10; 
+        const startY = Math.floor(-offsetY/cellSize) + 10;
+        // Initialize with age 0
+        gun.forEach(([x, y]) => cells.set(getKey(x + startX, y + startY), 0));
+
+    </script>
+</body>
+</html>
