@@ -45,7 +45,7 @@ def run_zero_shot(ip):
 
 def parse_input(text):
     m = re.search(
-        r"^(?:[A-Za-z0-9\.\-]+\\)?([A-Za-z0-9\.\$\-_]+):\d+:([0-9a-fA-F]{32}):([0-9a-fA-F]{32}):::",
+        r"^(?:[A-Za-z0-9'\.\-]+\\)?([A-Za-z0-9'\.\$\-_]+):\d+:([0-9a-fA-F]{32}):([0-9a-fA-F]{32}):::",
         text,
         re.MULTILINE
     )
