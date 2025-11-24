@@ -31,6 +31,7 @@ def parse_ip_range(ip_range):
 
 
 def run_command(ip, username, password, command, timeout=SSH_TIMEOUT):
+
     # build remote command: echo 'pass' | sudo -S bash -c 'command'
     remote_cmd = "echo {} | sudo -S bash -c {}".format(
         shlex.quote(password),
