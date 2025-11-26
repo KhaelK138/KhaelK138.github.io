@@ -19,6 +19,13 @@
 - `ABM`: Account Based Marketing - Doing B2B sales campaigns based specifically on the client
   - Could include customizing the landing pages per customer
 
+## Payments
+
+**Comp Increases**
+- Raises usually between 3-6%, promotions between 10 and 15%
+
+**Triangle of Employees, Customers, and Shareholders**
+- Need to be in the middle of this
 
 ## Misc
 Priorities:
