@@ -384,6 +384,7 @@
                             'meminfo': { type: 'file', perms: '-r--r--r--', user: 'root', group: 'root', size: 0, date: dateStr, content: 'MemTotal:        8192000 kB\nMemFree:         4096000 kB' },
                             'version': { type: 'file', perms: '-r--r--r--', user: 'root', group: 'root', size: 0, date: dateStr, content: 'Linux version 5.4.0-webterm (gcc version 9.3.0) #1 SMP' }
                         }},
+                        'root': { type: 'dir', perms: '-rw-r-----', user: 'root', group: 'root', size: 4096, date: dateStr, children: {} },
                         'tmp': { type: 'dir', perms: 'drwxrwxrwt', user: 'root', group: 'root', size: 4096, date: dateStr, children: {} },
                         'usr': { type: 'dir', perms: 'drwxr-xr-x', user: 'root', group: 'root', size: 4096, date: dateStr, children: {
                             'bin': { type: 'dir', perms: 'drwxr-xr-x', user: 'root', group: 'root', size: 4096, date: dateStr, children: {} },
@@ -611,6 +612,7 @@
                     case 'tail': this.cmdTail(params); break;
                     case 'wc': this.cmdWc(params); break;
                     case 'whoami': this.printLine(this.user); break;
+                    case 'id': this.printLine(`uid=1000(guest) gid=1000(guest) groups=1000(guest)`); break
                     case 'date': this.printLine(new Date().toString()); break;
                     case 'uptime': this.cmdUptime(); break;
                     case 'uname': this.cmdUname(params); break;
