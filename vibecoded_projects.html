@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibecoded Projects - Khael Kugler</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 2rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(-5px);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .project-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .project-card:hover::before {
+            left: 100%;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .project-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .project-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .project-description {
+            opacity: 0.85;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .project-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .project-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/index.html" class="back-link">← Back to Home</a>
+
+        <header>
+            <h1>✨ Vibecoded Projects ✨</h1>
+            <p class="subtitle">Built with pure vibes and caffeine</p>
+        </header>
+
+        <div class="projects-grid">
+            <div class="project-card">
+                <span class="project-icon">🎵</span>
+                <h2 class="project-title">Digital Audio Workstation</h2>
+                <p class="project-description">
+                    A fully functional DAW built in the browser. Create beats, layer tracks, and produce music without installing anything.
+                </p>
+                <a href="/random_vibecoded_projects/daw.html" class="project-link">Launch DAW →</a>
+            </div>
+
+            <div class="project-card">
+                <span class="project-icon">🎮</span>
+                <h2 class="project-title">Conway's Game of Life</h2>
+                <p class="project-description">
+                    Watch cellular automata come to life. A mesmerizing implementation of Conway's classic Game of Life with interactive controls.
+                </p>
+                <a href="/random_vibecoded_projects/game_of_life.html" class="project-link">Play Game →</a>
+            </div>
+
+            <div class="project-card">
+                <span class="project-icon">💻</span>
+                <h2 class="project-title">Linux Shell Simulator</h2>
+                <p class="project-description">
+                    Experience a Linux terminal right in your browser. Practice commands, explore the filesystem, and feel like a real hacker.
+                </p>
+                <a href="/random_vibecoded_projects/linux_shell.html" class="project-link">Open Terminal →</a>
+            </div>
+
+            <div class="project-card">
+                <span class="project-icon">⛏️</span>
+                <h2 class="project-title">Minecraft Clone</h2>
+                <p class="project-description">
+                    A voxel-based world built with WebGL. Mine blocks, build structures, and explore an infinite procedurally generated world.
+                </p>
+                <a href="/random_vibecoded_projects/minecraft.html" class="project-link">Start Mining →</a>
+            </div>
+
+            <div class="project-card">
+                <span class="project-icon">🪟</span>
+                <h2 class="project-title">Windows 11 Simulator</h2>
+                <p class="project-description">
+                    A pixel-perfect recreation of Windows 11 in the browser. Complete with working apps, animations, and that satisfying start menu.
+                </p>
+                <a href="/random_vibecoded_projects/windows11.html" class="project-link">Boot Windows →</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

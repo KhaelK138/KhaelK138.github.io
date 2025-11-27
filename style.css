@@ -1,7 +1,7 @@
 :root{
 	--main-color: #5dbd6e;
 	--bg-color: #28242c;
-  --link-color: #17E300;
+  --main-color: #5dbd6e;
 }
 
 body{
@@ -11,10 +11,6 @@ body{
 
 .particles-icon:hover svg path {
   stroke-width:.075em
-}
-
-a:visited {
-    color: #17E300; /* Set links to blue after they have been visited */
 }
 
 a {
