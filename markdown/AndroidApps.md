@@ -31,7 +31,7 @@ pagetitle: Android Apps
 - BurpSuite can be a pain, but worth it - [https://portswigger.net/burp/documentation/desktop/mobile/config-android-device](https://portswigger.net/burp/documentation/desktop/mobile/config-android-device)
 
 ## Drozer
-- Great multipurpose tool - [https://labs.withsecure.com/tools/drozer](https://labs.withsecure.com/tools/drozer)
+- Great multipurpose tool - [https://labs.reversec.com/tools/drozer](https://labs.reversec.com/tools/drozer)
 - Installed with `pipx install drozer`
 - Then, download the agent from [https://github.com/WithSecureLabs/drozer-agent](https://github.com/WithSecureLabs/drozer-agent) and install it with `adb install drozer-agent.apk`
   - Then, in the emulator, go to the drozer app and start up the embedded server on port 31415
@@ -44,7 +44,7 @@ pagetitle: Android Apps
 - Download the server from [here](https://github.com/frida/frida/releases/latest) 
   - On Google Play versions past August 1 2024, Frida is broken it seems
     - Apparently newer versions fixed this, but that doesn't seem to be the case
-    - Got frida working on API 27
+    - Got adb/frida working on API 29, which DOES have google play store
   - Install on the client with `adb`
     - `adb push {server_file} /data/local/tmp`
     - `adb shell` then `su` (must already be rooted)
