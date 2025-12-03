@@ -40,7 +40,6 @@ pagetitle: External Assessments
 
 **GoWitness**
 - Run gowitness on the IP ranges/hosts, enumerate mainly the 200s unless there's time for all
-- `gowitness scan cidr --write-db --cidr {IP_range} --write-db`
   - If we have a list of IPs: `gowitness scan file  --write-db -f {file_with_ips}`
   - If we have a list of CIDRs: `gowitness scan cidr  --write-db --cidr-file {file_with_cidrs}`
 - Then just view the results by running `gowitness report server` in the same directory (with `gowitness.sqlite3`)
@@ -62,8 +61,12 @@ Finding user information and passwords:
 - We can then filter data with `shodan parse`
   - `shodan parse --fields ip_str,product {out_file}.json.gz`
 
+**Github**
+- Worth searching for random projects or in their organizations for information
+- Can use noseyparker
+  - `noseyparker scan --github-org={org}`
 
-Search documentation/internal resources for:
+Search documentation/internal/github org resources for:
 
 ```
 net use

@@ -29,10 +29,9 @@ Not making networking its own section for a while (I'm not cracked enough)
 ## Firewalling
 
 - Rules are usually taken in order, so first rules take precedence
-- TODO: fill out from https://docs.google.com/presentation/d/1VX4EFOVBW5znfWVw5AJtrkmAt5-dFTOOfjsqqNbRJcw/edit?pli=1&slide=id.g3a339518901_0_10#slide=id.g3a339518901_0_10
-
+  
 **Iptables**
-- Changes are automatically applied
+- Changes are automatically applied once rule is created
 - `iptables --list-rules`
 - Accept traffic on a port: `iptables -A {INPUT/OUTPUT/FORWARD} -p {tcp/udp} --dport {port} -j {ACCEPT/DROP/LOG}`
   - Can pass a specific table with `-t {table_like_NAT}`

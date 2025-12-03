@@ -27,6 +27,14 @@
 **Triangle of Employees, Customers, and Shareholders**
 - Need to be in the middle of this
 
+## Pricing
+
+**SaaS**
+- 10% of dollars made should be spent on infrastructure
+
+**Managed Services**
+- Should be between 30% and 40% of dollars made spent on resources
+
 ## Misc
 Priorities:
 - Agentification, Red Team Infra, Cyber Threat Intelligence

