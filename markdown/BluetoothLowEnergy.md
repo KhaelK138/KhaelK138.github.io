@@ -124,7 +124,8 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
 
 **Gatttool**
 - Useful for reading/writing specific data
-- TODO: `gatttool -i {hci_interface} -b {MAC} ...`
+- Reading: `gatttool -i {hci_interface} -b {MAC} --char-read -a {service_hex} | awk -F':' '{print $2}'|tr -d ' '| xxd -r -p;printf '\b'`
+  - To write, use `--char-write-req -a {service_hex}`
 
 ## Monitoring/Sniffing BLE
 
@@ -183,7 +184,7 @@ pagetitle: Hacking Bluetooth Low Energy (BLE) Functionality
     - `register-application` to tell BlueZ about the service/characteristics
 
 **MITM tools**
-- Seems [ESP32-Gattacker](github.com/p0px/ESP32-Gattacker) is the go-to here
+- Seems [ESP32-Gattacker](https://github.com/p0px/ESP32-Gattacker) is the go-to here
 - [Gattacker](https://github.com/securing/gattacker) and [BTLEjuice](https://github.com/DigitalSecurity/btlejuice) are the classic tools
   - These are pretty outdated, though
 
