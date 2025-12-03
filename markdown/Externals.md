@@ -24,13 +24,10 @@ pagetitle: External Assessments
 [Project Discovery's Tool Manager](https://github.com/projectdiscovery/pdtm) can install all of the above go tools in one shot
 - `go install -v github.com/projectdiscovery/pdtm/cmd/pdtm@latest`
 
-- investigate chaos-client
-
-- crt.sh, merklemap.com, censys, Shodan, Gau, Whoxy, LinkedIn scraping, Google Dorks, Crunchbase, Zoominfo (zoomeye?)
+- crt.sh, merklemap.com, censys, Shodan, Gau, Whoxy, LinkedIn scraping, Google Dorks, Crunchbase, Zoominfo
 
 - PHENOMINAL bug bounty/dork search: [https://taksec.github.io/google-dorks-bug-bounty/](https://taksec.github.io/google-dorks-bug-bounty/)
-- Bug bounty/dorking search engine: https://nitinyadav00.github.io/Bug-Bounty-Search-Engine/
-- Awesome censys queries: https://github.com/thehappydinoa/awesome-censys-queries
+- Awesome censys queries: [https://github.com/thehappydinoa/awesome-censys-queries](https://github.com/thehappydinoa/awesome-censys-queries)
 
 - Neat new domain-based search engine: https://chaos.projectdiscovery.io/
 
@@ -66,6 +63,7 @@ Finding user information and passwords:
 - Can use noseyparker
   - `noseyparker scan --github-org={org}`
 
+**Secrets**
 Search documentation/internal/github org resources for:
 
 ```
