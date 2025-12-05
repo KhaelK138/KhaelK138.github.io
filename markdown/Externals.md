@@ -58,13 +58,37 @@ Finding user information and passwords:
 - We can then filter data with `shodan parse`
   - `shodan parse --fields ip_str,product {out_file}.json.gz`
 
+## Email & Domain security
+
+**Email security**
+- [DMARCLY](https://dmarcly.com/tools/) has some great online tools that can check TXT records
+- We can also check records ourselves with `host -t txt {domain}` and `host -t a {domain}`
+
+**Subdomain takeovers**
+- [baddns](https://github.com/blacklanternsecurity/baddns) seems to be the go-to here
+  - `baddns {domain}`
+  - Be aware of false positives -- if it doesn't make sense, it's probably not a finding
+
+## Cloud
+- [cloud_enum](https://github.com/initstring/cloud_enum) seem to be a fantastic tool
+  - `python3 cloud_enum.py -k {keyword_to_search_for} --quickscan`
+
+
+## Secrets
+
+**OneDrive**
+- Can sometimes find o365 users from OneDrive
+- [onedrive_user_enum](https://github.com/nyxgeek/onedrive_user_enum) can do this automatically
+  - `Semaphore` can cause issues, so `echo "$(grep -v "Semaphore" requirements.txt)" > requirements.txt`
+  - Then `python3 onedrive_enum.py -d {domain} (-u {username})`
+
 **Github**
 - Worth searching for random projects or in their organizations for information
 - Can use noseyparker
   - `noseyparker scan --github-org={org}`
 
-**Secrets**
-Search documentation/internal/github org resources for:
+**Documentation/Wikis**
+Search documentation/internal wikis for:
 
 ```
 net use
