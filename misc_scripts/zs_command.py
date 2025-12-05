@@ -6,7 +6,7 @@ import sys
 import time
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from exec_across_ips import run_chain, parse_ip_range
+from misc_scripts.exec_across_windows import run_chain, parse_ip_range
 
 ZEROSHOT_TIMEOUT = 20
 MAX_THREADS = 10
@@ -85,7 +85,7 @@ def process_ip(ip, command):
 
 def main():
     global VERBOSE
-    import exec_across_ips
+    import misc_scripts.exec_across_windows as exec_across_windows
 
     if len(sys.argv) < 2:
         print("Usage: zs_command.py <ip_range> <command> [-v]")
@@ -95,11 +95,11 @@ def main():
     # detect -v anywhere
     if "-v" in sys.argv:
         VERBOSE = True
-        exec_across_ips.VERBOSE = True
+        exec_across_windows.VERBOSE = True
         sys.argv.remove("-v")
 
     # Share the print lock with exec_across_ips module
-    exec_across_ips.print_lock = print_lock
+    exec_across_windows.print_lock = print_lock
 
     ip_range = sys.argv[1]
     ips = parse_ip_range(ip_range)

