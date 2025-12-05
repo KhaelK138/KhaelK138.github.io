@@ -39,7 +39,6 @@ pagetitle: Red Teaming for CCDC
     - (maybe) Creates an exclusion for ProgramData AND/OR disables defender
     - Downloads and executes [nosferatu](https://github.com/RITRedteam/nosferatu/)
       - Makes this a service that occurs on restart
-    - Script to use zerologonshot to perform actions
     - Downloads sliver shell and creates a sliver service hidden with ACLs
     - Maybe use [https://www.nssm.cc/download](https://www.nssm.cc/download) for services?
   - Check out [RealBindingEDR](https://github.com/myzxcg/RealBlindingEDR)
