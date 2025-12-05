@@ -100,6 +100,7 @@ Finding user information and passwords:
   - For federated, target against the URL from the above O365 check
   - For federated w/sso, important to get permission s things like Okta may have zero-reset lockouts
 - For on-prem ADFS, use [ADFS Spray](https://github.com/xFreed0m/ADFSpray)
+  - Haven't tested it, but `o365spray` does have an `--adfs-url` option
 
 **OneDrive**
 - Can sometimes find o365 users from OneDrive
