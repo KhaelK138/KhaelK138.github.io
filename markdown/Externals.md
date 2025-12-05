@@ -24,14 +24,14 @@ pagetitle: External Assessments
 [Project Discovery's Tool Manager](https://github.com/projectdiscovery/pdtm) can install all of the above go tools in one shot
 - `go install -v github.com/projectdiscovery/pdtm/cmd/pdtm@latest`
 
+**Misc tools**
 - crt.sh, merklemap.com, censys, Shodan, Gau, Whoxy, LinkedIn scraping, Google Dorks, Crunchbase, Zoominfo
 
+**Search tools**
 - PHENOMINAL bug bounty/dork search: [https://taksec.github.io/google-dorks-bug-bounty/](https://taksec.github.io/google-dorks-bug-bounty/)
 - Awesome censys queries: [https://github.com/thehappydinoa/awesome-censys-queries](https://github.com/thehappydinoa/awesome-censys-queries)
-
 - Neat new domain-based search engine: https://chaos.projectdiscovery.io/
 
-- Burp Enterprise is really good for automatically searching for classic bugs on a list of sites
 
 ## Viewing websites:
 
@@ -58,6 +58,9 @@ Finding user information and passwords:
 - We can then filter data with `shodan parse`
   - `shodan parse --fields ip_str,product {out_file}.json.gz`
 
+**Burp**
+- Burp Enterprise is really good for automatically searching for classic bugs on a list of sites
+
 ## Email & Domain security
 
 **Email security**
@@ -73,8 +76,30 @@ Finding user information and passwords:
 - [cloud_enum](https://github.com/initstring/cloud_enum) seem to be a fantastic tool
   - `python3 cloud_enum.py -k {keyword_to_search_for} --quickscan`
 
+**AADInternals**
+- Powershell module used for administering Entra/O365
+  - `https://github.com/Gerenios/AADInternals` - `Install-Module AADInternals`, then `Import-Module -Name "AADInternals"`
+- `Invoke-AADIntReconAsOutsider -Domain company.com | Format-Table `
+  - If we know a username: `Invoke-AADIntReconAsOutsider -UserName "{username}@{domain}" | Format-Table`
+  - Username spray with `Get-Content {username_file} | Invoke-AADIntUserEnumerationAsOutsider -Method Login`
 
 ## Secrets
+
+**LinkedIn**
+- Absolute gold mine for emails, especially when dealing with o365 clients
+  - Can simply see the people working under a company, or use something like Phantom Buster for scraping
+
+**O365**
+- Can check whether a domain is federated or managed at [https://login.microsoftonline.com/getuserrealm.srf?login={user}@{domain}&xml=1](https://login.microsoftonline.com/getuserrealm.srf?login={user}@{domain}&xml=1)
+
+**Password spraying**
+- Can use [AzureAD_Autologon_Brute](https://github.com/nyxgeek/AzureAD_Autologon_Brute) to spray usernames
+  - This works if managed, federated, federated w/sso, or on-prem ADFS
+- Can use [o365spray](https://github.com/0xZDH/o365spray) to spray credentials for O365 managed tenants
+  - `python3 o365spray.py --spray -U {email_list} -p {password_list} --proxy-url {fireproxy_url} -d {domain} --sleep 15 --jitter 30`
+  - For federated, target against the URL from the above O365 check
+  - For federated w/sso, important to get permission s things like Okta may have zero-reset lockouts
+- For on-prem ADFS, use [ADFS Spray](https://github.com/xFreed0m/ADFSpray)
 
 **OneDrive**
 - Can sometimes find o365 users from OneDrive
@@ -86,6 +111,17 @@ Finding user information and passwords:
 - Worth searching for random projects or in their organizations for information
 - Can use noseyparker
   - `noseyparker scan --github-org={org}`
+
+**Rotating IPs**
+- Often, the identity providers will have brute-force protections in place
+- [fireprox](https://github.com/Sprocket-Security/fireproxng) is a pretty good tool to leverage AWS for password spraying
+  - Creates a fireprox URL pointing to client login portal (should look like `https://xxxx.execute-api.us-east-1.amazonaws.com/fireprox`)
+  - Then just use the fireprox URL as the target of the spraying instead of the actual target
+  - Usage:
+    - Install `fireproxng` with `pip install fireproxng` and get an AWS API access and secret key
+      - Seems later versions of python can't build `lxml`, so we need to do `python3.12 -m venv venv` before installing
+      - Might need packages: `sudo apt install -y libxml2-dev libxslt-dev python3-dev build-essential`
+    - Create `fireproxng` URL with `fireproxng -ak {access_key} -sk {secret_key} create https://{login_portal}`
 
 **Documentation/Wikis**
 Search documentation/internal wikis for:
@@ -121,3 +157,4 @@ AWS_SECRET_ACCESS_KEY + AKIA/ASIA
 ssh_password
 net user
 ```
+
