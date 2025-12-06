@@ -131,6 +131,9 @@ def run_chain(user, ip, credential, command):
             safe_print(f"[-] For {ip}: {tool} timed out.")
             continue
 
+        if tool == "psexec" and "[-] share 'SYSVOL' is not writable." in out:
+            safe_print(f"[-] For {ip}: {tool} failed.")
+            continue
 
         if (tool == "smbexec" or tool == "atexec") and '[-]' in out:
             safe_print(f"[-] For {ip}: {tool} failed.")

