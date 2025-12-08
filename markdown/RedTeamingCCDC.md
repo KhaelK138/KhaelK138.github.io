@@ -43,7 +43,7 @@ pagetitle: Red Teaming for CCDC
     - Maybe use [https://www.nssm.cc/download](https://www.nssm.cc/download) for services?
   - Check out [RealBindingEDR](https://github.com/myzxcg/RealBlindingEDR)
   - Hide services with ACLs: [https://www.sans.org/blog/red-team-tactics-hiding-windows-services](https://www.sans.org/blog/red-team-tactics-hiding-windows-services)
-    - This seems extremely good
+    - `& $env:SystemRoot\System32\sc.exe sdset {name} "D:(D;;DCLCWPDTSD;;;IU)(D;;DCLCWPDTSD;;;SU)(D;;DCLCWPDTSD;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)S:(AU;FA;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;WD)"`
   - Pivoting with netsh port proxy
   - C2s
     - BOAZ: https://github.com/thomasxm/BOAZ_beta
@@ -81,8 +81,6 @@ pagetitle: Red Teaming for CCDC
     - Modify the "SeDenyInteractiveLogonRight" line and remove the `Guest` account
     - Reimport with `secedit /configure /db C:\Windows\temp\secedit.sdb /cgf C:\Windows\temp\secpol.inf`
     - Then update GP with `gpupdate /force`
-- Save passwords in plaintext
-  - `Set-ADDefaultDomainPasswordPolicy -Identity "great.cretaceous" -ReversibleEncryptionEnabled $true`
 
 **Linux:**
 - [PANIX](https://github.com/Aegrah/PANIX)
@@ -91,7 +89,7 @@ pagetitle: Red Teaming for CCDC
   - Make malware that:
     - Makes it so you can only run a certain number of commands before being logged out
     - Makes it so you have to solve a times-table equation to see the result of your command
-    - Changes the language of the system to german (`loadkeys de`, `localectl set-locale de_DE.UTF-8`, `localectl set-keymap de` maybe in bashrc?)
+    - Changes the language of the system to german (`echo "loadkeys de && localectl set-locale de_DE.UTF-8 && localectl set-keymap de" >> ~/.bashrc`)
   - Get something going for alpine/Nixos
     - Alpine
       - Add a second location for SSH keys 
