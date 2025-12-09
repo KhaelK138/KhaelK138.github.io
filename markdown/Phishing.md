@@ -11,6 +11,11 @@ pagetitle: Phishing
   - Strip out SingleFile comment (near top) along with anything with an "sf" prefix and links to the original site
 - If we get hit with Azure/O365, try using [OAuthSeeker](https://github.com/praetorian-inc/oauthseeker/)
 
+**Zendesk**
+- You can get a domain on Zendesk.com to send emails from
+- Zendesk also has IT stuff, so you can make a ticket and assign it to a user
+  - This will send them an email with the ticket information, which we can use to have them click a link
+
 ## Fake Arbitrary Redirect
 
 **Techniques**
