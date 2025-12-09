@@ -65,7 +65,9 @@ Finding user information and passwords:
 
 **Email security**
 - [DMARCLY](https://dmarcly.com/tools/) has some great online tools that can check TXT records
-- We can also check records ourselves with `host -t txt {domain}` and `host -t a {domain}`
+  - We can also check records ourselves with `host -t txt {domain}` and `host -t a {domain}`
+- [Spoofy](https://github.com/MattKeeley/Spoofy.git) will check if a domain's emails can be spoofed
+  - Then, we can use a site like `https://emkei.cz/` to actually send the spoofed email
 
 **Subdomain takeovers**
 - [baddns](https://github.com/blacklanternsecurity/baddns) seems to be the go-to here
