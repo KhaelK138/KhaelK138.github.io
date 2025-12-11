@@ -24,6 +24,7 @@ pagetitle: Password Attacks
     - `noseyparker scan {repo/directory}`
     - `noseyparker scan --github-org={org}`
     - Show results with `noseyparker report`
+    - Looks like MongoDB made their own version [kingfisher](https://github.com/mongodb/kingfisher) based off of Noseyparker; worth checking out 
 - Make sure to save or delete the existing `datastore.np` before starting a new scan
 - If you want to scan a filesystem that has noseyparker on it, just `chmod 111 noseyparker` before running
 
