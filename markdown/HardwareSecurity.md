@@ -163,6 +163,10 @@ pagetitle: Hardware Security
     - We can detach from screen with `CTRL a` then `d`, and reattach with `screen -r`, or `CTRL A` then `K` to kill the screen
   - Using PiFex - Connect board Tx to PiFex IO15 | RX | TCK, Rx to IO14 | TX | TMS, and GND to GND
     - Then, connect with `screen /dev/ttyS0 {baud_rate}`
+- If we're on a device that doesn't have screen and we need to interact with a USB device, we can use echo and cat
+  - `stty -F /dev/ttyUSB0 115200 raw -echo`
+  - `echo -ne '{command}\r' > /dev/ttyUSB0`
+  - `cat /dev/ttyUSB0`
 - Might initially show an empty window, but we can try sending data blindly or power cycling/resetting the device
 - If we get hit with an auth page, we can use `pyserial` to try and brute force over a serial connection
 
