@@ -282,6 +282,9 @@ pagetitle: Red Teaming for CCDC
 - Bypassing with FilelessPELoader:
   - `https://github.com/SaadAhla/FilelessPELoader`
 
+**Getting Firewalled**
+- Use something like [Sangheili](github.com/RITRedteam/Sangheili) to rotate through hundreds of IPs
+
 **CS Falcon**
 - Seems `wmiexec` with `-silentcommand` and `-nooutput` seems to work with CS Falcon enabled
 
