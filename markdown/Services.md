@@ -297,7 +297,7 @@ Admin RCE script available here: [https://github.com/0ang3el/aem-hacker/blob/mas
 
 ## Grafana
 - Find version info by performing a GET request on `/login` and searching for `"latestVersion"`
-- 
+- Other tactics: [https://hackviser.com/tactics/pentesting/services/grafana](https://hackviser.com/tactics/pentesting/services/grafana)
 
 ## Miscellaneous
 - Many of the below have plenty of CVEs, just look em up
