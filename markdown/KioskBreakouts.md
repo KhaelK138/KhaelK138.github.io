@@ -33,6 +33,16 @@ Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk
 - If `cmd` is run with `/K` or `/C`, it won't allow for interactive commands
   - This can be bypassed by running `cmd.exe /K pause` or provided a command with `cmd.exe /C {command}`
 
+**Bypassing GPO restrictions** 
+- Often, GPO restrictions will be in place where users can't access perform certain actions
+	- This could be accessing a certain share or folder from Explorer or running cmd/powershell
+- Thus, we can do something like open MS paint, open the file dialog box from there, and then type the fileshare in the filename field
+	- Something like `\\127.0.0.1\c$\users\{user}`
+	- This can also help us break out of restricted environments or kiosks, as we can host `cmd.exe` in a network share, access the share from paint's explorer dialog, right click `cmd.exe`, and open it
+		- Alternatively, we can edit an existing shortcut such that the `Target` field is `C:\Windows\System32\cmd.exe`, and thus opening the shortcut pops cmd
+	- `.bat`, `.ps`, and `.vbs` scripts will sometimes automatically execute, which can also be used to gain a shell
+- Can also try using Q-Dir or Explorer++ if GPO restrictions are on explorer itself (similar story with Simpleregedit or SmallRegistryEditor for registry restrictions)
+
 **Bypassing Name Restrictions**
 - It can sometimes be as easy as renaming `cmd.exe` to `mspaint.exe`
 
