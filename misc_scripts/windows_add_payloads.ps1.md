@@ -1,3 +1,4 @@
+```Powershell
 param (
     [Parameter(Mandatory=$true)]
     [string]$src
@@ -20,3 +21,4 @@ foreach ($p in $paths) {
     New-Item -Path (Split-Path $p -Parent) -ItemType Directory -Force | Out-Null
     Copy-Item -Path $src -Destination $p -Force
 }
+```

