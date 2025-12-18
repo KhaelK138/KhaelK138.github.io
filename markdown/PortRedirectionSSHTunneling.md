@@ -74,9 +74,10 @@ pagetitle: Port Redirection and SSH Tunneling
 	- This basically allows us to shift our commands one machine down
 - OpenSSH uses a SOCKS proxy server port to listen, enabling this technique
 - Uses the `-D` option
-- Usage: `ssh -N -D 0.0.0.0:{inbound_port} {username}@{IP}`
-	- This opens 9999 on the internet-facing machine that we control and tells it to accept and forward SOCKS traffic, as shown below
-- Then, use *ProxyChains* to communicate over SOCKS
+- Usage: `ssh -N -D {inbound_port} {username}@{IP}`
+	- This opens a SOCKS5 proxy locally on the inbound port
+	- Can also do `0.0.0.0` if we want it to be available using our host machine to other attacker machines (turning ourselves into a jump box)
+- Then, use `ProxyChains` or `foxyproxy` to communicate over SOCKS
 	- Edit `/etc/proxychains4.conf`, putting "socks5 {IP} {port} at the end"
 		- This IP and port are the entrance to the internal network that we control
 	- `proxychains {command} -L //{IP}/ -U {username} --password={password}`
