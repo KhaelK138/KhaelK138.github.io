@@ -1,3 +1,4 @@
+```sh
 #!/bin/bash
 
 set +e
@@ -160,3 +161,4 @@ done
 
 # delete script
 rm -- "$0"
+```

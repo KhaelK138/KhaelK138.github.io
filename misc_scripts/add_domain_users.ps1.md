@@ -1,3 +1,4 @@
+```Powershell
 # Script to add users from a text file as local and domain admins
 
 param (
@@ -131,3 +132,4 @@ try {
 catch {
     Write-Host "[!] An error occurred during execution: $_" -ForegroundColor Red
 }
+```
