@@ -57,8 +57,8 @@ pagetitle: Red Teaming for CCDC
   - DarkLnk - creates disguised .lnk files that run powershell but look like something else
     - https://github.com/wariv/Darklnk
 - When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
-- First, run [windows_add_payloads.ps1 -src {path_to_exe}](https://khaelkugler.com/scripts/windows_add_payloads.ps1.md) to add the file to each of the locations
-- Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.md)
+- First, run [windows_add_payloads.ps1 -src {path_to_exe}](https://khaelkugler.com/scripts/windows_add_payloads.ps1.html) to add the file to each of the locations
+- Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.html)
   - Removing persistence:
     - Delete payloads from all locations
     - Schtask: `Unregister-ScheduledTask -TaskName "WindowsUpdater" -Confirm:$false`

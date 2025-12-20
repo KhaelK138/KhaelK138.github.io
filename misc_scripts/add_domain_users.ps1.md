@@ -1,3 +1,8 @@
+---
+layout: blank
+pagetitle: 
+---
+
 ```Powershell
 # Script to add users from a text file as local and domain admins
 
