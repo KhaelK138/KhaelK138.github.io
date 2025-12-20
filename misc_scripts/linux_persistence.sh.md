@@ -1,3 +1,8 @@
+---
+layout: blank
+pagetitle: 
+---
+
 ```sh
 #!/bin/bash
 

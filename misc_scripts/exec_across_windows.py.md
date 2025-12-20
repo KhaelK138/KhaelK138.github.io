@@ -1,3 +1,8 @@
+---
+layout: blank
+pagetitle: 
+---
+
 ```py
 #!/usr/bin/env python3
 import subprocess
@@ -221,11 +226,12 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
             safe_print(f"  [-] For {ip}: {tool} timed out.")
             continue
 
+        # psexec can have [-] if some shares are writeable and others arent
         if tool == "psexec" and not "Found writable share" in out:
             safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
 
-        if (tool == "smbexec" or tool == "atexec") and '[-]' in out:
+        if (tool == "winrm" or tool == "smbexec" or tool == "atexec") and '[-]' in out:
             safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
         
@@ -240,7 +246,7 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
                 safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
 
-        if rc == 0 or (tool == "winrm" and rc == 1):
+        if rc == 0:
             return (tool, out, cmd)
 
         safe_print(f"  [-] For {ip}: {tool} failed.")

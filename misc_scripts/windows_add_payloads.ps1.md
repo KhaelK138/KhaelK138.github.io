@@ -1,3 +1,8 @@
+---
+layout: blank
+pagetitle: 
+---
+
 ```Powershell
 param (
     [Parameter(Mandatory=$true)]
