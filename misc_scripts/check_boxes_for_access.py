@@ -57,25 +57,7 @@ def check_access(ip, username, password, builtin_user_password):
     ]
     try:
         proc = subprocess.run(argv, capture_output=True, text=True, timeout=5)
-        out = proc.stdout.strip()def parse_ip_range(ip_range):
-    # Split IP into four octets
-    parts = ip_range.split('.')
-    if len(parts) != 4:
-        raise SystemExit("Invalid IP range format")
-
-    def expand(part):
-        # supports 1, 1-3, 1,2,3-5 etc.
-        vals = []
-        for section in part.split(','):
-            if '-' in section:
-                s, e = map(int, section.split('-'))
-                vals.extend(range(s, e + 1))
-            else:
-                vals.append(int(section))
-        return vals
-
-    expanded = [expand(p) for p in parts]
-    return [f"{a}.{b}.{c}.{d}" for a in expanded[0] for b in expanded[1] for c in expanded[2] for d in expanded[3]]
+        out = proc.stdout.strip()
         err = proc.stderr.strip()
         status = proc.returncode
         if out == '1':
