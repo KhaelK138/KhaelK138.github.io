@@ -364,7 +364,7 @@ def main():
     MAX_THREADS = args.threads
 
     if not OUTPUT:
-        print("[*] Run with -o to see successful command output")
+        print("\033[33m[!] Run with -o to see successful command output (Warning - WILL trip defender if active)\033[0m")
 
     if args.tools:
         tool_list = parse_tools_list(args.tools)
