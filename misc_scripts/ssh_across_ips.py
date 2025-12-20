@@ -33,10 +33,15 @@ def parse_ip_range(ip_range):
 def run_command(ip, username, password, command, timeout=SSH_TIMEOUT):
 
     # build remote command: echo 'pass' | sudo -S bash -c 'command'
-    remote_cmd = "echo {} | sudo -S bash -c {}".format(
-        shlex.quote(password),
-        shlex.quote(command)
-    )
+    if username == "root":
+        remote_cmd = "bash -c {}".format(
+            shlex.quote(command)
+        )
+    else:
+        remote_cmd = "echo {} | sudo -S bash -c {}".format(
+            shlex.quote(password),
+            shlex.quote(command)
+        )
     argv = [
         "sshpass", "-p", password,
         "ssh",
@@ -70,9 +75,7 @@ def main():
             tag = "[OK]" if rc == 0 else ("[TIMEOUT]" if rc == -1 else "[ERR]")
             print(f"{tag} {ip} (rc={rc})")
             if out:
-                print(f"--- stdout ---\n{out}")
-            if err:
-                print(f"--- stderr ---\n{err}")
+                print(f"\033[32m[+]\033[0m Output for {ip}: {out}")
 
 if __name__ == "__main__":
     main()
