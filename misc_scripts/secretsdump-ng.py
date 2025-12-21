@@ -236,14 +236,10 @@ def generate_command(ip, kali_ip, username, password):
     ]
 
     try:
-        subprocess.run(exec_cmd, timeout=60)
-    except subprocess.TimeoutExpired:
-        with print_lock:
-            print(f"[!] Timeout on {ip}")
+        subprocess.run(exec_cmd)
     except Exception as e:
         with print_lock:
             print(f"[!] Error on {ip}: {e}")
-
 
 def main(args):
     """Main execution function"""
