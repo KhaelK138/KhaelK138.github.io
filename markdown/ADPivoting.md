@@ -189,6 +189,12 @@ Enter-PSSession {PSSession_ID_returned}
 
 ## Credential Harvesting
 
+**Secrets Dumping**
+- Sometimes Impacket's secretsdump won't work if we can't hit the right ports on the machine
+- If we have a shell, though, we can use [DSInternals](https://github.com/MichaelGrafnetter/DSInternals)
+  - Download the [zip](https://github.com/MichaelGrafnetter/DSInternals/releases/latest), import with `Import-Module DSInternals.psd1`, and run `Get-ADReplAccount -All -Server LOCALHOST`
+- No issues with defender, as it can be used for normal administrative tasks
+
 **Getting More Credentials**
 - `vault::cred /patch` will enumerate vault credentials (creds used in scheduled tasks)
 
