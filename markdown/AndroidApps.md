@@ -29,6 +29,11 @@ pagetitle: Android Apps
 - `adb shell ps | grep -i {app packaging name}` to see running processes
 - `adb logcat --pid={process id from above}` to see log messages for application
 - BurpSuite can be a pain, but worth it - [https://portswigger.net/burp/documentation/desktop/mobile/config-android-device](https://portswigger.net/burp/documentation/desktop/mobile/config-android-device)
+- Telnet
+  - Adb will host a port locally that you can telnet to, which supports a lot of different stuff
+  - Can be connected to with `telnet 127.0.0.1 {adb_device_id_like_5554}`
+  - We authenticate with `auth {value in ~/.emulator_console_auth_token}` and then can interact with the device
+  - For example, can control the accelerometer with `sensor status` and `sensor set acceleration 0:9.8:0`
 
 ## Drozer
 - Great multipurpose tool - [https://labs.reversec.com/tools/drozer](https://labs.reversec.com/tools/drozer)
