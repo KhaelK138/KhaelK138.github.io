@@ -84,6 +84,9 @@ script = session.create_script("""'use strict';
   - This comes from `frida-ps -U`
   - If we want to connect custom scripts, we can do so with `-l {js_file}.js`
 - Then, once inside, we can overwrite process memory with `Memory.writeU32({address}, {newValue})`
-- Similarly, we can scan memory with the following:
-  - `const ranges = Process.enumerateRanges({ protection: 'rw-', coalesce: true });`
-  - Iterate through `r` in `ranges` with `Memory.scanSync(r.base, r.size, {pattern_to_scan_for})`
+- I vibecoded a Frida script that can scan and edit memory, similar to cheat engine: [https://khaelkugler.com/misc_scripts/memscan.js.html](https://khaelkugler.com/misc_scripts/memscan.js.html)
+  - Run with `frida -U -n "{process_name}" -l memscan.js`
+  - Scan for integers with `msNew({value})`
+  - Scan for ranges of floats with `msNewRange({value1}, {value2})`
+  - Refine ranges with `msRefine({eq/lt/gt}, {value})`
+  - Freeze (constantly overwrite) values with `msFreeze(index)`
