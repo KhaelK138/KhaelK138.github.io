@@ -3,7 +3,7 @@ layout: blank
 pagetitle: 
 ---
 
-```js
+```javascript
 // memscan.js
 'use strict';
 
