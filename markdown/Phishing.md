@@ -16,7 +16,7 @@ pagetitle: Phishing
 - Zendesk also has IT stuff, so you can make a ticket and assign it to a user
   - This will send them an email with the ticket information, which we can use to have them click a link
 
-## Fake Arbitrary Redirect
+## Spoofing any site in a link
 
 **Techniques**
 - Uses `@` character to tell the browser that everything before the `@` is simply authentication for the following page (an encoded tinyurl site) - I didn't find an arbitrary redirect on github
@@ -26,7 +26,7 @@ pagetitle: Phishing
 - `&` can actually be included without encoding in the authentication information (prior to the `@`), so I included bogus URL parameters from an amazon product link to make it look more realistic (hiding the URL encoded link within)
 - For google meets, a link starting with a valid URL (e.g. https://github.com) will be underlined, so I included some hidden unicode characters to break the link
 
-**Broken down**
+**Example**
 - `https://` - start of URL
 - `U+E0001 U+E0020 U+E007F` - hidden Unicode characters to break link underlining functionality in Google meets
 - Used https://embracethered.com/blog/ascii-smuggler.html to encode ` `
@@ -35,7 +35,6 @@ pagetitle: Phishing
 - `&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392` - fake URL parameters used to hide the actual payload
 - `@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A` - payload decoding to `tinyurl.com/39tzrjyj`, starting with `@`
 - `#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main` - more fake parameters, starting with a `#` to not confuse tinyurl's redirection
-
 
 - When emailing, choose a font that looks good. Menlo is alright, but a bit too code-related
 
@@ -48,6 +47,48 @@ Other example payloads:
 
 - Can also sort of be used to bypass URL validation
   - Portswigger URL bypass techniques: https://portswigger.net/web-security/ssrf/url-validation-bypass-cheat-sheet
+
+## File Downloading Techniques
+
+**File Smuggling - thanks to Print3M**
+- Rather than getting a user to download a file from a server, simply store the entire file in JavaScript
+- This has two bonuses: the file doesn't need to be fetched from a server, and it also doesn't generate any network logs
+- Example:
+```js
+// File: smuggler.js
+function __downloadFile(byteArray, fileName, mimeType) {
+    let blob = new Blob([new Uint8Array(byteArray)], { type: mimeType })
+    let url = URL.createObjectURL(blob)
+    let a = document.createElement("a")
+    a.href = url
+    a.download = fileName
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+}
+ 
+// This function is executed from React on "click" event 
+function downloadFile() {
+    // PUT YOUR BINARY DATA HERE!!!
+    const data = [72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100]
+    __downloadFile(data, "file.txt", "text/plain")
+}
+```
+
+**Sandbox Detection - thanks to Print3M**
+- Execute JavaScript - most scanners still won't run JavaScript! Using React actually gives us this OPSEC measure out-of-the-box.
+- Timeout - wait a second before smuggling malware. The victim probably won't click any faster anyway. If the sandbox is waiting for the page to render, a second's wait is already likely to discourage it.
+- OS detection - if the OS doesn't match with our target, then smuggle a harmless decoy file. This will protect us from burning the operation.
+- Screen size - bots often set the incorrect screen size. Using this technique we are also able to detect mobile device users to whom we do not want to serve our malware.
+- User Agent - bots often have an unusual User Agent that does not match real browsers.
+- Trap buttons - add hidden trap buttons that only the bot clicks. This way we will recognize if a bot is walking around the site.
+- Bad HTML practices - using bad HTML practices can naturally obscure the meaning of our code. E.g. using a div element with an onclick action instead of the classic button element can cause the sandbox to not click it.
+
+**Abuse Example**
+- Trick a user to go to a link
+- Provide a button that downloads a docx file, directly from Javascript
+- Have macros embedded in the blurry file, GG
 
 ## Windows 
 - Can't send malware directly by email, so we need to get them to download the spreadsheet with macros from a link

