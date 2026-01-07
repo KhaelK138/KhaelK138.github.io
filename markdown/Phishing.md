@@ -54,6 +54,7 @@ Other example payloads:
 - Rather than getting a user to download a file from a server, simply store the entire file in JavaScript
 - This has two bonuses: the file doesn't need to be fetched from a server, and it also doesn't generate any network logs
 - Example:
+
 ```js
 // File: smuggler.js
 function __downloadFile(byteArray, fileName, mimeType) {

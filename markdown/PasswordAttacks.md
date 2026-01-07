@@ -71,6 +71,19 @@ for entry in kp.entries:
   - If we have a salt used, there seem to be hashcat version that support that
   - For example, if we have a salted password hash encrypted with sha256, we can use `hashcat -m 1410 '{password}:{salt}' {wordlist}` to crack it
 
+## Password Shucking (matching different hash types)
+- Covered in [this blog](https://trustedsec.com/blog/holy-shuck-weaponizing-ntlm-hashes-as-a-wordlist)
+- Basically, many hashes are just extra encryption applied onto another hash, especially with NTLM hashes
+- For example, since a user's SPN hash is just (RC4-HMAC(NTHash)), if we already have a bunch of NT hashes from a secretsdump, we can see if any of them match with
+  - `hashcat -m 35300 {hash_file} {nt_hash_wordlist}` 
+- Matches between hash types and NTLM:
+  - Domain Cached Credentials: 1100 for direct decryption, 31500 with NTHashes
+  - Domain Cached Credentials 2: 2100 for direct decryption, 31600 with NTHashes
+  - NetNTLMv1: 5500 for direct decryption, 27000 with NTHashes
+  - NetNTLMv2: 5600 for direct decryption, 27100 with NTHashes
+  - Kerberos 5, TGS-REP: 1100 for direct decryption, 31500 with NTHashes
+  - Kerberos 5, AS-REP: 1100 for direct decryption, 31500 with NTHashes
+
 ## SSH Private Key Passphrase
 - `ssh2john {private RSA SSH key file} > ssh.hash` will put the hash in a crack-able format
 - `hashcat -m 22921 ssh.hash {password_list} -r {mutation} --force` will crack the SSH hash
