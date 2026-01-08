@@ -9,6 +9,17 @@ Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk
 
 ## Windows
 
+**Getting a Shell from Explorer**
+- Can simply run programs like `cmd`, `powershell`, or `powershell_ISE`
+  - Good alternatives: `C:\Windows\System32\ftp.exe` with `!{command}`, `C:\Windows\System32\wbem\WMIC.exe` with `process call create "powershell.exe"`
+- Can right click and "open" the file
+- Can drop another file, like a `.txt`, onto the `cmd` binary
+- Can hyperlink to it via a file/web browser (`file:///C:/Windows/System32/cmd.exe` or `file:///C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe`)
+- Can place direct commands in `.bat` or `.cmd` files, such as something as simple as `powershell`
+  - For a full list of executable file types: [https://aerorock.co.nz/list-of-executable-file-extensions-windows/](https://aerorock.co.nz/list-of-executable-file-extensions-windows/)
+- Can run Visual Basic inside a `.vbs` file with the following `set objApp = CreateObject("WScript.Shell"): objApp.Run "powershell"`
+- Can simply right-click and say "open in terminal", which can surprisingly work sometimes
+
 **Bypassing Path Restrictions**
 - Sometimes, paths like `C:\Windows\` will be restricted, but we can use `%WINDIR%` or `shell:MyComputerFolder` to bypass this
   - More path bypasses can be found in the link at above
@@ -18,16 +29,6 @@ Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk
     - `ftp` and then `!"{command_to_run}"`, such as `!"dir C:\Windows\System32"`
   - Hell even `calculator://localhost` exists, don't ask me why
   - Same goes for UNC paths, such as `\\127.0.0.1\C$\Windows\System32`
-
-**Getting a Shell**
-- Can simply run (Win+R) programs like `cmd`, `powershell`, or `powershell_ISE`
-- Can right click and "open" the file
-- Can drop another file, like a `.txt`, onto the `cmd` binary
-- Can hyperlink to it via a file/web browser (`file:///C:/Windows/System32/cmd.exe` or `file:///C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe`)
-- Can place direct commands in `.bat` or `.cmd` files, such as something as simple as `powershell`
-  - For a full list of executable file types: [https://aerorock.co.nz/list-of-executable-file-extensions-windows/](https://aerorock.co.nz/list-of-executable-file-extensions-windows/)
-- Can run Visual Basic inside a `.vbs` file with the following `set objApp = CreateObject("WScript.Shell"): objApp.Run "powershell"`
-- Can simply right-click and say "open in terminal", which can surprisingly work sometimes
 
 **Bypassing Disabled Interactive Sessions**
 - If `cmd` is run with `/K` or `/C`, it won't allow for interactive commands
@@ -44,7 +45,7 @@ Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk
 - Can also try using Q-Dir or Explorer++ if GPO restrictions are on explorer itself (similar story with Simpleregedit or SmallRegistryEditor for registry restrictions)
 
 **Bypassing Name Restrictions**
-- It can sometimes be as easy as renaming `cmd.exe` to `mspaint.exe`
+- It can sometimes be as easy as copying `cmd.exe` and renaming to `mspaint.exe`
 
 **Utilizing Internet Explorer**
 - `file://c:\windows\system32\cmd.exe` is always a good shot
