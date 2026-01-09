@@ -16,7 +16,31 @@ pagetitle: Phishing
 - Zendesk also has IT stuff, so you can make a ticket and assign it to a user
   - This will send them an email with the ticket information, which we can use to have them click a link
 
+## Getting users to click a link
+
+- Registering a domain and using mailgun seems to be a good method of controlling contents of an email
+
+**Bypassing Spam Filters**
+- Use [Phishious](https://github.com/CanIPhish/Phishious) to test an email to see if it would bounce or be caught in spam
+
+**Call to Actions**
+- Using a call to action is a great method of getting a victim to click a link
+- This could take the form of an attached document, a big "Acknowledge" button, or something about updating personal information (like Tax info)
+  - It can be especially clever to use publicly available resources, such as an available PDF document
+  - Modifying a link at the bottom and adding a call to action at the bottom has a great success rate, for example:
+```md
+Dear Team,
+
+Due to operational changes within {company}, we are updating our language to the {document} for {year}. In compliance with regulations on amended documents, we require your acknowledgement of receipt of these changes. **To complete your acknowledgement, please navigate to the last page of the attached PDF and click the link provided in the amended article.**
+
+Thank you for your continued support in upholding this year's mission.
+
+Sincerely,
+```
+
 ## Spoofing any site in a link
+
+- Often, this isn't actually necessary, as we can just make a pretty email that has a button to click. 
 
 **Techniques**
 - Uses `@` character to tell the browser that everything before the `@` is simply authentication for the following page (an encoded tinyurl site) - I didn't find an arbitrary redirect on github
@@ -90,6 +114,17 @@ function downloadFile() {
 - Trick a user to go to a link
 - Provide a button that downloads a docx file, directly from Javascript
 - Have macros embedded in the blurry file, GG
+
+## Vishing
+
+**Recon**
+- Harvest personal/corporate details from linkedin/github
+- Identify high-value identifies
+- Identify exact help-desk process for a password/MFA reset
+
+**IT Helpdesk Techniques**
+- Asking for a one-time password reset can have great success, especially if information on the impersonate employee can be gained
+- This will often be things like ID number, manager name, email, etc. 
 
 ## Windows 
 - Can't send malware directly by email, so we need to get them to download the spreadsheet with macros from a link
