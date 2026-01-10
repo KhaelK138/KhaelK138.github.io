@@ -201,6 +201,9 @@ Enter-PSSession {PSSession_ID_returned}
 **Active Session Credential Dumping**
 - [DumpGuard](https://github.com/bytewreck/DumpGuard) seems to be able to dump LSASS without actually touching LSASS memory, using the Remote Credential Guard protocol
   - Compiled version here: https://khaelkugler.com/misc_scripts/DumpGuard.exe
+  - Will need system, so use PsExec
+  - Usage: `DumpGuard.exe /mode:all`
+    - Can add `/domain:{DOMAIN}`, `/username:{SAMACCOUNTNAME}`, `/password:{PASSWORD}`, `(/spn:{SPN})`
 
 **DPAPI Keys**
 - Master encryption keys used by the Data Protection API (DPAPI) to encrypt data like passwords/certs
