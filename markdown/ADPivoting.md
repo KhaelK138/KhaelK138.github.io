@@ -198,6 +198,10 @@ Enter-PSSession {PSSession_ID_returned}
 **Getting More Credentials**
 - `vault::cred /patch` will enumerate vault credentials (creds used in scheduled tasks)
 
+**Active Session Credential Dumping**
+- [DumpGuard](https://github.com/bytewreck/DumpGuard) seems to be able to dump LSASS without actually touching LSASS memory, using the Remote Credential Guard protocol
+  - Compiled version here: https://khaelkugler.com/misc_scripts/DumpGuard.exe
+
 **DPAPI Keys**
 - Master encryption keys used by the Data Protection API (DPAPI) to encrypt data like passwords/certs
 - Derived from logon passwords, meaning they can be decrypted with the password (or Administrator access)
