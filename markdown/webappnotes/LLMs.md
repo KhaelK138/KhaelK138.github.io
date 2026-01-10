@@ -9,6 +9,10 @@ pagetitle: LLMs
 2) Determine what the LLM has access to (data, APIs, etc.)
 3) Probe for vulnerabilities
 
+**Types of Attacks**
+- [Jason Haddix's Classification of LLM attacks](https://arcanum-sec.github.io/arc_pi_taxonomy/)
+  - This also has example prompts for each type of attack
+
 **Mapping Attack Surface**
 - Try simply asking the LLM what APIs it has access to
 - Claim that we are a developer and should have a higher level of privilege
