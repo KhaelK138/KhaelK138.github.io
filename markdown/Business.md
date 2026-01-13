@@ -29,12 +29,50 @@
 
 ## Pricing
 
+**Pentest Pricing**
+- Web apps/APIs: $325/hr scoped by number of API endpoints. 
+  - ≤ 25 = 40 hours = 13k
+  - ≤ 100 = 80 hours = 26k
+  - ≤ 200 = 120 hours = 39k 
+- Mobile: Number of apps
+  - 1 = 40 hours
+  - 2 = 80 hours
+  - 3 = 120 hours
+- Desktop: Lines of code
+  - ≤ 10,000 = 80 hours
+  - ≤ 100,000 = 120 hours
+  - ≤ 1,000,000 = 160 hours
+- Cloud: Number of resource types
+  - ≤ 50 = 40 hours
+  - ≤ 100 = 80 hours
+  - ≤ 150 = 120 hours
+- External/Internals: Number of assets
+  - ≤ 1,000 = 40 hours
+  - ≤ 5,000 = 80 hours
+  - ≤ 10,000 = 120 hours
+- Red team: Number of objectives @ 350/hr
+  - ≤ 2 = 360 hours
+  - 3 = 400 hours
+  - 4 = 480 hours
+- Social Engineering: Number of campaigns @ 350/hr
+  - ≤ 2 = 80 hours
+  - 3 = 120 hours
+
 **SaaS**
 - 10% of dollars made should be spent on infrastructure
 
 **Managed Services**
 - Should be between 30% and 40% of dollars made spent on resources
 
+## Gernering Interest
+
+**AEO**
+- This is the new feature to optimize, rather than SEO, since most searches are being performed by LLMs
+
 ## Misc
+
 Priorities:
 - Agentification, Red Team Infra, Cyber Threat Intelligence
+
+**Win-rates**
+- In consulting, 30% is an average deal win-rate, with 40% being top-of-class
