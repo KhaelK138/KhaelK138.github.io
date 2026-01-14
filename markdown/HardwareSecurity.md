@@ -358,5 +358,51 @@ pagetitle: Hardware Security
   - Flashrom can handle reflashing
 - Reflashing can occur via UART, SPI, JTAG, USB, or even over-the-air (OTA) methods
 
+## Radio
+
+**Terminnology**
+- Antennas: piece of wire to receive radio waves
+  - Usually tunes for a range of frequencies
+  - There is an ideal length for specific frequencies
+    - Calculators exist to find the best length, but best starteers are the ANT-500 (Great Scott Gadgets) and the RTL-SDR kit dipole antenna 
+- Demodulation: extracting information from the wave
+- Decoding: understanding the information being sent
+- Bandwitdh: how wide a band a radio can perceive at once
+  - 2 MegaHertz will be able to see 2 MHz around the central frequency
+- Gain: how amplified the signal is
+- Signal: data being sent
+
+**Using the Flipper**
+- Pros: Easy to use, good community support
+- Cons: bad interface, and limited frequencies
+
+**Software-Defined Radios**
+- Very modular, allows control via software
+  - RTL-SDR is the cheapest solid option, at ~$50
+  - Upper range options: HackRF at ~$360 (a bit outdated) or BladeRF 2.0 Micro xA4 at ~$540
+- Tools:
+  - Waterfall viewers, like SRF++ or GQRX
+    - Allows viewing signals over time
+  - Decoders
+    - rtl_433 and dump1090 
+  - Analyzers
+    - Universal Radio Hacker (go-to)
+
+**Decoders**
+- RTL_433
+  - Can decode over 280 protocols
+  - Just give it a set of frequencies, which it will hop between, and will print results if signal is known
+- POCSAG
+  - Pager system, often used by outdated hospitals
+  - pipe rtl_fm into multimon-ng
+
+**Universal Radio Hacker**
+- Can capture and replay signals, in addition to decoding
+  - Support fuzz testing, etc.
+- Just need to select a connected device, along w frequency, sample, bandwidth, gain, etc.
+- Good idea to crop the signal down to the signal, that way the majority of the capture isn't just noise
+- In the Interpretation page, the `Autodetect parameters` button can help, using heuristics to find parameters
+- When decoding, we can program the decoder using the dropdown and the `...`, for example using a substitution cipher to replace `100` with 0 and `101` with 1
+
 ## Misc
 - Sometimes, we'll only want to power a section of the board, like a daughterboard
