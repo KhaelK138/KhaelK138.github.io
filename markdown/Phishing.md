@@ -6,6 +6,8 @@ pagetitle: Phishing
 ## Phishing Pages
 
 **Spoofing a site**
+- Can use something like [open-lovable](https://github.com/firecrawl/open-lovable) to clone and recreate any web app as a React app
+  - Since this uses JS, this also has the added benefit of throwing off some phishing detection
 - [SingleFile](https://chromewebstore.google.com/detail/singlefile/mpiodijhokgodhhofbcjdecpffjipkle?hl=en) is good for downloading pages to spoof
   - Make sure preferences don't include JavaScript
   - Strip out SingleFile comment (near top) along with anything with an "sf" prefix and links to the original site
