@@ -12,8 +12,9 @@
 
       // Configure uFuzzy
       uf = new uFuzzy({
-        intraMode: 1,  // Allow fuzzy matching within terms
-        intraIns: 1,   // Allow 1 insertion (for "surprisinglywork" -> "surprisingly work")
+        intraMode: 1,  // Allow single-error fuzzy matching (substitution, transposition, insertion, deletion)
+        intraIns: 1,   // Allow 1 extra char between each char within a term
+        intraChars: "[a-z\\d' ]",  // Allow spaces between matched chars (for "surprisinglywork" -> "surprisingly work")
       });
 
       console.log('Search index loaded:', data.length, 'documents');
