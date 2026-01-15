@@ -1,29 +1,22 @@
 (function() {
-  let fuse;
+  let uf;
   let searchData = [];
+  let haystack = [];  // Array of content strings for uFuzzy
 
   // Load the search index
   fetch('/search.json')
     .then(response => response.json())
     .then(data => {
       searchData = data;
+      haystack = data.map(item => item.content || '');
 
-      // Debug: log the first item to see the structure
-      console.log('Search data sample:', data[0]);
+      // Configure uFuzzy
+      uf = new uFuzzy({
+        intraMode: 1,  // Allow fuzzy matching within terms
+        intraIns: 1,   // Allow 1 insertion (for "surprisinglywork" -> "surprisingly work")
+      });
 
-      // Configure Fuse.js for fuzzy searching
-      const options = {
-        keys: ['content'],  // Only search content, not titles
-        threshold: 0.2,     // Strict matching
-        distance: 100,
-        minMatchCharLength: 2,
-        includeScore: true,
-        includeMatches: true,
-        ignoreLocation: true,  // Search anywhere in the document
-        findAllMatches: true
-      };
-
-      fuse = new Fuse(searchData, options);
+      console.log('Search index loaded:', data.length, 'documents');
     })
     .catch(error => console.error('Error loading search index:', error));
 
@@ -41,35 +34,6 @@
     };
   }
 
-  // Highlight matching text
-  function highlightText(text, query) {
-    if (!query) return text;
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<span class="highlight">$1</span>');
-  }
-
-  // Get snippet around match
-  function getSnippet(content, query, length = 200) {
-    if (!content) return '';
-
-    const lowerContent = content.toLowerCase();
-    const lowerQuery = query.toLowerCase();
-    const index = lowerContent.indexOf(lowerQuery);
-
-    if (index === -1) {
-      return content.substring(0, length) + '...';
-    }
-
-    const start = Math.max(0, index - length / 2);
-    const end = Math.min(content.length, index + query.length + length / 2);
-
-    let snippet = content.substring(start, end);
-    if (start > 0) snippet = '...' + snippet;
-    if (end < content.length) snippet = snippet + '...';
-
-    return snippet;
-  }
-
   // Perform search
   function performSearch(query) {
     if (!query || query.length < 2) {
@@ -79,15 +43,27 @@
       return;
     }
 
-    if (!fuse) {
+    if (!uf) {
       searchResults.innerHTML = '<p>Search index loading...</p>';
       searchResults.style.display = 'block';
       return;
     }
 
-    const results = fuse.search(query);
+    // uFuzzy search
+    const [idxs, info, order] = uf.search(haystack, query);
 
-    if (results.length === 0) {
+    // Debug logging
+    console.log('Query:', query);
+    console.log('Matches found:', idxs?.length || 0);
+    if (order && order.length > 0) {
+      order.slice(0, 3).forEach((infoIdx, i) => {
+        const docIdx = info.idx[infoIdx];
+        console.log(`Result ${i}:`, searchData[docIdx].title);
+        console.log('  Ranges:', info.ranges[infoIdx]);
+      });
+    }
+
+    if (!idxs || idxs.length === 0) {
       searchResults.innerHTML = '<p>No results found. Try different keywords.</p>';
       searchResults.style.display = 'block';
       contentSections.classList.add('hidden');
@@ -97,22 +73,51 @@
     // Hide original content sections when showing results
     contentSections.classList.add('hidden');
 
-    // Display results
-    searchResults.innerHTML = results.slice(0, 10).map(result => {
-      const item = result.item;
-      const snippet = getSnippet(item.content || '', query);
-      const highlightedSnippet = highlightText(snippet, query);
-      const highlightedTitle = highlightText(item.title, query);
+    // Display results (use order if available, otherwise idxs)
+    const resultsToShow = order ? order.slice(0, 10) : idxs.slice(0, 10);
 
-      // Add text fragment for direct navigation to matched text
-      const encodedQuery = encodeURIComponent(query.trim());
-      const url = `${item.path}#:~:text=${encodedQuery}`;
+    searchResults.innerHTML = resultsToShow.map((idx) => {
+      // If we have order, idx is an info index; otherwise it's a doc index
+      const docIdx = order ? info.idx[idx] : idx;
+      const item = searchData[docIdx];
+      const content = item.content || '';
+      const ranges = order ? info.ranges[idx] : null;
+
+      // Get snippet around the match
+      let snippet = '';
+      let matchedText = '';
+      if (ranges && ranges.length > 0) {
+        // ranges is array of [start, end] pairs
+        const firstStart = ranges[0];
+        const lastEnd = ranges[ranges.length - 1];
+        matchedText = content.substring(firstStart, lastEnd);
+
+        // Create snippet centered on match
+        const snippetStart = Math.max(0, firstStart - 100);
+        const snippetEnd = Math.min(content.length, lastEnd + 100);
+        snippet = content.substring(snippetStart, snippetEnd);
+
+        // Highlight using uFuzzy's highlight function
+        const adjustedRanges = ranges.map(r => r - snippetStart);
+        snippet = uFuzzy.highlight(snippet, adjustedRanges, (part, matched) =>
+          matched ? `<span class="highlight">${part}</span>` : part
+        );
+
+        if (snippetStart > 0) snippet = '...' + snippet;
+        if (snippetEnd < content.length) snippet = snippet + '...';
+      } else {
+        snippet = content.substring(0, 200) + '...';
+      }
+
+      // Use matched text for navigation
+      const encodedMatch = matchedText ? encodeURIComponent(matchedText) : encodeURIComponent(query.trim());
+      const url = `${item.path}#:~:text=${encodedMatch}`;
 
       return `
         <a href="${url}" style="text-decoration: none; color: inherit;">
           <div class="search-result-item">
-            <div class="search-result-title">${highlightedTitle}</div>
-            <div class="search-result-snippet">${highlightedSnippet}</div>
+            <div class="search-result-title">${item.title}</div>
+            <div class="search-result-snippet">${snippet}</div>
           </div>
         </a>
       `;
