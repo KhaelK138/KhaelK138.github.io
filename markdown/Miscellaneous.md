@@ -17,7 +17,7 @@ Mount a Windows vhd:
   - Uses [https://get.activated.win/](https://get.activated.win/)
 - Use [https://uupdump.net/](https://uupdump.net/) to make Windows images (uses Microsoft servers so we get base images without all of the bloat)
 
-Exfiltrate files off of a Windows system `sudo python3 app.py` (if [updog](https://github.com/sc0tfree/updog) isn't available)
+A basic python upload server example `sudo python3 upload_server.py` (if [updog](https://github.com/sc0tfree/updog) isn't available)
 
 ```python
 #!/usr/bin/env python3
@@ -25,26 +25,43 @@ from http.server import SimpleHTTPRequestHandler, HTTPServer
 import os
 
 class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Type", "text/html")
+        self.end_headers()
+        self.wfile.write(b"""
+<form method="POST" enctype="multipart/form-data">
+<input type="file" name="file">
+<input type="submit">
+</form>
+""")
+
     def do_POST(self):
-        content_length = int(self.headers['Content-Length'])
-        post_data = self.rfile.read(content_length)
+        ctype = self.headers.get("Content-Type", "")
+        length = int(self.headers.get("Content-Length", 0))
+        data = self.rfile.read(length)
 
-        # Get the filename from the POST headers if provided
-        filename = self.headers.get('filename', 'upload.bin')
+        if ctype.startswith("multipart/form-data"):
+            boundary = ctype.split("boundary=")[1].encode()
+            parts = data.split(b"--" + boundary)
+            for p in parts:
+                if b"Content-Disposition" in p:
+                    head, body = p.split(b"\r\n\r\n", 1)
+                    name = head.split(b'filename="')[1].split(b'"')[0].decode()
+                    with open(name, "wb") as f:
+                        f.write(body.rstrip(b"\r\n--"))
+                    break
+        else:
+            name = self.headers.get("filename", "upload.bin")
+            with open(name, "wb") as f:
+                f.write(data)
 
-        # Save the uploaded file
-        with open(filename, 'wb') as f:
-            f.write(post_data)
-
-        # Send a response back to the client
         self.send_response(200)
         self.end_headers()
-        self.wfile.write(b'File uploaded successfully')
+        self.wfile.write(b"OK")
 
 if __name__ == "__main__":
-    server_address = ('0.0.0.0', 8080)  # Use any port you want
-    httpd = HTTPServer(server_address, FileUploadHTTPRequestHandler)
-    print(f"Serving HTTP on {server_address[0]} port {server_address[1]} (http://{server_address[0]}:{server_address[1]}/)")
+    httpd = HTTPServer(("0.0.0.0", 8080), FileUploadHTTPRequestHandler)
     httpd.serve_forever()
 ```
 Then on Windows:
