@@ -10,17 +10,13 @@
 
       // Configure Fuse.js for fuzzy searching
       const options = {
-        keys: [
-          { name: 'title', weight: 0.4 },
-          { name: 'content', weight: 0.6 }
-        ],
-        threshold: 0.2,  // Lower = more strict, higher = more fuzzy (0-1)
-        distance: 50,    // Maximum distance for match
-        minMatchCharLength: 3,
+        keys: ['content'],  // Only search content, not titles
+        threshold: 0.3,     // Allow moderate fuzziness
+        distance: 100,
+        minMatchCharLength: 2,
         includeScore: true,
         includeMatches: true,
-        ignoreLocation: false,
-        useExtendedSearch: false
+        ignoreLocation: true  // Search anywhere in the document
       };
 
       fuse = new Fuse(searchData, options);
