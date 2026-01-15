@@ -8,18 +8,14 @@
     .then(data => {
       searchData = data;
 
-      // Debug: log the first item to see the structure
-      console.log('Search data sample:', data[0]);
-
-      // Configure Fuse.js for fuzzy searching
       const options = {
-        keys: ['content'],  // Only search content, not titles
-        threshold: 0.2,     // Strict matching
+        keys: ['content'],  
+        threshold: 0.2,  
         distance: 100,
         minMatchCharLength: 2,
         includeScore: true,
         includeMatches: true,
-        ignoreLocation: true,  // Search anywhere in the document
+        ignoreLocation: true,  
         findAllMatches: true
       };
 
@@ -32,7 +28,6 @@
   const searchResults = document.getElementById('search-results');
   const contentSections = document.querySelector('.content-sections');
 
-  // Debounce function to avoid too many searches
   function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -41,33 +36,60 @@
     };
   }
 
-  // Highlight matching text
-  function highlightText(text, query) {
-    if (!query) return text;
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-    return text.replace(regex, '<span class="highlight">$1</span>');
+  // Highlight matching text using Fuse.js match indices
+  function highlightTextWithMatches(text, matches) {
+    if (!matches || matches.length === 0) return text;
+
+    // Sort matches by start index in descending order to avoid offset issues
+    const sortedMatches = [...matches].sort((a, b) => b[0] - a[0]);
+
+    let result = text;
+    for (const [start, end] of sortedMatches) {
+      result = result.substring(0, start) +
+               '<span class="highlight">' +
+               result.substring(start, end + 1) +
+               '</span>' +
+               result.substring(end + 1);
+    }
+
+    return result;
   }
 
-  // Get snippet around match
-  function getSnippet(content, query, length = 200) {
+  // Get snippet around match using Fuse.js match indices
+  function getSnippetWithMatches(content, matches, length = 200) {
     if (!content) return '';
 
-    const lowerContent = content.toLowerCase();
-    const lowerQuery = query.toLowerCase();
-    const index = lowerContent.indexOf(lowerQuery);
-
-    if (index === -1) {
+    // If no matches, return beginning of content
+    if (!matches || matches.length === 0) {
       return content.substring(0, length) + '...';
     }
 
-    const start = Math.max(0, index - length / 2);
-    const end = Math.min(content.length, index + query.length + length / 2);
+    // Find the first match position
+    const firstMatchStart = matches[0][0];
+
+    const start = Math.max(0, firstMatchStart - length / 2);
+    const end = Math.min(content.length, firstMatchStart + length / 2);
 
     let snippet = content.substring(start, end);
     if (start > 0) snippet = '...' + snippet;
     if (end < content.length) snippet = snippet + '...';
 
-    return snippet;
+    // Adjust match indices relative to snippet
+    const adjustedMatches = matches
+      .filter(([matchStart, matchEnd]) => matchStart >= start && matchStart < end)
+      .map(([matchStart, matchEnd]) => [
+        matchStart - start + (start > 0 ? 3 : 0), // +3 for '...' prefix
+        Math.min(matchEnd - start + (start > 0 ? 3 : 0), snippet.length - 1)
+      ]);
+
+    return highlightTextWithMatches(snippet, adjustedMatches);
+  }
+
+  // Get the actual matched text from the content for URL encoding
+  function getFirstMatchedText(content, matches) {
+    if (!matches || matches.length === 0) return '';
+    const [start, end] = matches[0];
+    return content.substring(start, end + 1);
   }
 
   // Perform search
@@ -100,12 +122,26 @@
     // Display results
     searchResults.innerHTML = results.slice(0, 10).map(result => {
       const item = result.item;
-      const snippet = getSnippet(item.content || '', query);
-      const highlightedSnippet = highlightText(snippet, query);
-      const highlightedTitle = highlightText(item.title, query);
+
+      const contentMatches = result.matches?.find(m => m.key === 'content');
+      const titleMatches = result.matches?.find(m => m.key === 'title');
+      const contentIndices = contentMatches?.indices || [];
+      const titleIndices = titleMatches?.indices || [];
+
+      const highlightedSnippet = getSnippetWithMatches(item.content || '', contentIndices);
+      const highlightedTitle = highlightTextWithMatches(item.title, titleIndices);
+
+      const matchedText = getFirstMatchedText(item.content || '', contentIndices);
+
+      let url = item.path;
+      if (matchedText && matchedText.length > 0) {
+        // Encode the matched text for URL
+        const encodedText = encodeURIComponent(matchedText.trim());
+        url = `${item.path}#:~:text=${encodedText}`;
+      }
 
       return `
-        <a href="${item.path}" style="text-decoration: none; color: inherit;">
+        <a href="${url}" style="text-decoration: none; color: inherit;">
           <div class="search-result-item">
             <div class="search-result-title">${highlightedTitle}</div>
             <div class="search-result-snippet">${highlightedSnippet}</div>
@@ -117,12 +153,10 @@
     searchResults.style.display = 'block';
   }
 
-  // Add event listener with debouncing
   searchInput.addEventListener('input', debounce(function(e) {
     performSearch(e.target.value);
   }, 300));
 
-  // Clear search on Escape key
   searchInput.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       searchInput.value = '';
