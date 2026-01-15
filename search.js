@@ -34,6 +34,19 @@
     };
   }
 
+  // Expand match to full word boundaries
+  function expandToWord(content, start, end) {
+    // Expand start backwards to word boundary
+    while (start > 0 && /\w/.test(content[start - 1])) {
+      start--;
+    }
+    // Expand end forwards to word boundary
+    while (end < content.length && /\w/.test(content[end])) {
+      end++;
+    }
+    return { start, end };
+  }
+
   // Perform search
   function performSearch(query) {
     if (!query || query.length < 2) {
@@ -87,10 +100,13 @@
       let snippet = '';
       let matchedText = '';
       if (ranges && ranges.length > 0) {
-        // ranges is array of [start, end] pairs
+        // ranges is flat array of character positions
         const firstStart = ranges[0];
         const lastEnd = ranges[ranges.length - 1];
-        matchedText = content.substring(firstStart, lastEnd);
+
+        // Expand to full word boundaries for text fragment navigation
+        const expanded = expandToWord(content, firstStart, lastEnd);
+        matchedText = content.substring(expanded.start, expanded.end);
 
         // Create snippet centered on match
         const snippetStart = Math.max(0, firstStart - 100);
@@ -131,13 +147,16 @@
     performSearch(e.target.value);
   }, 300));
 
-  // Clear search on Escape key
+  // Handle keyboard shortcuts
   searchInput.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       searchInput.value = '';
       searchResults.style.display = 'none';
       searchResults.innerHTML = '';
       contentSections.classList.remove('hidden');
+    } else if (e.key === 'Enter') {
+      // Re-run search (useful after back button)
+      performSearch(searchInput.value);
     }
   });
 })();
