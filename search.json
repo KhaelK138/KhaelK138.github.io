@@ -4,7 +4,7 @@ layout: null
 [
   {% assign filtered_pages = "" | split: "" %}
   {% for page in site.pages %}
-    {% if page.path contains 'markdown/' and page.path contains '.md' %}
+    {% if page.path contains 'markdown/' and page.path contains '.md' and page.layout == 'blank' %}
       {% assign filtered_pages = filtered_pages | push: page %}
     {% endif %}
   {% endfor %}
