@@ -1,0 +1,15 @@
+---
+layout: null
+---
+[
+  {% for file in site.static_files %}
+    {% if file.path contains '/markdown/' and file.extname == '.md' %}
+      {% assign content = site.pages | where: "path", file.path | first %}
+      {
+        "title": "{{ file.basename | replace: '-', ' ' | replace: '_', ' ' }}",
+        "path": "{{ file.path | replace: '.md', '.html' }}",
+        "content": {{ content.content | markdownify | strip_html | jsonify }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endif %}
+  {% endfor %}
+]

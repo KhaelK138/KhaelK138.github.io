@@ -11,12 +11,75 @@
     .section { margin: 20px 0; }
     a { color: #1a73e8; text-decoration: none; }
     a:hover { text-decoration: underline; }
+
+    /* Search styles */
+    .search-container {
+      margin: 30px 0;
+      position: sticky;
+      top: 0;
+      background: white;
+      padding: 20px 0;
+      z-index: 100;
+    }
+    #search-input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    #search-input:focus {
+      outline: none;
+      border-color: #1a73e8;
+    }
+    #search-results {
+      margin-top: 20px;
+      display: none;
+    }
+    .search-result-item {
+      padding: 15px;
+      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      background: #f9f9f9;
+    }
+    .search-result-item:hover {
+      background: #f0f0f0;
+    }
+    .search-result-title {
+      font-weight: bold;
+      color: #333366;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+    .search-result-snippet {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .highlight {
+      background-color: yellow;
+      font-weight: bold;
+    }
+    .content-sections {
+      display: block;
+    }
+    .content-sections.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
 <h1>Epic Cybersecurity Notes</h1>
 
+<div class="search-container">
+  <input type="text" id="search-input" placeholder="Search notes... (try 'kerberos', 'sql injection', 'privilege escalation')">
+  <div id="search-results"></div>
+</div>
+
+<div class="content-sections">
 <div class="section">
   <h2>Privilege Escalation</h2>
   <ul>
@@ -106,6 +169,9 @@
     <li><a href="https://book.hacktricks.xyz/">Hacktricks - provides checklist for every port/common service</a></li>
   </ul>
 </div>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0"></script>
+<script src="/search.js"></script>
 </body>
 </html>
