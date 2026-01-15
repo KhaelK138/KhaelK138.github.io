@@ -14,7 +14,8 @@
       uf = new uFuzzy({
         intraMode: 1,  // Allow single-error fuzzy matching (substitution, transposition, insertion, deletion)
         intraIns: 1,   // Allow 1 extra char between each char within a term
-        intraChars: "[a-z\\d' ]",  // Allow spaces between matched chars (for "surprisinglywork" -> "surprisingly work")
+        intraChars: "[a-z\\d'_\\-.: ]",  // Allow special chars and spaces between matched chars
+        interSplit: "[^A-Za-z\\d'_\\-.:]+",  // Don't split on underscores, hyphens, dots, colons
       });
 
       console.log('Search index loaded:', data.length, 'documents');
