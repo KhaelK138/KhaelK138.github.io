@@ -8,15 +8,19 @@
     .then(data => {
       searchData = data;
 
+      // Debug: log the first item to see the structure
+      console.log('Search data sample:', data[0]);
+
       // Configure Fuse.js for fuzzy searching
       const options = {
         keys: ['content'],  // Only search content, not titles
-        threshold: 0.3,     // Allow moderate fuzziness
+        threshold: 0.2,     // Strict matching
         distance: 100,
         minMatchCharLength: 2,
         includeScore: true,
         includeMatches: true,
-        ignoreLocation: true  // Search anywhere in the document
+        ignoreLocation: true,  // Search anywhere in the document
+        findAllMatches: true
       };
 
       fuse = new Fuse(searchData, options);
