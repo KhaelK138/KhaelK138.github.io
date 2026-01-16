@@ -17,8 +17,6 @@
         intraChars: "[a-z\\d'_\\-.: ]",  // Allow special chars and spaces between matched chars
         interSplit: "[^A-Za-z\\d'_\\-.:]+",  // Don't split on underscores, hyphens, dots, colons
       });
-
-      console.log('Search index loaded:', data.length, 'documents');
     })
     .catch(error => console.error('Error loading search index:', error));
 
@@ -65,18 +63,18 @@
     }
 
     // uFuzzy search
-    const [idxs, info, order] = uf.search(haystack, query);
+    // Escape " -" to prevent it being treated as exclusion syntax
+    // (uFuzzy treats " -term" as "exclude results with term")
+    const escapedQuery = query.replace(/ -/g, ' \\-');
+    let [idxs, info, order] = uf.search(haystack, escapedQuery);
 
-    // Debug logging
-    console.log('Query:', query);
-    console.log('Matches found:', idxs?.length || 0);
-    if (order && order.length > 0) {
-      order.slice(0, 3).forEach((infoIdx, i) => {
-        const docIdx = info.idx[infoIdx];
-        console.log(`Result ${i}:`, searchData[docIdx].title);
-        console.log('  Ranges:', info.ranges[infoIdx]);
-      });
+    // Fallback: if no results and query is long enough, try without first character
+    // (uFuzzy can't handle first-character substitution errors)
+    if ((!idxs || idxs.length === 0) && escapedQuery.length >= 3) {
+      const fallbackQuery = escapedQuery.substring(1);
+      [idxs, info, order] = uf.search(haystack, fallbackQuery);
     }
+
 
     if (!idxs || idxs.length === 0) {
       searchResults.innerHTML = '<p>No results found. Try different keywords.</p>';
