@@ -65,7 +65,8 @@
     // uFuzzy search
     // Escape " -" to prevent it being treated as exclusion syntax
     // (uFuzzy treats " -term" as "exclude results with term")
-    const escapedQuery = query.replace(/ -/g, ' \\-');
+    let escapedQuery = query.startsWith('-') ? ' ' + query : query;
+    escapedQuery = escapedQuery.replace(/ -/g, ' \\-');
     let [idxs, info, order] = uf.search(haystack, escapedQuery);
 
     // Fallback: if no results and query is long enough, try without first character
