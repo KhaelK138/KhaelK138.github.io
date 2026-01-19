@@ -110,6 +110,8 @@ Enter-PSSession {PSSession_ID_returned}
 - If only one of our users can remote into the system, but we want to operate as another user, we can use [RunasCs](https://github.com/antonioCoco/RunasCs)
 - This is built on top of the base `runas.exe` and handles much better
   - `RunasCs.exe {username} {password} {cmd} -d {domain} -r {host:port} `
+    - IMPORTANT! If used in Command Prompt, it will treat surrounding `'` characters as PART OF THE PASSWORD
+      - Use double quotes if needed
     - Also has `--bypass-uac`
 - Compiled executable in releases zip: [https://github.com/antonioCoco/RunasCs/releases/tag/v1.5](https://github.com/antonioCoco/RunasCs/releases/tag/v1.5)
 
