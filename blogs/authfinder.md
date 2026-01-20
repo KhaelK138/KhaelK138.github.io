@@ -11,7 +11,7 @@ date: January 20, 2026
 
 ## Introduction
 
-Like many good tools released, `AuthFinder` and `Secretsdump-ng` were made to solve a problem. Specifically, while red teaming at the Western region of the Collegiate Cyber Defense Competition (WRCCDC), we were having trouble efficiently running commands across multiple teams. We had to manage access to 30-40 teams on average, each with their own IP range and individual boxes, resulting in a total of usually around **500** machines or so. Now, this is normally where a C2 would come into play, but it's often a smart idea to maintain multiple avenues of access in case the students manage to remove some (which they often do!), such as using stolen credentials.
+Like many other tools released, `AuthFinder` and `Secretsdump-ng` were made to solve a problem. Specifically, while red teaming at the Western region of the Collegiate Cyber Defense Competition (WRCCDC), we were having trouble efficiently running commands across multiple teams. We had to manage access to between 30 and 40 teams on average, each with their own IP range and individual boxes, resulting in a total of usually around **500** machines or so. Now, this is normally where a C2 would come into play, but it's often a smart idea to maintain multiple avenues of access - such as using stolen credentials - in case the students manage to remove some (which they often do!).
 
 ### The Problem
 
@@ -46,7 +46,7 @@ For example, `evil-winrm` is by far the most robust tool for sending commands to
 
 ![alt text](./images/evil_winrm_exit_1.png)
 
-Similarly, if `nxc` successfully authenticates but fails to run a command (perhaps due to a permission issue, for example with `psexec`), most of the tools present will simply just not send anything to `stdout`. 
+Similarly, if `nxc` successfully authenticates but fails to run a command (perhaps due to a permission issue, for example with `smbexec`), most of the tools present will simply just not send anything to `stdout`. 
 
 ![alt text](./images/nxc_no_execution_output.png)
 
