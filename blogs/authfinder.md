@@ -7,6 +7,8 @@ date: January 20, 2026
 ---
 
 
+![alt text](./images/auth_finder_cover.png)
+
 ## Introduction
 
 Like many good tools released, `AuthFinder` and `Secretsdump-ng` were made to solve a problem. Specifically, while red teaming at the Western region of the Collegiate Cyber Defense Competition (WRCCDC), we were having trouble efficiently running commands across multiple teams. We had to manage access to 30-40 teams on average, each with their own IP range and individual boxes, resulting in a total of usually around **500** machines or so. Now, this is normally where a C2 would come into play, but it's often a smart idea to maintain multiple avenues of access in case the students manage to remove some (which they often do!), such as using stolen credentials.
@@ -14,6 +16,8 @@ Like many good tools released, `AuthFinder` and `Secretsdump-ng` were made to so
 ### The Problem
 
 Firewalling is a *powerful*, powerful technique. So powerful, in fact, that we have purpose-built tools for subverting them (though I won't cover them here). However, many teams often don't know exactly what ports to firewall and what ports to leave open. For example, on a domain controller, Team 1 might have left `WinRM` open and kept `SMB`, `RDP`, and `WMI` closed, while Team 2 might have only left `WMI` and `RDP` open. Thus, you can imagine how it becomes quite the challenge to efficiently run commands on all teams at once, even with valid credentials. 
+
+![alt text](./images/multiple_ports_firewalled.png)
 
 **One of the most important parts of CCDC is maintaining fairness between teams.** If we've maintained access to the domain controller of 30 out of 35 teams, then we should equally punish those teams (by, for example, taking down a scored service at the same time). However, if our C2s/implants fail, this becomes a heavily manual process. You could be rank 1 on HackTheBox, but if you're individually trying `psexec`, `evil-winrm`, `wmiexec`, and `xfreerdp` on every single team, one at a time, you wouldn't be able to keep up with the demands of CCDC.
 
@@ -73,11 +77,11 @@ But no matter, how about gaining a shell and simply using `Mimikatz`! Well, you 
 
 **DSInternals**
 
-This is where [DSInternals](https://github.com/MichaelGrafnetter/DSInternals) comes into play. `DSInternals`, or "Directory Services Internals PowerShell Module and Framework", is listed as a tool for handling Active Directory disaster recovery, identity management, cross-forest migrations, and password strength auditing. It seems to have been accepted into the community and recognized as a valid IT Administrative tool. 
+This is where Michael Grafnetter's [DSInternals](https://github.com/MichaelGrafnetter/DSInternals) comes into play. `DSInternals`, or "Directory Services Internals PowerShell Module and Framework", is listed as a tool for handling Active Directory disaster recovery, identity management, cross-forest migrations, and password strength auditing. It seems to have been accepted into the community and recognized as a valid IT Administrative tool. 
 
 ![alt text](./images/DSInternals1.png)
 
-However, looking at Michael Grafnetter's profile, we notice that he's a Principal Security Researcher at SpecterOps. While the tool does support the above functionality, it also supports online and offline NTDS secrets dumping. Thus, it becomes a great candidate for dumping secrets without butting heads with AV (nicely done, Michael!). A cursory test shows that, sure enough, we can dump secrets without issue with Defender enabled, which is primarily the main contender we're running into in CCDC and on engagements.
+However, looking at the Michael's profile, we notice that he is a Principal Security Researcher at SpecterOps. While the tool does support the above functionality, it also supports online and offline NTDS secrets dumping. Thus, it becomes a great candidate for dumping secrets without butting heads with AV (nicely done, Michael!). A cursory test shows that, sure enough, we can dump secrets without issue with Defender enabled, which is primarily the main contender we're running into in CCDC and on engagements.
 
 ![alt text](./images/DSInternalsDumpSecrets.png)
 
