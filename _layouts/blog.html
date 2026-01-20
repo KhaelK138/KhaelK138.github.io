@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/assets/blog.css">
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+    <title>{{ page.title }}</title>
+</head>
+<body>
+    <div class="wrapper">
+        <nav>
+            <a href="/">home</a>
+            <a href="/notes.html">notes</a>
+        </nav>
+
+        <article>
+            <header>
+                <h1 class="post-title">{{ page.title }}</h1>
+                <div class="post-meta">{{ page.author }} / {{ page.date }}</div>
+                {% if page.tags %}
+                <div class="post-tags">
+                    {% for tag in page.tags %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </header>
+
+            <div class="post-content">
+                {{ content }}
+            </div>
+        </article>
+    </div>
+</body>
+</html>
