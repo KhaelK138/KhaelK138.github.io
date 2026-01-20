@@ -10,7 +10,7 @@ date: January 20, 2026
 
 Like many good tools released, `AuthFinder` and `Secretsdump-ng` were made to solve a problem. Specifically, while red teaming at the Western region of the Collegiate Cyber Defense Competition (WRCCDC), we were having trouble efficiently running commands across multiple teams. We had to manage access to 30-40 teams on average, each with their own IP range and individual boxes, resulting in a total of usually around **500** machines or so. Now, this is normally where a C2 would come into play, but it's often a smart idea to maintain multiple avenues of persistence in case the students manage to remove some (which they often do!).
 
-### The Problem**
+### The Problem
 
 Firewalling is a *powerful*, powerful technique. So powerful, in fact, that we have purpose-built tools for subverting them (though I won't cover them here). However, many teams often don't know exactly what ports to firewall and what ports to leave open. For example, on a domain controller, Team 1 might have left `WinRM` open and closed `SMB`, `RDP`, and `WMI`, while Team 2 might have only left `WMI` and `RDP` open. Thus, you can imagine how it becomes quite the challenge to effectively and efficiently run commands on all teams at once, even with valid credentials. 
 
