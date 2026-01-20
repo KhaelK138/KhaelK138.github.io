@@ -1,6 +1,6 @@
 ---
 layout: blog
-pagetitle: AuthFinder and Secretsdump-ng
+title: AuthFinder and Secretsdump-ng
 author: Khael Kugler
 date: January 20, 2026
 ---
