@@ -120,7 +120,7 @@ else
     mv pam_${NAME}.so "$PAM_SO_FILE"
     chmod -x "$PAM_SO_FILE"
     if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/system-auth"; then
-        awk -v newline="auth    sufficient                      $PAM_VAR" '
+        awk -v newline="auth        sufficient                                   $PAM_VAR" '
             NF > 0 && $1 !~ /^#/ && !done {
                 print newline;
                 $0 = $0 " use_first_pass";
@@ -130,7 +130,7 @@ else
         ' "/etc/pam.d/system-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/system-auth"
     fi
     if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/password-auth"; then
-        awk -v newline="auth    sufficient                      $PAM_VAR" '
+        awk -v newline="auth        sufficient                                   $PAM_VAR" '
             NF > 0 && $1 !~ /^#/ && !done {
                 print newline;
                 $0 = $0 " use_first_pass";
