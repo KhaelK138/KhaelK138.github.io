@@ -10,20 +10,13 @@
 <body>
     <div class="wrapper">
         <nav>
-            <a href="/">home</a>
-            <a href="/notes.html">notes</a>
+            <a href="/">Home</a>
         </nav>
 
         <article>
             <header>
                 <h1 class="post-title">{{ page.title }}</h1>
                 <div class="post-meta">{{ page.author }} / {{ page.date }}</div>
-                {% if page.tags %}
-                <div class="post-tags">
-                    {% for tag in page.tags %}
-                    <span class="tag">{{ tag }}</span>
-                    {% endfor %}
-                </div>
                 {% endif %}
             </header>
 
