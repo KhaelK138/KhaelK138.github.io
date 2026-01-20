@@ -91,4 +91,4 @@ Slap together a powershell script which uses `DSInternals` on DCs and `reg save`
 
 ![alt text](./images/secretsdump_ng_dump.png)
 
-If you'd like to give it a spin, it can be installed with `pipx install secretsdump-ng`. The source code is available [here](github.com/KhaelK138/secretsdump-ng).
+If you'd like to give it a spin, it can be installed with `pipx install secretsdump-ng`. The source code is available [here](https://github.com/KhaelK138/secretsdump-ng).
