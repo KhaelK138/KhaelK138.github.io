@@ -28,7 +28,7 @@ Firewalling is a *powerful*, powerful technique. So powerful, in fact, that we h
 - SMB (via `smbexec`)
 - WMI/RPC (via `nxc wmi`)
 - SSH (via `nxc ssh`)
-  - You'd be surprised how much I've seen SSH enabled on developer machines during engagements and CCDC
+  - You'd be surprised how much I've seen SSH enabled on developer machines during engagements and within CCDC
 - MSSQL (via `impacket-mssqlclient` and `xp_cmdshell`)
 - SMB (via `psexec`)
 - SMB/WMI (via `atexec`)
@@ -42,11 +42,11 @@ Execution is threaded, meaning we're implanting binaries across all teams within
 
 In terms of creating the tool, the process was pretty straightforward, since it was mostly just a wrapper around existing tooling. Aside from building the commands to run and parsing output, a lot of the core functionality of AuthFinder is handling the tools' output in a consistent manner. 
 
-For example, `evil-winrm` is by far the most robust tool for sending commands to WinRM. However, as far as I can tell (as of Jan 2026), there isn't a supported method for executing a single command, at least in a way that the tool expects. Lucky for us, we can use `stdin` to echo a command into the tool, which subsequently breaks the tool and causes it to error out, **but not before running the command!** Thus, we can snag the output and return a success to the user, assuming the tool returned with an error code of `1`.
+For example, `evil-winrm` is by far the most robust tool for sending commands to WinRM. However, as far as I can tell (as of Jan 2026), there isn't a supported method for executing a single command, at least in a way that the tool expects. Lucky for us, we can use `stdin` to echo a command into the tool, which subsequently breaks the tool and causes it to error out, **but not before running the command!** Thus, we can snag the output and return a success to the user.
 
 ![alt text](./images/evil_winrm_exit_1.png)
 
-Similarly, if `nxc` successfully authenticates but fails to run a command (perhaps due to a permission issue, for example with `smbexec`), most of the tools present will simply just not send anything to `stdout`. 
+Similarly, if `nxc` successfully authenticates but fails to run a command (perhaps due to a permission issue, for example with `smbexec`), most of the protocols will simply just not send anything to `stdout`:
 
 ![alt text](./images/nxc_no_execution_output.png)
 
@@ -81,7 +81,7 @@ This is where Michael Grafnetter's [DSInternals](https://github.com/MichaelGrafn
 
 ![alt text](./images/DSInternals1.png)
 
-However, looking at the Michael's profile, we notice that he is a Principal Security Researcher at SpecterOps. While the tool does support the above functionality, it also supports online and offline NTDS secrets dumping. Thus, it becomes a great candidate for dumping secrets without butting heads with AV (nicely done, Michael!). A cursory test shows that, sure enough, we can dump secrets without issue with Defender enabled, which is primarily the main contender we're running into in CCDC and on engagements.
+However, looking at Michael's profile, we notice that he is a Principal Security Researcher at SpecterOps. While the tool does support the above functionality, it also supports online and offline NTDS secrets dumping. Thus, it becomes a great candidate for dumping secrets without butting heads with AV (nicely done, Michael!). A cursory test shows that, sure enough, we can dump secrets without issue with Defender enabled, which is primarily the main contender we're running into in CCDC and on engagements.
 
 ![alt text](./images/DSInternalsDumpSecrets.png)
 
