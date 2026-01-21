@@ -35,11 +35,16 @@ pagetitle: External Assessments
 
 ## Viewing websites:
 
-**GoWitness**
-- Run gowitness on the IP ranges/hosts, enumerate mainly the 200s unless there's time for all
-  - If we have a list of IPs: `gowitness scan file  --write-db -f {file_with_ips}`
-  - If we have a list of CIDRs: `gowitness scan cidr  --write-db --cidr-file {file_with_cidrs}`
-- Then just view the results by running `gowitness report server` in the same directory (with `gowitness.sqlite3`)
+**EyeWitness**
+- Run eyewitness on the IP ranges/hosts to snag pictures of all websites and generate an HTML report
+  - It will also enumerate default credentials!!
+- Installation: 
+  - `git clone https://github.com/RedSiege/EyeWitness.git; cd EyeWitness/setup; sudo ./setup.sh; cd ..; source eyewitness-venv/bin/activate`
+- Usage:
+  - `python3 Python/EyeWitness.py --web -f {ip_list} --results 200 -d {output_dir} --threads {default_4}`
+    - Can remove `--results 200` if we want other results
+  - Resume a scan: `python3 Python/EyeWitness.py --resume {output_dir}/ew.db`
+- Then just view the results in the resulting `report.html` file generated in the output directory
 
 **EyeBaller**
 - Tool from BishopFox, uses machine learning as well for viewing websites
