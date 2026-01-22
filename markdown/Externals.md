@@ -32,6 +32,11 @@ pagetitle: External Assessments
 - Awesome censys queries: [https://github.com/thehappydinoa/awesome-censys-queries](https://github.com/thehappydinoa/awesome-censys-queries)
 - Neat new domain-based search engine: https://chaos.projectdiscovery.io/
 
+**DNS Querying**
+- Often, when performing nmap scans on enormous ranges, we'll need multiple DNS servers to resolve hostnames (so we don't get throttled)
+- These can be found with [dnsvalidator](https://github.com/vortexau/dnsvalidator.git)
+  - Install with `git clone https://github.com/vortexau/dnsvalidator.git; cd dnsvalidator; python3 setup.py install`
+  - Then run `dnsvalidator -tL https://public-dns.info/nameservers.txt -threads 20 -o resolvers.txt`
 
 ## Viewing websites:
 
@@ -43,6 +48,7 @@ pagetitle: External Assessments
 - Usage:
   - `python3 Python/EyeWitness.py --web -f {ip_list} --results 200 -d {output_dir} --threads {default_4}`
     - Can remove `--results 200` if we want other results
+    - Can add `--only-ports 80,443,8080,8443,5000,3000,8888,8081,7000` if we want a more in-depth scan
   - Resume a scan: `python3 Python/EyeWitness.py --resume {output_dir}/ew.db`
 - Then just view the results in the resulting `report.html` file generated in the output directory
 
