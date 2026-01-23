@@ -168,6 +168,22 @@ if (request.getParameter("cmd") != null) {
   - Then grep for `trap` to find the private community string, `login` or `fail` to search for failed logins, or `@` for email addresses
 - Can be used for RCE given a few caveats: [https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-snmp/snmp-rce.html](https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-snmp/snmp-rce.html)
 
+## MQTT
+- A service, usually for IoT devices, which allows the publishing of and subscribing to information
+  - Port 1883 for plaintext, port 8883 for TLS
+- Anonymous Access
+  - In one terminal, listen with `mosquitto_sub -h {IP} -t "test_topic"`
+  - In another terminal, publish to `test_topic` with `mosquitto_pub -h {IP} -t "test_topic" -m "test_message"`
+  - If successful, we can publish information to the endpoint
+- All-topic read access
+  - Use `mosquitto_sub -t "#"` to listen to all topics
+  - Publish anything, such as `mosquitto_pub -h {IP} -t "unknown_channel" -m "sensitive_information"`, and see if it appears
+- Publish retained messages
+  - `mosquitto_pub -h {IP} -t "test_topic" -m "retained_message" -r`
+- Auth brute-forcing
+  - Hydra supports, so a basic `sudo hydra -l {username_like_admin} -P {passfile} mqtt://{IP}:1883` should do
+
+
 ## PHP
 - [https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php\_reverse\_shell.php](https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php) - reverse shell (cross platform)
 
