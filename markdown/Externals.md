@@ -49,6 +49,7 @@ pagetitle: External Assessments
   - `python3 Python/EyeWitness.py --web -f {ip_list} --results 200 -d {output_dir} --threads {default_4}`
     - Can remove `--results 200` if we want other results
     - Can add `--only-ports 80,443,8080,8443,5000,3000,8888,8081,7000` if we want a more in-depth scan
+    - Can pass an NMAP xml or Nessus scan with `-x {xml_or_nessus_file}`
   - Resume a scan: `python3 Python/EyeWitness.py --resume {output_dir}/ew.db`
 - Then just view the results in the resulting `report.html` file generated in the output directory
 
