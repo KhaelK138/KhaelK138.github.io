@@ -24,6 +24,11 @@ pagetitle: Phishing
 
 **Bypassing Spam Filters**
 - Use [Phishious](https://github.com/CanIPhish/Phishious) to test an email to see if it would bounce or be caught in spam
+- Setting up DMARC/DKIM/SPF for evilginx: [https://fortbridge.co.uk/research/add-spf-dmarc-dkim-mx-records-evilginx/](https://fortbridge.co.uk/research/add-spf-dmarc-dkim-mx-records-evilginx/)
+- If we have more research time, and we know the victim's inbox type:
+  - Use [espoofer](https://github.com/chenjj/espoofer) to figure out differences between the RFC and the way the email headers are parsed
+  - Discussed in [this BH talk](https://i.blackhat.com/USA-20/Thursday/us-20-Chen-You-Have-No-Idea-Who-Sent-That-Email-18-Attacks-On-Email-Sender-Authentication.pdf)
+  - Also covered in depth by [this research paper](https://www.usenix.org/system/files/sec21-shen-kaiwen.pdf)
 
 **Call to Actions**
 - Using a call to action is a great method of getting a victim to click a link
@@ -39,6 +44,7 @@ Thank you for your continued support in upholding this year's mission.
 
 Sincerely,
 ```
+- Then, force them to sign-in via Okta or something to do the acknowledgement
 
 ## Spoofing any site in a link
 
