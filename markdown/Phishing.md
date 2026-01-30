@@ -30,6 +30,9 @@ pagetitle: Phishing
   - Discussed in [this BH talk](https://i.blackhat.com/USA-20/Thursday/us-20-Chen-You-Have-No-Idea-Who-Sent-That-Email-18-Attacks-On-Email-Sender-Authentication.pdf)
   - Also covered in depth by [this research paper](https://www.usenix.org/system/files/sec21-shen-kaiwen.pdf)
 
+**Spoofing a domain**
+- Depending on DMARC/DKIM, we can spoof a domain using a tool like [https://emkei.cz/](https://emkei.cz/)
+
 **Call to Actions**
 - Using a call to action is a great method of getting a victim to click a link
 - This could take the form of an attached document, a big "Acknowledge" button, or something about updating personal information (like Tax info)
