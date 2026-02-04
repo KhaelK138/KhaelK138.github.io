@@ -69,6 +69,10 @@ Finding user information and passwords:
   - This will give us a gz json file with lots of data per IP, such as `product`, `ip_str`, and `port`
 - We can then filter data with `shodan parse`
   - `shodan parse --fields ip_str,product {out_file}.json.gz`
+- If we have one existing example of a site we'd like to find, we can use the HTML hash
+  - [shodan-hash](https://book.shodan.io/command-line-tools/shodan-hash/) can be used to calculate the hash of a url
+    - `shodan-hash url {url}`
+  - We can then search Shodan for this hash with `http.html_hash:{hash}`
 
 **Burp**
 - Burp Enterprise is really good for automatically searching for classic bugs on a list of sites
