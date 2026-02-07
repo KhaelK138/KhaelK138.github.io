@@ -26,6 +26,7 @@ pagetitle: External Assessments
 
 **Misc tools**
 - crt.sh, merklemap.com, censys, Shodan, Gau, Whoxy, LinkedIn scraping, Google Dorks, Crunchbase, Zoominfo
+- [Huginn-Muninn](https://github.com/Ringmast4r/Huginn-Muninn) - Fingerprinting via DHCP 
 
 **Search tools**
 - PHENOMINAL bug bounty/dork search: [https://taksec.github.io/google-dorks-bug-bounty/](https://taksec.github.io/google-dorks-bug-bounty/)
