@@ -73,6 +73,12 @@ pagetitle: Red Teaming for CCDC
     - Modify the "SeDenyInteractiveLogonRight" line and remove the `Guest` account
     - Reimport with `secedit /configure /db C:\Windows\temp\secedit.sdb /cgf C:\Windows\temp\secpol.inf`
     - Then update GP with `gpupdate /force`
+- Persisting via a DLL
+  - `netsh` supports easily adding dlls with `netsh add helper {dll_path}`
+  - Thus, we can have a malicious DLL, add it, and then have a scheduled task that just runs `netsh` every 5 mins or so
+- RID Hijacking
+  - Change the RID of a user to the admin RID, giving them the permissions without adding them to the group
+  - Proof of concept: [https://github.com/STEALTHbits/RIDHijackingProofofConceptKJ](https://github.com/STEALTHbits/RIDHijackingProofofConceptKJ)
 
 **Linux:**
 - [PANIX](https://github.com/Aegrah/PANIX)

