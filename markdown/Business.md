@@ -76,3 +76,21 @@ Priorities:
 
 **Win-rates**
 - In consulting, 30% is an average deal win-rate, with 40% being top-of-class
+
+## Being a PM
+
+**Being the Glue**
+- If someone isn't the stopgap, people will have to do things outside of their roles
+- Thus, PMs will often have to take this support role, changing when necessary
+
+**Time Commitment**
+- Almost all time spent will be in meetings, putting out fires, and in 1:1s
+- Often, the correct answer is delegation
+
+**Assigned to Clients**
+- It does make sense for PMs to own clients, as they can keep engagements consistent for clients
+- PMs also manage sales for most companies
+
+**Sales**
+- Let customers know what other types of engagements we do at the end of an engagement
+
