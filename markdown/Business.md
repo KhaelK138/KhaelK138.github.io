@@ -14,6 +14,12 @@
 - If a red team is $150k but all they have is $80k, we can do an assumed breach instead, which saves them money on the social engineering and such 
 - If low on time, can always record a video discussing the options and how much they cost, which we can send to the client
 
+## Starting a Business
+
+**Getting a big deal**
+- The most common method of getting a business onto its feet would be finding one big client to supply steady revenue as we find clients
+- If you sell a SAAS product, this could mean leveraging your network to sell a multi-year contract
+  - Alternatively, this can be supplied by venture capitalism, which also provides a network for companies
 
 ## Terminology
 - `ABM`: Account Based Marketing - Doing B2B sales campaigns based specifically on the client
