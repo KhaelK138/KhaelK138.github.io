@@ -171,6 +171,7 @@ if (request.getParameter("cmd") != null) {
 ## MQTT
 - A service, usually for IoT devices, which allows the publishing of and subscribing to information
   - Port 1883 for plaintext, port 8883 for TLS
+  - **NMAP CAN register it as closed when it's open**
 - Anonymous Access
   - In one terminal, listen with `mosquitto_sub -h {IP} -t "test_topic"`
   - In another terminal, publish to `test_topic` with `mosquitto_pub -h {IP} -t "test_topic" -m "test_message"`
@@ -182,6 +183,8 @@ if (request.getParameter("cmd") != null) {
   - `mosquitto_pub -h {IP} -t "test_topic" -m "retained_message" -r`
 - Auth brute-forcing
   - Hydra supports, so a basic `sudo hydra -l {username_like_admin} -P {passfile} mqtt://{IP}:1883` should do
+- [mqtt-explorer](https://mqtt-explorer.com/)
+  - Install from debian package with `sudo apt install {package}.deb`
 
 
 ## PHP
