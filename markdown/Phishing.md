@@ -3,6 +3,20 @@ layout: blank
 pagetitle: Phishing
 ---
 
+## Extensions
+
+- Getting a user to download a malicious browser extension can be an instant win
+- They can have immense privileges, and can have a lot of pretext for installation
+
+**Getting Someone to Install the Extension**
+- Usually, it seems online meeting software is the go-to here
+- Publish a meeting software that exfiltrates all browser cookies/tokens, and get them to install it
+  
+**Conversation Pretext**
+- Can be a bit tricky sometimes to get a conversation started with someone from support, for example, but you can reach out and say things like:
+  - "Hi! I'm a student interested in working here..."
+  - "Hi! My account isn't working, I don't know why. Can we meet..."
+
 ## Phishing Pages
 
 **Spoofing a site**
