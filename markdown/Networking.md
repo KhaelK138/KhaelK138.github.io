@@ -6,6 +6,8 @@ Not making networking its own section for a while (I'm not cracked enough)
 - Make sure to manually set IP and interface via Network settings after connecting via USB, if DHCP isn't set up
 - Can then configure things like kali to use the interface, which will actually give kali its own IP on the network (rather than sharing the hosts)
   - Can be very handy when we need to host things on kali
+- If we need to access multiple subnets within the LAN, we can use an alias
+  - For example, accessing a 10.0.0.X IP within a different subnet: `sudo ifconfig <IFACE> alias 10.0.0.<desired_IP> netmask 255.255.0.0`
 
 
 ## Configure Managed Switch to Mirror Traffic

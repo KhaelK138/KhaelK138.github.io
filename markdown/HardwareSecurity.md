@@ -336,6 +336,8 @@ pagetitle: Hardware Security
 ## Firmware Analysis
 
 **Binwalk Analysis**
+- Binwalk is pretty good at figuring out what the underlying file system is
+  - `binwalk -e {file}`
 - Common FS formats: SquashFS, JFFS2, ext4, and UBIFS
   - There are custom tools to extract the files, but binwalk can do it automatically
   - If we want to do it ourselves, find the header and size and use `dd`
