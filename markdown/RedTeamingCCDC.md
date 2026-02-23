@@ -34,31 +34,16 @@ pagetitle: Red Teaming for CCDC
 ## Machine Persistence
 
 **Windows:**
-- Todo
-  - Write a persistence script that does the following 
-    - (maybe) Creates an exclusion for ProgramData AND/OR disables defender
-    - Downloads and executes [nosferatu](https://github.com/RITRedteam/nosferatu/)
-      - Makes this a service that occurs on restart
-    - Downloads sliver shell and creates a sliver service hidden with ACLs
-    - Maybe use [https://www.nssm.cc/download](https://www.nssm.cc/download) for services?
-  - Check out [RealBindingEDR](https://github.com/myzxcg/RealBlindingEDR)
-  - Hide services with ACLs: [https://www.sans.org/blog/red-team-tactics-hiding-windows-services](https://www.sans.org/blog/red-team-tactics-hiding-windows-services)
-    - `& $env:SystemRoot\System32\sc.exe sdset {name} "D:(D;;DCLCWPDTSD;;;IU)(D;;DCLCWPDTSD;;;SU)(D;;DCLCWPDTSD;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)S:(AU;FA;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;WD)"`
+- Hide services with ACLs: [https://www.sans.org/blog/red-team-tactics-hiding-windows-services](https://www.sans.org/blog/red-team-tactics-hiding-windows-services)
+  - Not that great, well known and shows up in other places
+  - `& $env:SystemRoot\System32\sc.exe sdset {name} "D:(D;;DCLCWPDTSD;;;IU)(D;;DCLCWPDTSD;;;SU)(D;;DCLCWPDTSD;;;BA)(A;;CCLCSWLOCRRC;;;IU)(A;;CCLCSWLOCRRC;;;SU)(A;;CCLCSWRPWPDTLOCRRC;;;SY)(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;BA)S:(AU;FA;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;WD)"`
   - Pivoting with netsh port proxy
-  - C2s
-    - BOAZ: https://github.com/thomasxm/BOAZ_beta
-    - ChromeAlone: https://github.com/praetorian-inc/ChromeAlone
-    - HiddenDesktop: https://github.com/WKL-Sec/HiddenDesktop
-    - Test out some payloads
-  - Hidden RDP
+- Todo: 
+  - Check out hidden RDP
     - Patching termsrv - https://freedium.cfd/https://samdecrock.medium.com/patching-microsofts-remote-desktop-service-yourself-db25a4d8bc64
       - This allows multiple users RDP as one user
     - Found a repo: https://github.com/f3di006/hRDP
-  - DarkLnk - creates disguised .lnk files that run powershell but look like something else
-    - https://github.com/wariv/Darklnk
-- When installing the exes, make sure to use `-o` with `iwr` or we'll just get the HTTP connection info lmfao
-- First, run [windows_add_payloads.ps1 -src {path_to_exe}](https://khaelkugler.com/scripts/windows_add_payloads.ps1.html) to add the file to each of the locations
-- Then, run [windows_persistence.ps1](https://khaelkugler.com/scripts/windows_persistence.ps1.html)
+- [Basic Windows Persistence Examples](https://khaelkugler.com/scripts/windows_persistence.ps1.html)
   - Removing persistence:
     - Delete payloads from all locations
     - Schtask: `Unregister-ScheduledTask -TaskName "WindowsUpdater" -Confirm:$false`
@@ -79,6 +64,10 @@ pagetitle: Red Teaming for CCDC
 - RID Hijacking
   - Change the RID of a user to the admin RID, giving them the permissions without adding them to the group
   - Proof of concept: [https://github.com/STEALTHbits/RIDHijackingProofofConceptKJ](https://github.com/STEALTHbits/RIDHijackingProofofConceptKJ)
+- Sticky Keys
+  - Can replace the sticky keys binary with another exe, and access it from the login screen
+    - Defender apparently hates this
+  - 
 
 **Linux:**
 - [PANIX](https://github.com/Aegrah/PANIX)
@@ -87,13 +76,6 @@ pagetitle: Red Teaming for CCDC
   - Make malware that:
     - Makes it so you can only run a certain number of commands before being logged out
     - Makes it so you have to solve a times-table equation to see the result of your command
-  - Get something going for alpine/Nixos
-    - Alpine
-      - Host APKs to download
-      - Need /x86_64/APKINDEX.tar.gz hosted
-    - Nixos
-      - Get gcc with `nix-shell -p libgcc pam`
-      - Figure out which PAM file controls auth and modify it
 - Scripting across teams
   - Running commands with SSH by putting it after the command
     - `echo "{password}" | sshpass -p "{password}" ssh -o StrictHostKeyChecking=no "{username}@{ip}" "sudo -S id"`
@@ -272,6 +254,8 @@ pagetitle: Red Teaming for CCDC
   - `kill -9 {pid}` to kill a specific process
 - DNS:
   - Alpine: `rc-service dnsmasq stop && rc-update del dnsmasq default`
+- Timestomping: `touch -d "May 10 2019" {file}`
+  - With date from another file: `touch -r {file_with_date} {target_file}`
   
 **Trolling on Windows**
 - Set everything to German: `Install-Language -Language de-DE -CopyToSettings; Set-WinUserLanguageList de-DE -Force; Set-WinSystemLocale -SystemLocale de-DE; Set-WinUILanguageOverride -Language de-DE; Set-Culture de-DE; Set-WinHomeLocation -GeoId 94`
@@ -300,6 +284,7 @@ pagetitle: Red Teaming for CCDC
 - See who's got an RDP session: `query user` or `query session`
   - Hijack it with `tscon.exe {target_id} /dest:rdp-tcp#{our_rdp_session_number}`
 - Logoff user: `query session` and `logoff {id}` to log off a specific user
+- Timestomping: `
 
 ## Dealing with System Protections
 
