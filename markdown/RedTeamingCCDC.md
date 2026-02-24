@@ -1,6 +1,7 @@
 ---
 layout: blank
 pagetitle: (OUTDATED) Red Teaming for CCDC
+hidden: true
 ---
 
 **These were my old notes for red teaming CCDC. To see my new notes, talk to me :)**
