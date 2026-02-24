@@ -1,7 +1,11 @@
 ---
 layout: blank
-pagetitle: Red Teaming for CCDC
+pagetitle: (OUTDATED) Red Teaming for CCDC
 ---
+
+**These were my old notes for red teaming CCDC. To see my new notes, talk to me :)**
+
+I can't publicly host my actual notes, you know how it is
 
 ## Playbook
 
