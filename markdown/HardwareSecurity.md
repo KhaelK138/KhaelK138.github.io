@@ -141,6 +141,26 @@ pagetitle: Hardware Security
   - Generally running through these 5 will result in a good chance of talking to the device
   - Can also perform a measurement with a logic analyzer and calculate the baud rate 
     - https://github.com/devttys0/baudrate/blob/master/baudrate.py
+      - Uses `python2`, so `curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py`, `python2 get-pip.py`, `python2 -m pip install pyserial`
+  - For an even simpler scan, `ls /dev/cu.usb*` and then pass the device:
+
+```py
+import serial, time
+port = '/dev/{device}'
+for baud in [4800, 9600, 19200, 38400, 57600, 115200]:
+    try:
+        s = serial.Serial(port, baud, timeout=2)
+        time.sleep(0.1)
+        s.reset_input_buffer()
+        data = s.read(256)
+        s.close()
+        if data:
+            print(f'{baud}: {len(data)}B  hex={data[:30].hex()}')
+        else:
+            print(f'{baud}: (no data)')
+    except Exception as e:
+        print(f'{baud}: ERROR {e}')
+```
 - Parity start/stop bit is configured to off (99% of the time), even, or odd
 - Either 1 or 2 stop bits
 
