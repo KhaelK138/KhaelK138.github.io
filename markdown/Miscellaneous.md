@@ -22,7 +22,7 @@ A basic python upload server example `sudo python3 upload_server.py` (if [updog]
 ```python
 #!/usr/bin/env python3
 from http.server import SimpleHTTPRequestHandler, HTTPServer
-import os
+import socket
 
 class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -60,8 +60,21 @@ class FileUploadHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"OK")
 
+def get_local_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
 if __name__ == "__main__":
-    httpd = HTTPServer(("0.0.0.0", 8080), FileUploadHTTPRequestHandler)
+    port = 8080
+    ip = get_local_ip()
+    print(f"Serving on http://{ip}:{port}")
+    httpd = HTTPServer(("0.0.0.0", port), FileUploadHTTPRequestHandler)
     httpd.serve_forever()
 ```
 Then on Windows:
