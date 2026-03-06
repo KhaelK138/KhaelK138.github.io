@@ -35,10 +35,6 @@ pagetitle: Miscellaneous Web Notes
 - Use `__BUILD_MANIFEST.sortedPages` to see a list of all pages
 - Use `X-Middleware-Subrequest: src/middleware:nowaf:src/middleware:src/middleware:src/middleware:src/middleware:middleware:middleware:nowaf:middleware:middleware:middleware:pages/_middleware` for the auth bypass when `X-Powered-By: Next.js`
 
-## CICD
-- Use [Gato](https://github.com/praetorian-inc/gato) for enumerating/attacking Github pipeline
-- Use [Glato](https://github.com/praetorian-inc/glato) for enumerating/attacking GitLab in general
-
 ## Miscellaneous Tricks
 - On password registrations, modify the URL parameter to contain two emails to see what happens
   - For example, change `email=test@test.com` to `email[]=test@test.com,attacker@attacker_server.com`

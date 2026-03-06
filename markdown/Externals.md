@@ -159,6 +159,8 @@ psexec
 AsPlainText
 Authorization: Basic
 Authorization: Bearer
+admin:
+admin/
 NetworkCredential
 password
 root
