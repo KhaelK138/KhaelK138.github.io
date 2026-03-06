@@ -5,6 +5,11 @@ pagetitle: External Assessments
 
 ## Uncovering Assets
 
+**Finding Alternate Domains**
+- Using reverse whois lookups seems to be the go-to here
+  - Identifies registered domains with matching registrant information
+- Can use [ReverseWhois](https://www.reversewhois.io/) or [ViewDNS](https://viewdns.info/reversewhois/)
+
 **Project Discovery Tools**
 - subfinder seems to be the go-to here
   - `subfinder -d {domain} -all`
@@ -45,7 +50,8 @@ pagetitle: External Assessments
 - Run eyewitness on the IP ranges/hosts to snag pictures of all websites and generate an HTML report
   - It will also enumerate default credentials!!
 - Installation: 
-  - `git clone https://github.com/RedSiege/EyeWitness.git; cd EyeWitness/setup; sudo ./setup.sh; cd ..; source eyewitness-venv/bin/activate`
+  - `git clone https://github.com/RedSiege/EyeWitness.git`
+  - Create venv and `pip3 install -r setup/requirements.txt`
 - Usage:
   - `python3 Python/EyeWitness.py --web -f {ip_list} --results 200 -d {output_dir} --threads {default_4}`
     - Can remove `--results 200` if we want other results

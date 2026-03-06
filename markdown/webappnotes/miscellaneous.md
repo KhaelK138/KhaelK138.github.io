@@ -49,6 +49,8 @@ pagetitle: Miscellaneous Web Notes
   - When using the functionality, if 2/3 parameters are specified, we can attempt to add the third parameter
 	- In the above example, this would look like turning `user=newuser&passowrd=pass` into `user=newuser&passowrd=pass&isAdmin=True`
   - The application might accept the added parameter since it is a valid attribute for the object
+- To test google API keys for Gemini, use `curl "https://generativelanguage.googleapis.com/v1beta/files?key={API_KEY}"`
+
 
 ## Testing SAML
 - [https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/](https://epi052.gitlab.io/notes-to-self/blog/2019-03-07-how-to-test-saml-a-methodology/) - great blog post
