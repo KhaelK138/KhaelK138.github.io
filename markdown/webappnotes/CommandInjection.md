@@ -19,8 +19,19 @@ pagetitle: Command Injection & Reverse Shells
   - Thus, we don't actually even need a shell for command execution, we can simply fork a process running our commands from tar
     - This could look something like `--checkpoint=1 --checkpoint-action=exec=perl$IFS-e$IFS'system(join($x,map(chr,({decimal_characters_to_run}))))';`
 
-**Check what server we're running on**
-- ``dir 2>&1 \*\`|echo CMD);&<# rem #>echo PowerShell`` will check injected shell type
+**Reviewing Source Code**
+- Review the source code, track functions with execution, which may be nested multiple times inside of other functions
+  - C/C++: `system, exec(ve), CreateProcess, popen, fork...  `
+  - Python: `subprocess.run/popen/call/etc., os.system/popen...`
+  - Java: `runtime.GetRuntime.exec, ProcessBuilder.start...`
+  - PHP: `system, exec, shell_exec, popen, proc_open...`
+  - Go: `os/exec.Command, Cmd.Run/Output...`
+  - Rust: `std::process::Command::new/spawn/output`
+- Good candidates will often stand out
+  - Filesystem operations (file read/writes, compression, USB I/O)
+  - Database operations (Kiosks can have SQL injection too!)
+  - Network configuration (good ol' ping)
+- Then trace what functions you can hit from GUI/app
 
 ## Upgrading Command Injection to a Shell
 

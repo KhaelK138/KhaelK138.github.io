@@ -100,3 +100,11 @@ Priorities:
 **Sales**
 - Let customers know what other types of engagements we do at the end of an engagement
 
+**PM Reading Recommendations**
+- Instant Manager
+  - One half is case studies, the other is ideas on how to be a good manager
+  - Really good
+- The Manager's Playbook
+  - Management 101, decent start, more like training course
+- Fierce Conversations
+  - The summary might do here

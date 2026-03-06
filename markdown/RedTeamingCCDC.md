@@ -314,6 +314,9 @@ I can't publicly host my actual notes, you know how it is
 - Bypassing with FilelessPELoader:
   - `https://github.com/SaadAhla/FilelessPELoader`
 
+**AMSI**
+- Can iterate on tools like [NukeAMSI](https://github.com/anonymous300502/Nuke-AMSI) to try and bypass AMSI
+
 **Getting Firewalled**
 - Use something like [Sangheili](github.com/RITRedteam/Sangheili) to rotate through hundreds of IPs
 
