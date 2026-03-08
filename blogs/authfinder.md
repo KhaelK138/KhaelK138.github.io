@@ -7,7 +7,7 @@ date: January 20, 2026
 ---
 
 
-![alt text](./images/auth_finder_cover.png)
+![alt text](./images/authfinder/auth_finder_cover.png)
 
 ## Introduction
 
@@ -17,7 +17,7 @@ Like many other tools released, `AuthFinder` and `Secretsdump-ng` were made to s
 
 Firewalling is a *powerful*, powerful technique. So powerful, in fact, that we have purpose-built tools for subverting them (though I won't cover them here). However, many teams often don't know exactly what ports to firewall and what ports to leave open. For example, on a domain controller, Team 1 might have left `WinRM` open and kept `SMB`, `RDP`, and `WMI` closed, while Team 2 might have only left `WMI` and `RDP` open. Thus, you can imagine how it becomes quite the challenge to efficiently run commands on all teams at once, even with valid credentials. 
 
-![alt text](./images/multiple_ports_firewalled.png)
+![alt text](./images/authfinder/multiple_ports_firewalled.png)
 
 **One of the most important parts of CCDC is maintaining fairness between teams.** If we've maintained access to the domain controller of 30 out of 35 teams, then we should equally punish those teams (by, for example, taking down a scored service at the same time). However, if our C2s/implants fail, this becomes a heavily manual process. You could be rank 1 on HackTheBox, but if you're individually trying `psexec`, `evil-winrm`, `wmiexec`, and `xfreerdp` on every single team, one at a time, you wouldn't be able to keep up with the demands of CCDC.
 
@@ -44,21 +44,21 @@ In terms of creating the tool, the process was pretty straightforward, since it 
 
 For example, `evil-winrm` is by far the most robust tool for sending commands to WinRM. However, as far as I can tell (as of Jan 2026), there isn't a supported method for executing a single command, at least in a way that the tool expects. Lucky for us, we can use `stdin` to echo a command into the tool, which subsequently breaks the tool and causes it to error out, **but not before running the command!** Thus, we can snag the output and return a success to the user.
 
-![alt text](./images/evil_winrm_exit_1.png)
+![alt text](./images/authfinder/evil_winrm_exit_1.png)
 
 Similarly, if `nxc` successfully authenticates but fails to run a command (perhaps due to a permission issue, for example with `smbexec`), most of the protocols will simply just not send anything to `stdout`:
 
-![alt text](./images/nxc_no_execution_output.png)
+![alt text](./images/authfinder/nxc_no_execution_output.png)
 
 While `nxc` will return `0` and indicate that the authentication was successful (with a `[+]`), this is actually not what we're looking for, since we're solely focused on command execution. We can let the user know that the authentication succeeded, but also warn them that the command execution likely failed.
 
-![alt text](./images/warn_user_no_execution.png)
+![alt text](./images/authfinder/warn_user_no_execution.png)
 
 **Accelerating Initial Access**
 
 A benefit of having a tool like `AuthFinder` is that exploiting initial access becomes trivially easy. In CCDC, every team is provided an identical set of infrastructure. And by identical, I mean down to the service, port, and password. Thus, gaining access to the default `Administrator` password on one team means gaining access to that same user on all teams, assuming it hasn't been rotated by then. Thus, you can begin to understand the need to quickly run commands while access is still valid.
 
-![alt text](./images/initial_access_example.png)
+![alt text](./images/authfinder/initial_access_example.png)
 
 **In a Penetration Testing context**
 
@@ -69,26 +69,26 @@ In an internal network pen, `AuthFinder` becomes increasingly useful when thousa
 
 AuthFinder also lends itself well to additional tooling which demand command execution of some kind. Did you know Impacket's `secretsdump` relies solely on port 445? Firewall port 445 and you're out of luck, even with `-use-remoteSSWMI` attempting to use WMI.
 
-![alt text](./images/impacket_secretsdump_blocked.png)
+![alt text](./images/authfinder/impacket_secretsdump_blocked.png)
 
 But no matter, how about gaining a shell and simply using `Mimikatz`! Well, you might run into an old friend. 
 
-![alt text](./images/mimikatz_defender.png)
+![alt text](./images/authfinder/mimikatz_defender.png)
 
 **DSInternals**
 
 This is where Michael Grafnetter's [DSInternals](https://github.com/MichaelGrafnetter/DSInternals) comes into play. `DSInternals`, or "Directory Services Internals PowerShell Module and Framework", is listed as a tool for handling Active Directory disaster recovery, identity management, cross-forest migrations, and password strength auditing. It seems to have been accepted into the community and recognized as a valid IT Administrative tool. 
 
-![alt text](./images/DSInternals1.png)
+![alt text](./images/authfinder/DSInternals1.png)
 
 However, looking at Michael's profile, we notice that he is a Principal Security Researcher at SpecterOps. While the tool does support the above functionality, it also supports online and offline NTDS secrets dumping. Thus, it becomes a great candidate for dumping secrets without butting heads with AV (nicely done, Michael!). A cursory test shows that, sure enough, we can dump secrets without issue with Defender enabled, which is primarily the main contender we're running into in CCDC and on engagements.
 
-![alt text](./images/DSInternalsDumpSecrets.png)
+![alt text](./images/authfinder/DSInternalsDumpSecrets.png)
 
 **The Final Script**
 
 Slap together a powershell script which uses `DSInternals` on DCs and `reg save` on non-DCs and you've got a pretty solid candidate for password dumping, only requiring a valid method of command execution. Combine that with an HTTPS upload server (gotta be safe) and some QoL data processing and you have a nice secretsdump script that can use any available method of execution. It will currently dump NTHashes (and optionally hash history), Kerberos keys, cleartext passwords, and everything from the registry hives.
 
-![alt text](./images/secretsdump_ng_dump.png)
+![alt text](./images/authfinder/secretsdump_ng_dump.png)
 
 If you'd like to give it a spin, it can be installed with `pipx install secretsdump-ng`. The source code is available [here](https://github.com/KhaelK138/secretsdump-ng).

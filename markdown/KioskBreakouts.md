@@ -89,6 +89,17 @@ End Sub
 **LOLBAS**
 - Check out the binaries that can execute commands at [https://lolbas-project.github.io/#/execute](https://lolbas-project.github.io/#/execute)
 
+**Bypass BIOS**
+- Often times, we can use Windows' recovery mode against it
+- Steps are along the lines of:
+  - Insert USB flash with linux
+  - Reboot and Shift + F8 to break out of auto-login
+  - Get to Windows login screen, hold `Shift` and then click restart, resulting in Windows recovery
+  - Select "Use a Device" and use the USB linux
+    - Install SSH and connect to network
+  - Configure linux with Chipsec, build the chipsec kernel module, run chipsec and dump SPI flash
+  - The dump should have the boot password, either XOR'd or hashed if a newer version
+
 ## Linux
 
 **Bypassing Read-Only File Systems**
