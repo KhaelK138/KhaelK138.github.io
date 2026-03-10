@@ -60,7 +60,7 @@ Funnily enough, it was even possible to add *more* negative items than positive 
 
 A lot of free stuff. For context, Bouldering Project carries Scarpa and La Sportiva climbing shoes, which typically range from around $100 for beginner models up to $200+ for performance shoes like Scarpa Dragos or La Sportiva Solutions. They stock FrictionLabs chalk ($10-$30 depending on size), Organic Climbing chalk bags and buckets ($30-$68), skincare products, branded merch like shirts & hats, training tools like portable hangboards, and even crash pads for outdoor bouldering (which can run anywhere from $189 for an Organic Simple Pad to $339 for their 5" Thick Big Pad). They also sell food and drinks at the gym.
 
-![alt text](./images/infinite_bouldering/abp_gym_stock.png)
+![alt text](./images/infinite_bouldering/abp_gym_stock.jpg)
 
 An attacker could generate gift cards in arbitrary amounts and use them to purchase any of these. You could outfit yourself (and anyone else) with a full climbing setup, from shoes to chalk and crash pads, without spending a dime. The potential for abuse scales as far as someone is willing to take it.
 
