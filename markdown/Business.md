@@ -100,6 +100,11 @@ Priorities:
 **Sales**
 - Let customers know what other types of engagements we do at the end of an engagement
 
+**Hard Conversations**
+- Be radically transparent
+- Then follow it up and ask how to help
+- Break progress down into steps
+
 **PM Reading Recommendations**
 - Instant Manager
   - One half is case studies, the other is ideas on how to be a good manager
