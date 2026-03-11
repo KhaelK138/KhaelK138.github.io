@@ -3,8 +3,10 @@ layout: blank
 pagetitle: 
 ---
 
+# super basic windows persistence
+
 ```Powershell
-# PowerShell persistence script
+
 
 # Define beacon paths
 $beaconPaths = @(

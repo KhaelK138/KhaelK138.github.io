@@ -3,8 +3,6 @@ layout: blank
 pagetitle: Linux Privilege Escalation
 ---
 
-[HTB Linux Privesc Cheat Sheet](https://khaelkugler.com/pdf/Linux_Privilege_Escalation_Module_Cheat_Sheet.pdf)
-
 ## Enumerating Linux
 
 **Files and User Privileges**
