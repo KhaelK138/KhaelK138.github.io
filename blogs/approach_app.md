@@ -72,7 +72,7 @@ It's important to note that Approach.app isn't just used by Bouldering Project. 
 
 ![alt text](./images/infinite_bouldering/google_results.png)
 
-This excellently demonstrates the risk of upstream component compromise. One vulnerability in a shared third-party service resulted in exposure across every gym relying on it. 
+Thus demonstrating the risk of upstream component compromise. One vulnerability in a shared third-party service resulted in exposure across every gym relying on it. 
 
 Furthermore, detecting and responding to abuse of issues like these becomes increasingly difficult when the vulnerability lives in a third-party platform. Bouldering Project, for example, doesn't have control over the `tilefive.com` server, meaning they likely can't review logs or monitor for suspicious cart activity - they're entirely dependent on Tile Five to identify and remediate the issue.
 
