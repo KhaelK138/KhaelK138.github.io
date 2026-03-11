@@ -48,7 +48,7 @@ I can't publicly host my actual notes, you know how it is
     - Patching termsrv - https://freedium.cfd/https://samdecrock.medium.com/patching-microsofts-remote-desktop-service-yourself-db25a4d8bc64
       - This allows multiple users RDP as one user
     - Found a repo: https://github.com/f3di006/hRDP
-- [Basic Windows Persistence Examples](https://khaelkugler.com/scripts/windows_persistence.ps1.html)
+- [Basic Windows Persistence Examples](https://khaelkugler.com/misc_scripts/windows_persistence.ps1.html)
   - Removing persistence:
     - Delete payloads from all locations
     - Schtask: `Unregister-ScheduledTask -TaskName "WindowsUpdater" -Confirm:$false`
