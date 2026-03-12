@@ -89,7 +89,7 @@ or
 **Homoglyphs**
 
 - These characters can kind of be a massive help no matter what you're attacking (we <3 unicode)
-  - For example, domain spoofing is a classic, where you use `а` (Cyrillic, U+0430) instead of `a` (Latin, U+0061)
+  - For example, domain spoofing is a classic, where you use `ơ` (Vietnamese) instead of `o` (English)
 - Homoglyph table:
 
 |Original Character| Homoglyphs (Sorted by Similarity)|

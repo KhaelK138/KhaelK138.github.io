@@ -27,6 +27,23 @@ pagetitle: Phishing
   - Strip out SingleFile comment (near top) along with anything with an "sf" prefix and links to the original site
 - If we get hit with Azure/O365, try using [OAuthSeeker](https://github.com/praetorian-inc/oauthseeker/)
 
+**Spoofing a domain**
+- Usually, lookalikes are the best option here. Unfortunately, we can't combine different Unicode scripts, like Latin and Cyrillic
+- However, extended Latin characters still count as Latin script, including: 
+  - Latin Extended-A (U+0100–U+017F)
+  - Latin Extended-B (U+0180–U+024F)
+  - Latin Extended Additional (U+1E00–U+1EFF)
+  - Latin Extended-C through E
+- The best test for these characters is to just paste a domain including them into Chrome/Firefox, and see if it corrects to punyscript
+  - For example, [https://nccgroưp.com/](https://nccgroưp.com/) doesn't autocorrect, so it could be a great candidate
+- Some good resources:
+  - [Elfdalian Alphabet](https://en.wikipedia.org/wiki/Elfdalian_alphabet)
+  - [Vietnamese Alphabet](https://en.wikipedia.org/wiki/Vietnamese_alphabet)
+  - [List of Latin Alphabets](https://en.wikipedia.org/wiki/List_of_Latin-script_alphabets)
+- To test Latin domain candidates, use my [Verisign Latin IDN Domain Checker](https://khaelkugler.com/random_vibecoded_projects/idn_checker.html)
+
+nccɡroup.com
+
 **Zendesk**
 - You can get a domain on Zendesk.com to send emails from
 - Zendesk also has IT stuff, so you can make a ticket and assign it to a user
