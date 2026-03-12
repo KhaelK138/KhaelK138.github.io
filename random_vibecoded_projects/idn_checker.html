@@ -216,6 +216,46 @@
         return true;
     }
 
+    // Characters that browsers render as punycode due to visual similarity to ASCII.
+    // Consonants with dot below/above — vowels with dots are common in real
+    // languages (Vietnamese, Lithuanian) so browsers allow those.
+    const PUNYCODE_FORCED = new Set([
+        // Dot below — consonants
+        0x1E05, // ḅ  b + dot below
+        0x1E0D, // ḍ  d + dot below
+        0x1E25, // ḥ  h + dot below
+        0x1E33, // ḳ  k + dot below
+        0x1E37, // ḷ  l + dot below
+        0x1E43, // ṃ  m + dot below
+        0x1E47, // ṇ  n + dot below
+        0x1E5B, // ṛ  r + dot below
+        0x1E63, // ṣ  s + dot below
+        0x1E6D, // ṭ  t + dot below
+        0x1E7F, // ṿ  v + dot below
+        0x1E89, // ẉ  w + dot below
+        0x1E93, // ẓ  z + dot below
+        // Dot above — consonants
+        0x1E03, // ḃ  b + dot above
+        0x1E0B, // ḋ  d + dot above
+        0x1E1F, // ḟ  f + dot above
+        0x1E23, // ḣ  h + dot above
+        0x1E41, // ṁ  m + dot above
+        0x1E45, // ṅ  n + dot above
+        0x1E57, // ṗ  p + dot above
+        0x1E59, // ṙ  r + dot above
+        0x1E61, // ṡ  s + dot above
+        0x1E6B, // ṫ  t + dot above
+        0x1E87, // ẇ  w + dot above
+        0x1E8B, // ẋ  x + dot above
+    ]);
+
+    function hasPunycodeForced(str) {
+        for (const ch of str) {
+            if (PUNYCODE_FORCED.has(ch.codePointAt(0))) return true;
+        }
+        return false;
+    }
+
     // ── IANA .com Latin IDN table (com_latn_1.2.txt) — exact code points
     // Source: https://www.iana.org/domains/idn-tables/tables/com_latn_1.2.txt
     const ALLOWED = new Set([
@@ -320,13 +360,13 @@
             html += `<div class="verdict allowed">ALLOWED — Standard ASCII domain label</div>`;
         }
 
-        // Homograph warning — only shown when the skeleton is pure ASCII
-        if (hasNonASCII && confusablesReady) {
-            const skel = skeleton(label);
-            if (isAllASCII(skel)) {
+        // Homograph warning — skeleton is pure ASCII, or contains diacritics that browsers force to punycode
+        if (hasNonASCII) {
+            const skel = confusablesReady ? skeleton(label) : null;
+            if ((skel && isAllASCII(skel)) || hasPunycodeForced(label)) {
                 html += `<div class="browser-predict puny-display">`;
                 html += `<span class="bp-label">Homograph Warning:</span> Browsers will display this as Punycode (${escapeHtml(puny || 'xn--...')})`;
-                html += `<div class="detail">Every non-ASCII character has an ASCII lookalike — the label is visually indistinguishable from <span class="skeleton">${escapeHtml(skel)}</span> (UTS #39 skeleton)</div>`;
+                html += `<div class="detail">Every non-ASCII character has an ASCII lookalike — the label is visually indistinguishable from <span class="skeleton">${escapeHtml(skel || label)}</span> (UTS #39 skeleton)</div>`;
                 html += `</div>`;
             }
         }
