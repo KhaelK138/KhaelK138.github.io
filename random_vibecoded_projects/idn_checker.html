@@ -114,7 +114,21 @@
         }
         .info h3 { color: #aaa; margin-bottom: 0.4rem; font-size: 0.85rem; }
         .punycode { color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; font-family: monospace; }
+        .browser-predict {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.5;
+        }
+        .browser-predict.puny-display { background: #2a0a0a; border: 1px solid #7f1d1d; color: #f87171; }
+        .browser-predict.loading { background: #1a1a1a; border: 1px solid #333; color: #888; }
+        .browser-predict .bp-label { font-weight: 600; }
+        .browser-predict .skeleton { font-family: monospace; background: #0a0a0a; padding: 0.1rem 0.4rem; border-radius: 3px; }
+        .browser-predict .detail { font-size: 0.78rem; color: #888; margin-top: 0.3rem; }
+        .confusable-map { color: #a78bfa; font-size: 0.75rem; font-family: monospace; }
     </style>
+    <script src="../assets/confusables.js"></script>
 </head>
 <body>
     <h1>Verisign Latin IDN Domain Checker</h1>
@@ -133,7 +147,76 @@
     </div>
 
     <script>
-    // IANA .com Latin IDN table (com_latn_1.2.txt) — exact code points
+    // ── UTS #39 Confusables Engine ──────────────────────────────────────
+    // Fetches Unicode confusables.txt and implements the skeleton algorithm
+    // per UTS #39 Section 4: NFD → map through confusables → NFD
+    // Source: https://www.unicode.org/Public/security/latest/confusables.txt
+
+    // Build Map from the script-loaded CONFUSABLE_MAP_DATA object
+    const confusableMap = new Map();
+    const confusablesReady = typeof CONFUSABLE_MAP_DATA !== 'undefined';
+    const confusablesError = confusablesReady ? null : 'confusables.js failed to load';
+    if (confusablesReady) {
+        for (const [k, v] of Object.entries(CONFUSABLE_MAP_DATA)) {
+            confusableMap.set(Number(k), v);
+        }
+    }
+
+    // Supplement: small capitals absent from confusables.txt but
+    // visually confusable with ASCII at URL-bar font sizes.
+    // These are gaps where the char is a target in the table but
+    // has no forward mapping of its own.
+    const SMALL_CAP_SUPPLEMENTS = {
+        0x1D00: [0x0061], // ᴀ → a
+        0x1D05: [0x0064], // ᴅ → d
+        0x1D07: [0x0065], // ᴇ → e
+        0x1D0A: [0x006A], // ᴊ → j
+        0x1D0B: [0x006B], // ᴋ → k (table maps to ĸ kra, not ASCII k)
+        0x1D0D: [0x006D], // ᴍ → m (table maps to ʍ turned w, not ASCII m)
+        0x1D18: [0x0070], // ᴘ → p
+        0x1D1B: [0x0074], // ᴛ → t
+    };
+    for (const [k, v] of Object.entries(SMALL_CAP_SUPPLEMENTS)) {
+        if (!confusableMap.has(Number(k))) {
+            confusableMap.set(Number(k), v);
+        }
+    }
+
+    // UTS #39 skeleton: NFD → map each cp through confusables → NFD
+    function skeleton(str) {
+        if (!confusableMap) return null;
+        // Step 1: NFD
+        let nfd = str.normalize('NFD');
+        // Step 2: map each code point through confusables
+        let mapped = '';
+        for (const ch of nfd) {
+            const cp = ch.codePointAt(0);
+            const replacement = confusableMap.get(cp);
+            if (replacement) {
+                mapped += String.fromCodePoint(...replacement);
+            } else {
+                mapped += ch;
+            }
+        }
+        // Step 3: NFD again
+        return mapped.normalize('NFD');
+    }
+
+    // Get confusable mapping for a single character (for display in table)
+    function getConfusableTarget(cp) {
+        if (!confusableMap) return null;
+        return confusableMap.get(cp) || null;
+    }
+
+    function isAllASCII(str) {
+        for (const ch of str) {
+            const cp = ch.codePointAt(0);
+            if (cp > 0x007F) return false;
+        }
+        return true;
+    }
+
+    // ── IANA .com Latin IDN table (com_latn_1.2.txt) — exact code points
     // Source: https://www.iana.org/domains/idn-tables/tables/com_latn_1.2.txt
     const ALLOWED = new Set([
         // Basic Latin a-z
@@ -228,7 +311,7 @@
             html += `<div class="punycode">Punycode: ${puny}</div>`;
         }
 
-        // Verdict
+        // Verdict (registration)
         if (!allAllowed) {
             html += `<div class="verdict blocked">BLOCKED — Contains characters outside Verisign's Latin IDN table</div>`;
         } else if (hasNonASCII) {
@@ -237,20 +320,41 @@
             html += `<div class="verdict allowed">ALLOWED — Standard ASCII domain label</div>`;
         }
 
+        // Homograph warning — only shown when the skeleton is pure ASCII
+        if (hasNonASCII && confusablesReady) {
+            const skel = skeleton(label);
+            if (isAllASCII(skel)) {
+                html += `<div class="browser-predict puny-display">`;
+                html += `<span class="bp-label">Homograph Warning:</span> Browsers will display this as Punycode (${escapeHtml(puny || 'xn--...')})`;
+                html += `<div class="detail">Every non-ASCII character has an ASCII lookalike — the label is visually indistinguishable from <span class="skeleton">${escapeHtml(skel)}</span> (UTS #39 skeleton)</div>`;
+                html += `</div>`;
+            }
+        }
+
         // Character breakdown
         html += `<table class="char-table">
-            <tr><th>Char</th><th>Code Point</th><th>Name</th><th>Status</th></tr>`;
+            <tr><th>Char</th><th>Code Point</th><th>Confusable</th><th>Status</th></tr>`;
 
         for (const r of charResults) {
             let rowClass = 'ok';
             let status = 'Allowed';
-            let name = '';
 
             if (!r.allowed) {
                 rowClass = 'bad';
                 status = 'Blocked';
             }
-            name = getCharName(r.cp);
+
+            // Confusable mapping column
+            let confusableCell = '';
+            if (confusablesReady) {
+                const tgt = getConfusableTarget(r.cp);
+                if (tgt) {
+                    const tgtStr = String.fromCodePoint(...tgt);
+                    const tgtHex = tgt.map(c => 'U+' + c.toString(16).toUpperCase().padStart(4, '0')).join(' ');
+                    confusableCell = `<span class="confusable-map">${escapeHtml(r.ch)} → ${escapeHtml(tgtStr)}</span>`;
+                    if (r.allowed && rowClass === 'ok') rowClass = 'confusable';
+                }
+            }
 
             const block = getBlock(r.cp);
             const cpStr = `U+${r.cp.toString(16).toUpperCase().padStart(4, '0')}`;
@@ -259,7 +363,7 @@
             html += `<tr class="${rowClass}">
                 <td class="char-display">${escapeHtml(r.ch)}</td>
                 <td>${cpDisplay}</td>
-                <td>${name}</td>
+                <td>${confusableCell}</td>
                 <td>${status}</td>
             </tr>`;
         }
@@ -267,40 +371,6 @@
         html += '</table>';
         resultDiv.innerHTML = html;
     }
-
-    // Derive a readable name from Unicode decomposition + known bases
-    const BASE_NAMES = {
-        'a':'a','b':'b','c':'c','d':'d','e':'e','f':'f','g':'g','h':'h','i':'i',
-        'j':'j','k':'k','l':'l','m':'m','n':'n','o':'o','p':'p','q':'q','r':'r',
-        's':'s','t':'t','u':'u','v':'v','w':'w','x':'x','y':'y','z':'z',
-    };
-    const DIACRITIC_NAMES = {
-        0x0300:'grave', 0x0301:'acute', 0x0302:'circumflex', 0x0303:'tilde',
-        0x0304:'macron', 0x0306:'breve', 0x0307:'dot above', 0x0308:'diaeresis',
-        0x0309:'hook above', 0x030A:'ring above', 0x030B:'double acute',
-        0x030C:'caron', 0x030F:'double grave', 0x0311:'inverted breve',
-        0x0323:'dot below', 0x0324:'diaeresis below', 0x0325:'ring below',
-        0x0326:'comma below', 0x0327:'cedilla', 0x0328:'ogonek',
-        0x032D:'circumflex below', 0x032E:'breve below', 0x0330:'tilde below',
-        0x0331:'macron below', 0x031B:'horn',
-    };
-    // Special characters with well-known names
-    const SPECIAL_NAMES = {
-        0x00DF:'sharp s (eszett)', 0x00F0:'eth', 0x00F8:'o with stroke',
-        0x00FE:'thorn', 0x0111:'d with stroke', 0x0127:'h with stroke',
-        0x0131:'dotless i', 0x0138:'kra', 0x0142:'l with stroke',
-        0x014B:'eng', 0x0153:'oe ligature', 0x0167:'t with stroke',
-        0x017E:'z with caron', 0x0192:'f with hook', 0x01A1:'o with horn',
-        0x01B0:'u with horn', 0x0251:'latin alpha', 0x0252:'turned alpha',
-        0x0254:'open o', 0x0259:'schwa', 0x025B:'open e (epsilon)',
-        0x0261:'script g', 0x0263:'gamma', 0x0265:'turned h',
-        0x0268:'i with stroke', 0x0269:'iota', 0x026A:'small capital i',
-        0x026F:'turned m', 0x0270:'turned m with long leg', 0x0272:'n with left hook',
-        0x0275:'barred o', 0x0279:'turned r', 0x027E:'r with fishhook',
-        0x0283:'esh', 0x0288:'t with retroflex hook', 0x028A:'upsilon',
-        0x028B:'v with hook', 0x028C:'turned v', 0x0292:'ezh',
-        0x0294:'glottal stop',
-    };
 
     function getBlock(cp) {
         if (cp >= 0x0000 && cp <= 0x007F) return null; // Basic Latin — no tag needed
@@ -315,32 +385,6 @@
         if (cp >= 0xA720 && cp <= 0xA7FF) return 'Latin Ext-D';
         if (cp >= 0xAB30 && cp <= 0xAB6F) return 'Latin Ext-E';
         return null;
-    }
-
-    function getCharName(cp) {
-        if (cp === 0x002D) return 'hyphen';
-        if (cp >= 0x0030 && cp <= 0x0039) return 'digit ' + String.fromCodePoint(cp);
-        if (cp >= 0x0061 && cp <= 0x007A) return String.fromCodePoint(cp);
-
-        // Check special names first
-        if (SPECIAL_NAMES[cp]) return SPECIAL_NAMES[cp];
-
-        // Try NFD decomposition to get base letter + combining marks
-        const ch = String.fromCodePoint(cp);
-        const decomposed = ch.normalize('NFD');
-        if (decomposed.length > 1) {
-            const base = decomposed[0].toLowerCase();
-            const marks = [];
-            for (let i = 1; i < decomposed.length; i++) {
-                const markCp = decomposed.codePointAt(i);
-                marks.push(DIACRITIC_NAMES[markCp] || `U+${markCp.toString(16).toUpperCase().padStart(4,'0')}`);
-            }
-            if (BASE_NAMES[base]) {
-                return `${base} with ${marks.join(' and ')}`;
-            }
-        }
-
-        return `U+${cp.toString(16).toUpperCase().padStart(4, '0')}`;
     }
 
     function escapeHtml(str) {
