@@ -361,7 +361,7 @@
         }
 
         // Homograph warning — skeleton is pure ASCII, or contains diacritics that browsers force to punycode
-        if (hasNonASCII) {
+        if (allAllowed && hasNonASCII) {
             const skel = confusablesReady ? skeleton(label) : null;
             if ((skel && isAllASCII(skel)) || hasPunycodeForced(label)) {
                 html += `<div class="browser-predict puny-display">`;
