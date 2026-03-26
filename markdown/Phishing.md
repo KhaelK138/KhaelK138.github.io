@@ -69,6 +69,7 @@ nccɡroup.com
 - This could take the form of an attached document, a big "Acknowledge" button, or something about updating personal information (like Tax info)
   - It can be especially clever to use publicly available resources, such as an available PDF document
   - Modifying a link at the bottom and adding a call to action at the bottom has a great success rate, for example:
+
 ```md
 Dear Team,
 
