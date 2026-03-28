@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Blogs -->
+  <url><loc>https://khaelkugler.com/blogs/approach_app.html</loc></url>
+  <url><loc>https://khaelkugler.com/blogs/authfinder.html</loc></url>
+
+  <!-- Markdown Notes -->
+  <url><loc>https://khaelkugler.com/markdown/ADExploitation.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/ADInformation.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/ADPivoting.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/AndroidApps.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/AntivirusEvasion.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Assembly.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/BinaryExploitation.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/BluetoothLowEnergy.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Business.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/CICD.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Cloud.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/DatabaseAttacks.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Externals.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/HardwareSecurity.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Internals.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/KioskBreakouts.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/LinuxPrivilegeEscalation.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Metasploit.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Miscellaneous.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Networking.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/PasswordAttacks.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Phishing.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/PortRedirectionSSHTunneling.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/RedTeamingCCDC.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/Services.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/TunnelingThroughDeepPacketInspection.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/WifiPentesting.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/WindowsPrivilegeEscalation.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/iOSApps.html</loc></url>
+
+  <!-- Webapp Notes -->
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/APIs.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/CSRF.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/Clickjacking.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/CommandInjection.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/DependencyConfusion.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/FileUpload.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/GraphQL.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/LLMs.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/PathTraversal.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/SQLi.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/Websockets.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/XSS.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/broken_labs.html</loc></url>
+  <url><loc>https://khaelkugler.com/markdown/webappnotes/miscellaneous.html</loc></url>
+
+  <!-- Vibecoded Projects -->
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/daw.html</loc></url>
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/game_of_life.html</loc></url>
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/idn_checker.html</loc></url>
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/linux_shell.html</loc></url>
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/minecraft.html</loc></url>
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/photoshop.html</loc></url>
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/syscalls.html</loc></url>
+  <url><loc>https://khaelkugler.com/random_vibecoded_projects/windows11.html</loc></url>
+
+</urlset>
