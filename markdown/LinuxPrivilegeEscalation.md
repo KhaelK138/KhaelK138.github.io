@@ -95,7 +95,6 @@ pagetitle: Linux Privilege Escalation
 	- check `/opt/crontabs/` and `/var/log/cron.log`
 	- We can also abuse wildcards
 		- For example, if there's a cron job taking the tar of the current directory with `tar -zcf {output_file} *`, we can name a file `--checkpoint=1 --checkpoint-action=exec={command_or_script}`, which would get appended onto the tar command due to the wildcard
-
 - Find modifiable cron jobs and overwrite them with anything, really
 - Find writable directories with `find / -writable -type d 2>/dev/null`
 - Find writable files with `find / -writable -type f 2>/dev/null`

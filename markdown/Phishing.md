@@ -42,8 +42,6 @@ pagetitle: Phishing
   - [List of Latin Alphabets](https://en.wikipedia.org/wiki/List_of_Latin-script_alphabets)
 - To test Latin domain candidates, use my [Verisign Latin IDN Domain Checker](https://khaelkugler.com/random_vibecoded_projects/idn_checker.html)
 
-nccɡroup.com
-
 **Zendesk**
 - You can get a domain on Zendesk.com to send emails from
 - Zendesk also has IT stuff, so you can make a ticket and assign it to a user

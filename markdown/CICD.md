@@ -24,7 +24,25 @@ Most of the below relates to GitHub, but the principles apply to pretty much all
 
 ## Github Enumeration
 
+**Identifying Secrets**
+- [Titus](https://github.com/praetorian-inc/titus/releases) can be used to enumerate secrets of remote repos and organizations
+  - Scan a directory: `titus scan {path}`
+  - Scan a GH/GL directory: `titus scan {repo_link} --git --validate --output {output_db}`
+    - `--git` scans previous commits, which is slower but covers deleted passwords
+    - `--validate` will actually validate the secrets, which can help a lot with AWS keys for example
+  - Scan a GH/GL Organization: `titus {github/gitlab} --org {org_name}`
+    - If it's private, supply a pat with `--token {token}`
+    - Can scan all repos owned by a user with `--user {username}`
+  - Report with `titus report --datastore {db_file}`
+- [NoseyParker](https://github.com/praetorian-inc/noseyparker.git) can also be used as a backup here
 
+**Identifying Self-Hosted Runners**
+- 
+
+
+## Github Exploitation
+
+**Compromising Self-Hosted Runners**
 
 ## Service-Specific Exploitation
 

@@ -117,6 +117,7 @@ PentestMonkey Cheat Sheet: https://pentestmonkey.net/category/cheat-sheet/sql-in
 - If single quotes are totally blacklisted, a `\` as the first parameter can actually unlock an apostrophe to use as part of the second payload
 - Backslashes can also be used for bypassing single quotes being replaced with double quotes
 - For WAFs, if we can encode the data (HTML, XML), doing so can bypass basic WAFs
+- If we can't provide spaces, using `/**/` block comments can essentially substitute for a space
 
 **Other Techniques**
 - Can trail SQL injection queries with `//` to provide visibility on the payload and protect against whitespace truncation
