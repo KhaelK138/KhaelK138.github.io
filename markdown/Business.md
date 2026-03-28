@@ -70,7 +70,10 @@
 **Managed Services**
 - Should be between 30% and 40% of dollars made spent on resources
 
-## Gernering Interest
+**Professional Services**
+- General average of 80% customer retention for sold services (not subscriptions)
+
+## Garnering Interest
 
 **AEO**
 - This is the new feature to optimize, rather than SEO, since most searches are being performed by LLMs

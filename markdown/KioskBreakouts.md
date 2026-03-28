@@ -92,13 +92,14 @@ End Sub
 **Bypass BIOS**
 - Often times, we can use Windows' recovery mode against it
 - Steps are along the lines of:
+  - Reboot and Shift + F8 to break out of auto-login and reach Windows login screen
+  - Hold `Shift` and then click restart, resulting in Windows recovery
   - Insert USB flash with linux
-  - Reboot and Shift + F8 to break out of auto-login
-  - Get to Windows login screen, hold `Shift` and then click restart, resulting in Windows recovery
   - Select "Use a Device" and use the USB linux
     - Install SSH and connect to network
-  - Configure linux with Chipsec, build the chipsec kernel module, run chipsec and dump SPI flash
-  - The dump should have the boot password, either XOR'd or hashed if a newer version
+  - If we have access to the drive where the kiosk was installed from (for example `D:\`), we can dump the deleted memory from our shell
+    - Configure linux with Chipsec, build the chipsec kernel module, run chipsec and dump SPI flash
+  - The dump could have the bitlocker recovery keys or the boot key (either XOR'd or hashed if a newer version)
 
 ## Linux
 
