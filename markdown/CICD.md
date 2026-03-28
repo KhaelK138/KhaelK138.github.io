@@ -1,6 +1,6 @@
 ---
 layout: blank
-pagetitle: CI/CD Exploitation
+pagetitle: CI/CD Exploitation [WIP]
 ---
 
 ## Understanding CI/CD
