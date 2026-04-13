@@ -105,6 +105,7 @@ Priorities:
 
 **Hard Conversations**
 - Be radically transparent
+  - It can be difficult to tell someone something, but it can help to keep in mind how much else in the business suffers if the hard conversation isn't had. The other engineers, the customers, the PMs, etc.
 - Then follow it up and ask how to help
 - Break progress down into steps
 

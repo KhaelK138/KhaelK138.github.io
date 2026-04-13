@@ -10,6 +10,7 @@ body{
 }
 
 .particles-icon:hover svg path,
+.particles-icon:hover svg ellipse,
 .particles-icon:hover svg rect {
   stroke-width:.075em
 }
@@ -100,6 +101,7 @@ a u {
   }
 
   svg circle,
+  svg ellipse,
   svg path,
   svg rect {
     stroke: var(--main-color) !important;

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/x-icon" href="./images/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CVEs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 0.3em; }
+    a { color: #1a73e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .sort-controls {
+      margin-bottom: 1.5em;
+      font-size: 0.9em;
+      color: #666;
+    }
+    .sort-controls span { margin-right: 0.5em; }
+    .sort-btn {
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 0.9em;
+      color: #444;
+      margin-right: 4px;
+    }
+    .sort-btn:hover { background: #f0f0f0; }
+    .sort-btn.active { background: #333366; color: white; border-color: #333366; }
+
+    .cve-entry {
+      padding: 1em 0;
+      border-bottom: 1px solid #ddd;
+    }
+    .cve-entry:last-child { border-bottom: none; }
+    .cve-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.5em;
+      margin-bottom: 4px;
+    }
+    .cve-id {
+      font-family: monospace;
+      font-size: 0.85em;
+      color: #888;
+    }
+    .cve-date {
+      font-size: 0.8em;
+      color: #999;
+    }
+    .cve-title {
+      font-size: 1.15em;
+      font-weight: 600;
+      color: #333366;
+      margin-bottom: 6px;
+    }
+    .cve-title a { color: inherit; }
+    .cve-description {
+      color: #444;
+      line-height: 1.5;
+      font-size: 0.95em;
+      margin-bottom: 6px;
+    }
+    .risk {
+      display: inline-block;
+      font-size: 0.75em;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .risk-critical { background: #fde; color: #a00; }
+    .risk-high { background: #fee4cc; color: #b44000; }
+    .risk-medium { background: #fff3cd; color: #856404; }
+    .risk-low { background: #d4edda; color: #155724; }
+    .risk-info { background: #e2e8f0; color: #4a5568; }
+  </style>
+</head>
+<body>
+
+<h1>CVEs</h1>
+
+<div class="sort-controls">
+  <span>Sort by:</span>
+  <button class="sort-btn active" data-sort="date">Date</button>
+  <button class="sort-btn" data-sort="risk">Risk</button>
+</div>
+
+<div id="cve-list">
+
+  <!--
+  To add a new CVE, copy this block and fill in the details.
+  Set data-risk to a number (5=critical, 4=high, 3=medium, 2=low, 1=info).
+  Set data-date to YYYY-MM-DD.
+
+  <div class="cve-entry" data-risk="4" data-date="2026-01-15">
+    <div class="cve-header">
+      <span class="cve-id">CVE-XXXX-XXXXX</span>
+      <span class="cve-date">Jan 2026</span>
+    </div>
+    <div class="cve-title">Vulnerability Title</div>
+    <span class="risk risk-high">High</span>
+    <div class="cve-description">Description of the vulnerability.</div>
+  </div>
+  -->
+
+  <div class="cve-entry" data-risk="5" data-date="2026-04-06">
+    <div class="cve-header">
+      <span class="cve-id">CVE-2026-34977</span>
+      <span class="cve-date">Apr 2026</span>
+    </div>
+    <div class="cve-title">Aperi'Solve Unauthenticated RCE via Password Field</div>
+    <span class="risk risk-critical">Critical - 9.3</span>
+    <div class="cve-description">
+      <a href="https://aperisolve.com">Aperi'Solve</a> is an open-source steganography analysis platform. Prior to v3.2.1, the optional password field on JPEG uploads was passed into a bash command without sanitization, giving unauthenticated root RCE in the worker container.
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const list = document.getElementById('cve-list');
+      const entries = [...list.querySelectorAll('.cve-entry')];
+      entries.sort((a, b) => {
+        if (btn.dataset.sort === 'risk') {
+          return (parseInt(b.dataset.risk) || 0) - (parseInt(a.dataset.risk) || 0);
+        }
+        return (b.dataset.date || '').localeCompare(a.dataset.date || '');
+      });
+      entries.forEach(e => list.appendChild(e));
+    });
+  });
+
+  document.querySelectorAll('.cve-entry').forEach(entry => {
+    const id = entry.querySelector('.cve-id').textContent.trim();
+    const title = entry.querySelector('.cve-title');
+    if (!title.querySelector('a')) {
+      const link = document.createElement('a');
+      link.href = 'https://nvd.nist.gov/vuln/detail/' + id;
+      link.textContent = title.textContent;
+      title.textContent = '';
+      title.appendChild(link);
+    }
+  });
+</script>
+
+</body>
+</html>

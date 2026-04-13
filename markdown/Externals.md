@@ -87,10 +87,11 @@ Finding user information and passwords:
 ## Email & Domain security
 
 **Email security**
+- I vibecoded a quick script that can check a list of domains for email security: [https://khaelkugler.com/misc_scripts/check_email_security.py.html](https://khaelkugler.com/misc_scripts/check_email_security.py.html)
 - [DMARCLY](https://dmarcly.com/tools/) has some great online tools that can check TXT records
   - We can also check records ourselves with `host -t txt {domain}` and `host -t a {domain}`
 - [Spoofy](https://github.com/MattKeeley/Spoofy.git) will check if a domain's emails can be spoofed
-  - Then, we can use a site like `https://emkei.cz/` to actually send the spoofed email
+  - Then, we can use a site like MailGun and a domain to send the spoofed email. If a free one is needed, `https://emkei.cz/` is an option
 
 **Subdomain takeovers**
 - [baddns](https://github.com/blacklanternsecurity/baddns) seems to be the go-to here
