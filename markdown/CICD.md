@@ -30,7 +30,8 @@ Most of the below relates to GitHub, but the principles apply to pretty much all
   - Scan a GH/GL directory: `titus scan {repo_link} --git --validate --output {output_db}`
     - `--git` scans previous commits, which is slower but covers deleted passwords
     - `--validate` will actually validate the secrets, which can help a lot with AWS keys for example
-  - Scan a GH/GL Organization: `titus {github/gitlab} --org {org_name}`
+  - Scan a GH/GL Organization: `titus {github/gitlab} --org {org_name} --git --skip-forks`
+    - Most forks won't have anything in scope, so `--skip-forks` can come in handy
     - If it's private, supply a pat with `--token {token}`
     - Can scan all repos owned by a user with `--user {username}`
   - Report with `titus report --datastore {db_file}`
