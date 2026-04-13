@@ -12,6 +12,7 @@
       margin: auto;
       padding: 20px;
     }
+    button, input, select, textarea { font-family: inherit; }
     h1 { margin-bottom: 0.3em; }
     a { color: #1a73e8; text-decoration: none; }
     a:hover { text-decoration: underline; }
@@ -49,7 +50,6 @@
       margin-bottom: 4px;
     }
     .cve-id {
-      font-family: monospace;
       font-size: 0.85em;
       color: #888;
     }
@@ -100,27 +100,24 @@
 
   <!--
   To add a new CVE, copy this block and fill in the details.
-  Set data-risk to a number (5=critical, 4=high, 3=medium, 2=low, 1=info).
-  Set data-date to YYYY-MM-DD.
+  Set data-risk to the CVSS score (e.g. 9.3). Set data-date to YYYY-MM-DD.
 
-  <div class="cve-entry" data-risk="4" data-date="2026-01-15">
+  <div class="cve-entry" data-risk="7.5" data-date="2026-01-15">
     <div class="cve-header">
-      <span class="cve-id">CVE-XXXX-XXXXX</span>
+      <span class="cve-id">CVE-XXXX-XXXXX — CVSS 7.5</span>
       <span class="cve-date">Jan 2026</span>
     </div>
     <div class="cve-title">Vulnerability Title</div>
-    <span class="risk risk-high">High</span>
     <div class="cve-description">Description of the vulnerability.</div>
   </div>
   -->
 
-  <div class="cve-entry" data-risk="5" data-date="2026-04-06">
+  <div class="cve-entry" data-risk="9.3" data-date="2026-04-06">
     <div class="cve-header">
-      <span class="cve-id">CVE-2026-34977</span>
+      <span class="cve-id">CVE-2026-34977 / CVSS 9.3</span>
       <span class="cve-date">Apr 2026</span>
     </div>
     <div class="cve-title">Aperi'Solve Unauthenticated RCE via Password Field</div>
-    <span class="risk risk-critical">Critical - 9.3</span>
     <div class="cve-description">
       <a href="https://aperisolve.com">Aperi'Solve</a> is an open-source steganography analysis platform. Prior to v3.2.1, the optional password field on JPEG uploads was passed into a bash command without sanitization, giving unauthenticated root RCE in the worker container.
     </div>
@@ -137,7 +134,7 @@
       const entries = [...list.querySelectorAll('.cve-entry')];
       entries.sort((a, b) => {
         if (btn.dataset.sort === 'risk') {
-          return (parseInt(b.dataset.risk) || 0) - (parseInt(a.dataset.risk) || 0);
+          return (parseFloat(b.dataset.risk) || 0) - (parseFloat(a.dataset.risk) || 0);
         }
         return (b.dataset.date || '').localeCompare(a.dataset.date || '');
       });
@@ -146,11 +143,12 @@
   });
 
   document.querySelectorAll('.cve-entry').forEach(entry => {
-    const id = entry.querySelector('.cve-id').textContent.trim();
+    const match = entry.querySelector('.cve-id').textContent.match(/CVE-\d{4}-\d+/);
+    if (!match) return;
     const title = entry.querySelector('.cve-title');
     if (!title.querySelector('a')) {
       const link = document.createElement('a');
-      link.href = 'https://nvd.nist.gov/vuln/detail/' + id;
+      link.href = 'https://nvd.nist.gov/vuln/detail/' + match[0];
       link.textContent = title.textContent;
       title.textContent = '';
       title.appendChild(link);
