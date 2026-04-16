@@ -33,6 +33,7 @@ Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk
 **Bypassing Disabled Interactive Sessions**
 - If `cmd` is run with `/K` or `/C`, it won't allow for interactive commands
   - This can be bypassed by running `cmd.exe /K pause` or provided a command with `cmd.exe /C {command}`
+- If some GUI functionality in the kiosk runs a batch script, we can sometimes pause the script and use the command prompt by holding scroll-lock
 
 **Bypassing GPO restrictions** 
 - Often, GPO restrictions will be in place where users can't access perform certain actions
@@ -114,6 +115,18 @@ End Sub
   - Intended to help recover from frozen systems, reboot safely, or simply unstuck yourself
 - The [Wikipedia page on it](https://en.wikipedia.org/wiki/Magic_SysRq_key) goes into detail about each of the combinations
 - This is supported in the [Kiosk Breakout Script](https://github.com/KhaelK138/badusb-windows-kiosk-breakout/blob/main/breakout_payload.txt)
+
+## Mac
+
+**Command Execution**
+- Surprisingly a good number of ways of getting execution, even if terminal and scripting is disabled
+- Downloading another terminal works surprisingly well, like iterm2
+- Apps:
+  - Script Editor: `do shell script "{command}"` for commands and results
+  - Automator: Run shell scrip (even with scripting disabled), then play button
+  - Shortcuts: Run shell script, then play button
+  - Word: Preferences -> Ribbon -> toggle developer tab (bottom right) -> New macro -> `Shell "command"` (use `| pbcopy` to get results into clipboard)
+    - Macros run in a semi-sandbox it seems, but still decent for file system exploration
 
 ## Docker
 

@@ -426,5 +426,129 @@ for baud in [4800, 9600, 19200, 38400, 57600, 115200]:
 - In the Interpretation page, the `Autodetect parameters` button can help, using heuristics to find parameters
 - When decoding, we can program the decoder using the dropdown and the `...`, for example using a substitution cipher to replace `100` with 0 and `101` with 1
 
+## Automotive Hacking
+
+- Amazing video: [https://www.youtube.com/watch?v=8958gH3KD3Y](https://www.youtube.com/watch?v=8958gH3KD3Y)
+
+**CAN Bus**
+- Most common network used in vehicles, introduced in 1986
+- Robust, but slow. Up to 1MBit/s, usually 500 or 125 Kbit/s
+- Up to 8 bytes of payload
+- Can-FD - newer standard with 64 bytes of payload @ 8MBit/s
+  - ISO 11898-1:2015
+- No guarantees on timing, thus MITM attacks are trivial
+
+**Network Topology**
+- Cars usually have multiple busses networked together
+  - These could be for powertrain, body, convenience, etc.
+- Gateway to separate busses and ODB-II port
+  - The ODB-II (ODB2) port is a 16 pin connector usually located in the driver side footwell under the dashboard
+    - Mostly used for diagnostics and data monitoring
+- Modern cars sometimes use (automotive) ethernet alongside CAN
+  - Useful for video steams, software updates, etc.
+
+**Unified Diagnostic Service (UDS)**
+- (ISO 14299) used for diagnostic communication, every ECU in the car supports this
+  - Has very nice primitives for car hacking
+- Can be used to diagnose problems in the workshop, like reading sensor data or actuator tests
+  - The actuator converts electrical signals into physical force, such as powered locks, seats, AC, throttle control
+
+**UDS Request & Response**
+- Contains a Service ID (SID) as the first byte, optional subfunction ID (or `$`) as the second, and the payload itself
+  - Subfunctions could be start/stop/read
+- A positive response will have the SID + 0x40 (@) as the first byte, then the same subfunction ID, and the payload
+- A negative response will have 0x7E as the first byte, then the SID as the second, then the error code as the third byte, no payload
+  - Common error codes are 0x11 (service not supported), 0x13 (incorrect length or format), and 0x35 (invalid key)
+
+**Common UDS SIDs**
+- SID $10 (diagnostic session control)
+  - The subfunction ID could be 0x1 (default session), 0x2 (programming session), or 0x3 (extended diagnostics)
+- SID $23 (read memory by address)
+  - Allows reading of RAM, sometimes whole flash
+    - Byte 0 is SID, byte 1 is the Address|Length format, byte 2 is the big endian memory address to start from, and then bytes 2+N are the memory size to read
+  - Usually disabled or the ranges are limited
+- SID $27 (security access)
+  - The subfunction ID either says whether we're requesting a seed (1, 3, ...) or sending the key (2, 4, ...)
+  - Normal way to authenticate a tester to an ECU, challenge/response
+    - Requests a seed (no payload), perform some operation on the seed, send the key as payload
+  - Usually symmetric crypto with XOR, custom linear-feedback shift register (lfsr), AES
+    - Could be asymmetric
+  - Future of auth is SID $29 with PKI
+- SID $31 (routine control)
+  - Subroutines are start/stop/results
+  - Erase flash, compute checksum
+- SIDs $34/$35 (download/upload)
+  - This is from the ECU's perspective, so download would mean the tester provides the thing, like a software update
+- SID $36 (transfer data)
+
+**Memory Layout**
+- Usually the bootloader, application code, data/calibration lookup tables
+- There's usually not a signature check on boot, since it would take too long
+
+**Firmware Updates**
+- ECU powers on, bootloader does check and jumps into application code
+- Person then requests programming session via UDS ($10 0x02) which goes back into the bootloader
+- Issue a routine control "Erase memory" ($31 0x01 FF00)
+  - Tell it to request download with $34 and then send the data with $36
+- Finally, check signatures/checksum ($31 0x01 FF01)
+
+**Reverse Engineering FW updates**
+- Most common microcontrollers are Power PC NXP/FreeScale, V850 Renesas, and TriCore Infineon
+  - These have safety requirements (ASIL) and aren't really resistant to modern attacks like fault injection
+- Might get lucky with JTAG/UART
+  - Can often download software from microcontroller website to allow interfacing with debug port
+  - Becoming locked more often
+- Ghidra is solid, but be sure to disable "Create Address Tables" due to false positives
+  - Ghidra's entropy map is good for finding missed code, since there often aren't headers labeling code
+    - The blue color shows code
+- Look for diagnostic protocols, like Universal Measurement and Calibration protocl (XCP) or CAN Calibration Protocl (CCP) handlers
+  - These usually have read/write memory open
+  - Look for functions that return multiple matching error codes
+    - CCP: 0x30, 0x32, 0x33
+    - XCP: 0x22, 0x25, 0x29
+- Look for UDS handlers
+  - Use hard-coded error codes again, like 0x12, 0x13, 0x22, 0x33
+- Find CAN registers
+  - Try to find information related to CAN messages
+  - See if we can find a CAN table or anywhere CAN parsing occurs
+- Look at global variables
+  - Super common, make sure to label them
+- Map out large structs in Ghidra
+  - There can be copies of massive structs created across layers of application, which are referenced quite a lot
+- Can export to C/C++ from Ghidra and search through resulting code
+
+**Secure on Board Communication (SecOC)**
+- AUTOSAR Standard
+  - Message sent by known ECU
+  - Message contents have not been altered
+  - Rollback protection
+  - Low overhead
+  - Chosen chiper (AES CMAC)
+- Signing process
+  - Secret symmetric key will be used by sender, which is used with a payload and a freshness value to calculate a MAC
+  - Payload, freshness value, and MAC are all sent as the total payload
+  - Receiver then takes the payload, freshness value, and shared key to calculate the MAC and compare the results
+- Freshness value
+  - Trip counter which increments every time a power-on happens
+  - Message counter which increases after each message from a certain ID
+  - Reset counter which is periodically increased by gateway
+  - Truncated freshness value which is lower part of message and reset counters
+  - Bits:
+    - 48-32 - trip counter
+    - 32-12 - reset counter
+      - 14-12 - reset flag
+    - 12-4 - message counter
+    - 6-2 - truncated freshness value
+    - 4-2 - reset flag
+
+**Key Management**
+- We're very interested in the `ECU_MASTER_KEY`, which really only the manufacturer knows per VIN/SN
+  - They can allow requesting of keys via some HTTP service they provide
+- M2 is a key encrypted with the master key with AES, so getting the key doesn't allow MITM
+  - M2 also contains a counter, preventing replay attacks
+
+**Mitigations**
+- Hardware Security Model (HSM) handles CMAC
+
 ## Misc
 - Sometimes, we'll only want to power a section of the board, like a daughterboard
