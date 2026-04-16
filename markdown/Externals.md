@@ -35,6 +35,9 @@ pagetitle: External Assessments
 
 **Search tools**
 - PHENOMINAL bug bounty/dork search: [https://taksec.github.io/google-dorks-bug-bounty/](https://taksec.github.io/google-dorks-bug-bounty/)
+  - One thing this misses is searching docker hub for interesting images, such as `site:hub.docker.com inurl:{company_name}`
+    - The company name can miss some stuff, so it can also be smart to just directly navigate to the company's gamer tag, with something like `https://hub.docker.com/u/{company_gamer_tag}`
+    - Then, just look through the layers of the container
 - Awesome censys queries: [https://github.com/thehappydinoa/awesome-censys-queries](https://github.com/thehappydinoa/awesome-censys-queries)
 - Neat new domain-based search engine: https://chaos.projectdiscovery.io/
 
