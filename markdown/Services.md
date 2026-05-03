@@ -264,6 +264,8 @@ interval = 10
 **High Value Endpoints**
 - Anonymous POST servlet at `/.json` or `/.1.json` allows planting new JCR nodes
   - If blocked, can sometimes be bypassed (see slides above) with something like `/bin/querybuilder.json;%0aa.css?path=/home&type=rep:User`
+- Login endpoints
+  - `/system/sling/login.html`, `/libs/granite/core/content/login.html`, `/libs/cq/core/content/login.html`, `/content.html?sling:authRequestLogin=1`
 - `/bin/querybuilder.json?path=/` - leak of page tree, internal paths, usernames
 - `/system/console/status-*`, `/system/console/bundles` - bundle upload RCE
 - `/crx/packmgr/index.jsp` - authenticated JSP package upload
@@ -272,6 +274,7 @@ interval = 10
 - `/libs/cq/ui/content/dumplibs.html` - XSS vector
 
 **Common Misconfigs**
+- Check for open sling selectors (e.g. `apps/system/config.tidy.3.json`) and look for JDBC pool services
 - Being able to POST to `/.json`, as `:operation=import` allows planting JCR nodes
 - Default read on `/home/users/**/profile/*`
 - Default creds of `admin:admin`, `author:author`, or `replication:replication`

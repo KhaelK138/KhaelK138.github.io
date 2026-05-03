@@ -44,3 +44,11 @@ sudo systemctl start nessusd
 - Place the IP and `test.local` in `/etc/hosts`, and then run `ffuf -u http://{IP} -H "Host: FUZZ.test.local" -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt`
   - Can also try `gobuster vhost -u http://test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 200 --append-domain > vhost` and then grep `vhost` for `"Status: 200"` or `grep -v {data_to_exclude}`
 
+## Misc
+
+**Check for Telnet CVE-2026-24061**
+- `USER='-f root' telnet -a {IP}`
+
+**Check for IPMI**
+- UDP port 623, and will always expose hashes
+- Metasploit's `auxiliary/scanner/ipmi/ipmi_dumphashes` can dump the hashes
