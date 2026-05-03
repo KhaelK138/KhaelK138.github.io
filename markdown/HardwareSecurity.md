@@ -436,7 +436,14 @@ for baud in [4800, 9600, 19200, 38400, 57600, 115200]:
 - Up to 8 bytes of payload
 - Can-FD - newer standard with 64 bytes of payload @ 8MBit/s
   - ISO 11898-1:2015
-- No guarantees on timing, thus MITM attacks are trivial
+- No guarantees on timing, thus MITM attacks are trivial without security implemented
+- [Cabana](https://github.com/commaai/openpilot/tree/master/tools/cabana#readme) is an excellent GUI tool for viewing CAN traffic
+  - Will be a bit difficult to understand what ECUs are talking on the bus we're on if we don't have the DBCs
+  - Installation is a bit wack:
+    - Clone the entire openpilot repo: `git clone --depth 1 https://github.com/commaai/openpilot.git && cd openpilot && git submodule update --init --depth 1 `
+    - Install deps: `apt-get install -y qtbase5-dev qtbase5-dev-tools qttools5-dev-tools libqt5charts5-dev libqt5svg5-dev libqt5x11extras5-dev libqt5opengl5-dev libgles-dev libglvnd-dev libegl-dev build-essential`
+    - Install uv: `curl -LsSf https://astral.sh/uv/install.sh | sh && source ~/.local/bin/env && uv sync --frozen --all-extras`
+    - Build: `scons -j4 tools/cabana/_cabana cereal/messaging/bridge`
 
 **Network Topology**
 - Cars usually have multiple busses networked together
@@ -449,6 +456,8 @@ for baud in [4800, 9600, 19200, 38400, 57600, 115200]:
 
 **Unified Diagnostic Service (UDS)**
 - (ISO 14299) used for diagnostic communication, every ECU in the car supports this
+  - Talks over CAN, sort of in the sense that TCP/IP talks over ethernet
+    - However, because CAN also supports messages, this would be as if a server could perform actions sent to it via its MAC address and its IP address
   - Has very nice primitives for car hacking
 - Can be used to diagnose problems in the workshop, like reading sensor data or actuator tests
   - The actuator converts electrical signals into physical force, such as powered locks, seats, AC, throttle control
@@ -463,9 +472,10 @@ for baud in [4800, 9600, 19200, 38400, 57600, 115200]:
 **Common UDS SIDs**
 - SID $10 (diagnostic session control)
   - The subfunction ID could be 0x1 (default session), 0x2 (programming session), or 0x3 (extended diagnostics)
+- SID $22 (read data by identifier)
 - SID $23 (read memory by address)
   - Allows reading of RAM, sometimes whole flash
-    - Byte 0 is SID, byte 1 is the Address|Length format, byte 2 is the big endian memory address to start from, and then bytes 2+N are the memory size to read
+    - Byte 0 is SID, byte 1 is the Address/Length format, byte 2 is the big endian memory address to start from, and then bytes 2+N are the memory size to read
   - Usually disabled or the ranges are limited
 - SID $27 (security access)
   - The subfunction ID either says whether we're requesting a seed (1, 3, ...) or sending the key (2, 4, ...)
@@ -480,6 +490,21 @@ for baud in [4800, 9600, 19200, 38400, 57600, 115200]:
 - SIDs $34/$35 (download/upload)
   - This is from the ECU's perspective, so download would mean the tester provides the thing, like a software update
 - SID $36 (transfer data)
+
+**Custom Data IDs (DIDs)**
+- OEM can create custom DIDs which are not part of an ISO spec
+- These could be basically anything, and are worth probing
+- Ranges:
+  - 0xA800–0xACFF
+  - 0xB000–0xB1FF
+  - 0xC000–0xC2FF
+  - 0xCF00–0xEFFF
+  - 0xF010–0xF0FF
+  - 0xF1F0–0xF2FF
+- For example, one on my car allows reading 15 bytes of a buffer without authentication
+- DIDs can be stacked, as well, meaning you can query multiple DIDs at once
+  - For example, you could query the VIN and the serial number in one SID $22 command
+  - This also allows for moving the pointer within the output buffer, so if one of the DIDs allows for reading the buffer (as it does in my car) you can increment the starting address with this technique
 
 **Memory Layout**
 - Usually the bootloader, application code, data/calibration lookup tables
