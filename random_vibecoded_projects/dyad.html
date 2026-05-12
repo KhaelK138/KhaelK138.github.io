@@ -1076,8 +1076,13 @@ function beginRound() {
   state.target = generateRound();
 
   // initialize guesses to middle-ish (different from target so it's not a giveaway)
-  state.guess.a = Math.round(pctToFreq(0.3));
-  state.guess.b = Math.round(pctToFreq(0.7));
+  let gA, gB;
+  do {
+    gA = Math.round(pctToFreq(mulberry32()));
+    gB = Math.round(pctToFreq(mulberry32()));
+  } while (Math.abs(gA - gB) < 100);
+  state.guess.a = Math.min(gA, gB);
+  state.guess.b = Math.max(gA, gB);
 
   renderSlider('a');
   renderSlider('b');
