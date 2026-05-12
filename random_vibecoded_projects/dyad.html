@@ -1156,9 +1156,15 @@ function finishGame() {
   setPhase('final');
 }
 
+let replaying = false;
 function replayTarget() {
-  if (!state.target) return;
-  playDyad(state.target.a, state.target.b, 2.2);
+  if (!state.target || replaying) return;
+  replaying = true;
+  $('replayBtn').disabled = true;
+  playDyad(state.target.a, state.target.b, 2.2, () => {
+    replaying = false;
+    $('replayBtn').disabled = false;
+  });
 }
 
 /* ============================================================
