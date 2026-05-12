@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>DYAD · Two-Tone Memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0a08;
+    --bg-2: #15110d;
+    --bg-3: #1d1812;
+    --line: #2a2218;
+    --fg: #f0e6d2;
+    --fg-dim: #8a7d65;
+    --fg-dimmer: #5a5040;
+    --amber: #e2a93b;
+    --amber-bright: #f5c842;
+    --amber-deep: #b8821a;
+    --red: #c44536;
+    --green: #9bb368;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Fraunces', Georgia, serif;
+    font-feature-settings: "ss01" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+  }
+
+  /* subtle grain + scanline overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.45) 100%);
+    mix-blend-mode: overlay;
+    z-index: 1000;
+  }
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/><feColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.7 0 0 0 0.08 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+    opacity: 0.4;
+    mix-blend-mode: overlay;
+    z-index: 999;
+  }
+
+  #app {
+    height: 100vh; height: 100dvh;
+    display: flex; flex-direction: column;
+    max-width: 920px; margin: 0 auto;
+    padding: 28px 32px;
+    position: relative;
+  }
+
+  /* HUD */
+  .hud {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--line);
+    gap: 24px;
+  }
+  .hud-cell { display: flex; flex-direction: column; gap: 2px; }
+  .hud-cell.right { text-align: right; align-items: flex-end; }
+  .hud-cell.center { text-align: center; align-items: center; }
+  .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; font-weight: 500;
+    color: var(--fg-dim);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .hud-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px; font-weight: 400;
+    color: var(--fg);
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .logo {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 22px;
+    font-variation-settings: "SOFT" 0, "opsz" 144;
+    letter-spacing: 0.32em;
+    color: var(--fg);
+    padding-left: 0.32em;
+  }
+  .logo em {
+    font-style: italic;
+    font-weight: 200;
+    color: var(--amber);
+    font-variation-settings: "SOFT" 100, "opsz" 144;
+  }
+
+  /* main screen */
+  #screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .phase {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .phase.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* INTRO */
+  .intro {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+  }
+  .intro h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 200;
+    font-style: italic;
+    font-size: clamp(54px, 11vw, 124px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    color: var(--fg);
+    font-variation-settings: "SOFT" 60, "opsz" 144;
+    margin-bottom: 8px;
+  }
+  .intro h1 .amp {
+    display: inline-block;
+    color: var(--amber);
+    font-style: italic;
+    font-weight: 100;
+    transform: translateY(0.08em);
+    padding: 0 0.08em;
+    font-variation-settings: "SOFT" 100, "opsz" 144;
+  }
+  .intro .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+    margin-bottom: 56px;
+  }
+  .intro p {
+    max-width: 460px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--fg);
+    margin-bottom: 14px;
+    font-weight: 300;
+  }
+  .intro p em {
+    color: var(--amber);
+    font-style: italic;
+  }
+  .intro .rules {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+    max-width: 420px;
+    line-height: 1.9;
+    margin-bottom: 40px;
+  }
+  .intro .rules span { color: var(--amber); padding-right: 8px; }
+
+  /* button */
+  .btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    padding: 16px 38px;
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+  .btn:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+    box-shadow: 0 0 24px -8px var(--amber);
+  }
+  .btn.primary {
+    background: var(--amber);
+    color: var(--bg);
+    border-color: var(--amber);
+  }
+  .btn.primary:hover {
+    background: var(--amber-bright);
+    border-color: var(--amber-bright);
+    color: var(--bg);
+    box-shadow: 0 0 32px -6px var(--amber);
+  }
+  .btn.ghost {
+    padding: 12px 22px;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.35; pointer-events: none; }
+
+  /* LISTEN */
+  .listen {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .listen .heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+  .listen canvas {
+    width: 100%;
+    max-width: 620px;
+    height: 240px;
+    display: block;
+  }
+  .listen .footnote {
+    margin-top: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--fg-dimmer);
+    text-transform: uppercase;
+  }
+
+  /* MATCH */
+  .match {
+    padding: 32px 0 0;
+    gap: 32px;
+  }
+  .match .prompt {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .match .prompt .heading {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .match .prompt .question {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(28px, 4.5vw, 42px);
+    color: var(--fg);
+    line-height: 1.05;
+    font-variation-settings: "SOFT" 60;
+  }
+  .match .prompt .question em {
+    color: var(--amber);
+    font-style: italic;
+    font-weight: 200;
+  }
+
+  .sliders {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 16px;
+  }
+  .slider-row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .slider-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+  }
+  .slider-meta .tag {
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .slider-meta .freq {
+    font-size: 22px;
+    color: var(--fg);
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .slider-meta .freq .unit {
+    font-size: 11px;
+    color: var(--fg-dim);
+    margin-left: 4px;
+  }
+  .slider {
+    position: relative;
+    height: 44px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    cursor: ew-resize;
+    overflow: hidden;
+    touch-action: none;
+  }
+  .slider:hover { border-color: var(--fg-dimmer); }
+  .slider .ticks {
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(10% - 1px),
+      rgba(240, 230, 210, 0.06) calc(10% - 1px),
+      rgba(240, 230, 210, 0.06) 10%
+    );
+  }
+  .slider .fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg,
+      rgba(226, 169, 59, 0.0) 0%,
+      rgba(226, 169, 59, 0.12) 60%,
+      rgba(226, 169, 59, 0.28) 100%);
+    pointer-events: none;
+  }
+  .slider .indicator {
+    position: absolute;
+    top: -3px; bottom: -3px;
+    width: 2px;
+    background: var(--amber);
+    transform: translateX(-1px);
+    pointer-events: none;
+    box-shadow: 0 0 12px var(--amber), 0 0 24px rgba(226, 169, 59, 0.4);
+  }
+  .slider .indicator::before,
+  .slider .indicator::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+  }
+  .slider .indicator::before {
+    top: -5px;
+    border-top: 6px solid var(--amber);
+  }
+  .slider .indicator::after {
+    bottom: -5px;
+    border-bottom: 6px solid var(--amber);
+  }
+  .slider .range-label {
+    position: absolute;
+    bottom: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--fg-dimmer);
+    letter-spacing: 0.1em;
+    pointer-events: none;
+  }
+  .slider .range-label.lo { left: 8px; }
+  .slider .range-label.hi { right: 8px; }
+
+  .match .controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 8px;
+  }
+  /* RESULT */
+  .result {
+    justify-content: center;
+    align-items: stretch;
+    padding: 20px 8px;
+    overflow-y: auto;
+  }
+  .result .label-line {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .result .round-total {
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 200;
+    font-size: clamp(64px, 10vw, 96px);
+    line-height: 1;
+    margin-bottom: 6px;
+    font-variation-settings: "SOFT" 80;
+    color: var(--amber);
+  }
+  .result .round-total .max {
+    font-size: 0.3em;
+    color: var(--fg-dim);
+    font-weight: 300;
+    margin-left: 4px;
+  }
+  .result .breakdown {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 32px;
+    margin-bottom: 28px;
+  }
+  .breakdown .card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    padding: 18px 18px 14px;
+  }
+  .breakdown .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .breakdown .card-head .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+  .breakdown .card-head .score {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 24px;
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .breakdown .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--fg-dim);
+    letter-spacing: 0.06em;
+  }
+  .breakdown .row .v {
+    color: var(--fg);
+    font-variant-numeric: tabular-nums;
+  }
+  .breakdown .row .v.target { color: var(--amber); }
+  .breakdown .row .v.delta { color: var(--fg-dim); font-size: 10px; }
+
+  .result .actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 8px;
+  }
+
+  /* FINAL */
+  .final {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+  }
+  .final .label-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .final .total {
+    font-family: 'Fraunces', serif;
+    font-weight: 200;
+    font-style: italic;
+    font-size: clamp(96px, 18vw, 180px);
+    line-height: 0.9;
+    color: var(--amber);
+    font-variation-settings: "SOFT" 100, "opsz" 144;
+    margin-bottom: 4px;
+  }
+  .final .total .max {
+    font-size: 0.25em;
+    color: var(--fg-dim);
+    font-weight: 300;
+    font-style: normal;
+    margin-left: 8px;
+    letter-spacing: 0.04em;
+  }
+  .final .verdict {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 22px;
+    color: var(--fg);
+    margin-bottom: 36px;
+    font-style: italic;
+    font-variation-settings: "SOFT" 50;
+  }
+  .final .rounds-grid {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 36px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .final .rounds-grid .pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    min-width: 64px;
+  }
+  .final .rounds-grid .pill .n {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+  }
+  .final .rounds-grid .pill .v {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 20px;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* responsive */
+  @media (max-width: 640px) {
+    #app { padding: 18px 16px; }
+    .hud { padding-bottom: 14px; gap: 8px; }
+    .logo { font-size: 16px; letter-spacing: 0.24em; }
+    .label { font-size: 8px; }
+    .hud-value { font-size: 11px; }
+    .match { padding-top: 18px; gap: 22px; }
+    .sliders { gap: 20px; }
+    .breakdown { grid-template-columns: 1fr; }
+    .match .controls { flex-direction: column; align-items: stretch; }
+  }
+
+  /* Reveal animation */
+  .reveal { animation: reveal 0.6s ease both; }
+  @keyframes reveal {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="hud" id="hud" style="display:none;">
+    <div class="hud-cell">
+      <span class="label">Round</span>
+      <span class="hud-value" id="roundIndicator">— / 5</span>
+    </div>
+    <div class="hud-cell center">
+      <div class="logo">DY<em>·</em>AD</div>
+    </div>
+    <div class="hud-cell right">
+      <span class="label">Score</span>
+      <span class="hud-value" id="scoreIndicator">00.0 / 100</span>
+    </div>
+  </header>
+
+  <section id="screen">
+
+    <!-- INTRO -->
+    <div class="phase intro active" data-phase="intro">
+      <h1>DY<span class="amp">·</span>AD</h1>
+      <div class="sub">two-tone memory</div>
+      <p>Two pure tones will play <em>simultaneously</em> for three seconds.</p>
+      <p>Then your job: find both again, by ear.</p>
+      <div class="rules">
+        <div><span>01</span>Listen to the dyad</div>
+        <div><span>02</span>Drag two sliders to match each pitch</div>
+        <div><span>03</span>Five rounds. 100 points possible.</div>
+      </div>
+      <button class="btn primary" id="beginBtn">Begin</button>
+    </div>
+
+    <!-- LISTEN -->
+    <div class="phase listen" data-phase="listen">
+      <div class="heading">Listen</div>
+      <canvas id="waveCanvas" width="1240" height="480"></canvas>
+      <div class="footnote">do not adjust your headphones</div>
+    </div>
+
+    <!-- MATCH -->
+    <div class="phase match" data-phase="match">
+      <div class="prompt">
+        <div class="heading">Recreate</div>
+        <div class="question">What were <em>those two</em> frequencies?</div>
+      </div>
+      <div class="sliders">
+        <div class="slider-row">
+          <div class="slider-meta">
+            <span><span class="tag">Tone A</span> · lower voice</span>
+            <span class="freq"><span id="freqA">000</span><span class="unit">Hz</span></span>
+          </div>
+          <div class="slider" id="sliderA">
+            <div class="ticks"></div>
+            <div class="fill" id="fillA"></div>
+            <div class="indicator" id="indA"></div>
+            <span class="range-label lo">130</span>
+            <span class="range-label hi">1000</span>
+          </div>
+        </div>
+        <div class="slider-row">
+          <div class="slider-meta">
+            <span><span class="tag">Tone B</span> · upper voice</span>
+            <span class="freq"><span id="freqB">000</span><span class="unit">Hz</span></span>
+          </div>
+          <div class="slider" id="sliderB">
+            <div class="ticks"></div>
+            <div class="fill" id="fillB"></div>
+            <div class="indicator" id="indB"></div>
+            <span class="range-label lo">130</span>
+            <span class="range-label hi">1000</span>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn primary" id="submitBtn">Lock In</button>
+      </div>
+    </div>
+
+    <!-- RESULT -->
+    <div class="phase result" data-phase="result">
+      <div class="label-line">Round Result</div>
+      <div class="round-total"><span id="roundScore">00.0</span><span class="max">/ 20</span></div>
+      <div class="breakdown">
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Tone A</span>
+            <span class="score" id="scoreA">0.0</span>
+          </div>
+          <div class="row"><span>Target</span><span class="v target" id="targetA">— Hz</span></div>
+          <div class="row"><span>Your guess</span><span class="v" id="guessA">— Hz</span></div>
+          <div class="row"><span>Off by</span><span class="v delta" id="deltaA">—</span></div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <span class="tag">Tone B</span>
+            <span class="score" id="scoreB">0.0</span>
+          </div>
+          <div class="row"><span>Target</span><span class="v target" id="targetB">— Hz</span></div>
+          <div class="row"><span>Your guess</span><span class="v" id="guessB">— Hz</span></div>
+          <div class="row"><span>Off by</span><span class="v delta" id="deltaB">—</span></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="replayBtn">Hear the dyad</button>
+        <button class="btn primary" id="nextBtn">Next round</button>
+      </div>
+    </div>
+
+    <!-- FINAL -->
+    <div class="phase final" data-phase="final">
+      <div class="label-line">Final Score</div>
+      <div class="total"><span id="finalScore">000.0</span><span class="max">/ 100</span></div>
+      <div class="verdict" id="verdict">—</div>
+      <div class="rounds-grid" id="roundsGrid"></div>
+      <div style="display:flex; gap:14px; justify-content:center;">
+        <button class="btn primary" id="restartBtn">Play again</button>
+        <button class="btn ghost" id="shareBtn">Copy link</button>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Audio engine
+   ============================================================ */
+let audioCtx = null;
+let liveMix = null;     // { master, oscA, oscB }
+let targetMix = null;   // for preview/listen playback
+
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+// Create a slightly warm sine voice (fundamental + faint 2nd harmonic)
+function makeVoice(freq, masterGain) {
+  const ctx = audioCtx;
+  const voice = ctx.createGain();
+  voice.gain.value = 1.0;
+  voice.connect(masterGain);
+
+  const o1 = ctx.createOscillator();
+  o1.type = 'sine';
+  o1.frequency.value = freq;
+  const g1 = ctx.createGain();
+  g1.gain.value = 0.9;
+  o1.connect(g1); g1.connect(voice);
+
+  const o2 = ctx.createOscillator();
+  o2.type = 'sine';
+  o2.frequency.value = freq * 2;
+  const g2 = ctx.createGain();
+  g2.gain.value = 0.07;
+  o2.connect(g2); g2.connect(voice);
+
+  o1.start(); o2.start();
+
+  return {
+    setFreq(f) {
+      const t = ctx.currentTime;
+      o1.frequency.setTargetAtTime(f, t, 0.015);
+      o2.frequency.setTargetAtTime(f * 2, t, 0.015);
+    },
+    stop(when = 0) {
+      const t = ctx.currentTime + when;
+      voice.gain.setTargetAtTime(0, t, 0.04);
+      o1.stop(t + 0.4);
+      o2.stop(t + 0.4);
+    }
+  };
+}
+
+function playDyad(freqA, freqB, duration, onEnd) {
+  ensureAudio();
+  const ctx = audioCtx;
+  const master = ctx.createGain();
+  master.gain.value = 0;
+  master.connect(ctx.destination);
+
+  const now = ctx.currentTime;
+  const peak = 0.22;
+  master.gain.setValueAtTime(0, now);
+  master.gain.linearRampToValueAtTime(peak, now + 0.1);
+  master.gain.setValueAtTime(peak, now + duration - 0.18);
+  master.gain.linearRampToValueAtTime(0, now + duration);
+
+  const voiceA = makeVoice(freqA, master);
+  const voiceB = makeVoice(freqB, master);
+
+  targetMix = { master, voiceA, voiceB };
+
+  setTimeout(() => {
+    voiceA.stop();
+    voiceB.stop();
+    setTimeout(() => {
+      try { master.disconnect(); } catch (e) {}
+    }, 600);
+    targetMix = null;
+    onEnd && onEnd();
+  }, duration * 1000);
+}
+
+function startLiveMix(freqA, freqB) {
+  ensureAudio();
+  if (liveMix) return;
+  const ctx = audioCtx;
+  const master = ctx.createGain();
+  master.gain.value = 0;
+  master.connect(ctx.destination);
+  master.gain.setValueAtTime(0, ctx.currentTime);
+  master.gain.linearRampToValueAtTime(0.20, ctx.currentTime + 0.12);
+
+  const voiceA = makeVoice(freqA, master);
+  const voiceB = makeVoice(freqB, master);
+
+  liveMix = { master, voiceA, voiceB };
+}
+
+function stopLiveMix() {
+  if (!liveMix) return;
+  const ctx = audioCtx;
+  const { master, voiceA, voiceB } = liveMix;
+  master.gain.setTargetAtTime(0, ctx.currentTime, 0.06);
+  setTimeout(() => {
+    voiceA.stop();
+    voiceB.stop();
+    setTimeout(() => {
+      try { master.disconnect(); } catch (e) {}
+    }, 400);
+  }, 100);
+  liveMix = null;
+}
+
+function updateLiveMix(freqA, freqB) {
+  if (!liveMix) return;
+  liveMix.voiceA.setFreq(freqA);
+  liveMix.voiceB.setFreq(freqB);
+}
+
+/* ============================================================
+   Frequency / scoring math
+   ============================================================ */
+const F_MIN = 130;
+const F_MAX = 1000;
+const LISTEN_SEC = 3.0;
+const ROUNDS = 5;
+
+/* Seeded PRNG (mulberry32) */
+let _seed = 0;
+function mulberry32() {
+  _seed |= 0; _seed = _seed + 0x6D2B79F5 | 0;
+  let t = Math.imul(_seed ^ _seed >>> 15, 1 | _seed);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+  return ((t ^ t >>> 14) >>> 0) / 4294967296;
+}
+
+function getSeedFromURL() {
+  const p = new URLSearchParams(window.location.search);
+  const s = p.get('seed');
+  return s ? parseInt(s, 10) : null;
+}
+
+function newSeed() {
+  return (Math.random() * 0xFFFFFFFF) >>> 0;
+}
+
+function pctToFreq(p) {
+  // log-linear mapping for perceptual fairness
+  return F_MIN * Math.pow(F_MAX / F_MIN, p);
+}
+function freqToPct(f) {
+  return Math.log(f / F_MIN) / Math.log(F_MAX / F_MIN);
+}
+
+function freqToErb(f) {
+  return 21.4 * Math.log10(0.00437 * f + 1);
+}
+
+function scoreTone(target, guess) {
+  const delta = Math.abs(freqToErb(target) - freqToErb(guess));
+  // Dual gaussian: tight peak rewards precision, gentle fallback gives partial credit
+  const tight = 10 * Math.exp(-Math.pow(delta / 0.28, 2));
+  const wide  = 3.5 * Math.exp(-Math.pow(delta / 0.3, 2));
+  return Math.min(10, Math.max(tight, wide));
+}
+
+function generateRound() {
+  // Two distinct frequencies, B always above A, with min perceptual gap
+  let a, b, gapErb, tries = 0;
+  do {
+    a = F_MIN + mulberry32() * ((F_MAX * 0.45) - F_MIN);
+    b = (a + 100) + mulberry32() * (F_MAX - a - 100);
+    gapErb = Math.abs(freqToErb(b) - freqToErb(a));
+    tries++;
+  } while ((gapErb < 1.8 || b > F_MAX) && tries < 50);
+  return { a: Math.round(a), b: Math.round(b) };
+}
+
+/* ============================================================
+   State
+   ============================================================ */
+const state = {
+  phase: 'intro',
+  round: 0,
+  target: null,
+  guess: { a: 280, b: 580 },
+  scores: [],
+  totalScore: 0,
+  seed: 0,
+};
+
+/* ============================================================
+   DOM
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+const phases = {
+  intro:  document.querySelector('[data-phase="intro"]'),
+  listen: document.querySelector('[data-phase="listen"]'),
+  match:  document.querySelector('[data-phase="match"]'),
+  result: document.querySelector('[data-phase="result"]'),
+  final:  document.querySelector('[data-phase="final"]'),
+};
+
+function setPhase(p) {
+  state.phase = p;
+  Object.entries(phases).forEach(([key, el]) => {
+    el.classList.toggle('active', key === p);
+  });
+  if (p === 'match' || p === 'result' || p === 'listen') {
+    $('hud').style.display = 'grid';
+  }
+  if (p === 'final' || p === 'intro') {
+    $('hud').style.display = 'none';
+  }
+}
+
+function updateHUD() {
+  $('roundIndicator').textContent = `${String(state.round).padStart(2, '0')} / 0${ROUNDS}`;
+  $('scoreIndicator').textContent =
+    `${state.totalScore.toFixed(1).padStart(4, '0')} / 100`;
+}
+
+/* ============================================================
+   Waveform canvas (during listen)
+   ============================================================ */
+const canvas = $('waveCanvas');
+const ctx2d = canvas.getContext('2d');
+let waveAnim = null;
+
+function startWaveAnim(freqA, freqB, duration) {
+  const start = performance.now();
+  const W = canvas.width;
+  const H = canvas.height;
+  // Scale frequencies down so wavelengths fit nicely in the canvas
+  const scaleA = freqA / 100;
+  const scaleB = freqB / 100;
+
+  cancelAnimationFrame(waveAnim);
+
+  const draw = (now) => {
+    const elapsed = (now - start) / 1000;
+    if (elapsed > duration + 0.2) return;
+    const t = elapsed;
+    ctx2d.clearRect(0, 0, W, H);
+
+    // envelope: fade in/out
+    let env = 1;
+    if (elapsed < 0.1) env = elapsed / 0.1;
+    else if (elapsed > duration - 0.15) env = Math.max(0, (duration - elapsed) / 0.15);
+
+    // Tone A — bottom amber line
+    ctx2d.strokeStyle = `rgba(226, 169, 59, ${0.75 * env})`;
+    ctx2d.lineWidth = 2.2;
+    ctx2d.beginPath();
+    for (let x = 0; x < W; x++) {
+      const phase = (x / W) * Math.PI * 2 * scaleA;
+      const y = H / 2 + Math.sin(phase + t * freqA * 0.04) * (H * 0.28) * env;
+      x === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+    }
+    ctx2d.stroke();
+
+    // Tone B — cream line
+    ctx2d.strokeStyle = `rgba(240, 230, 210, ${0.55 * env})`;
+    ctx2d.lineWidth = 1.6;
+    ctx2d.beginPath();
+    for (let x = 0; x < W; x++) {
+      const phase = (x / W) * Math.PI * 2 * scaleB;
+      const y = H / 2 + Math.sin(phase + t * freqB * 0.04) * (H * 0.20) * env;
+      x === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+    }
+    ctx2d.stroke();
+
+    // Sum waveform (faint)
+    ctx2d.strokeStyle = `rgba(226, 169, 59, ${0.18 * env})`;
+    ctx2d.lineWidth = 1;
+    ctx2d.beginPath();
+    for (let x = 0; x < W; x++) {
+      const pA = (x / W) * Math.PI * 2 * scaleA;
+      const pB = (x / W) * Math.PI * 2 * scaleB;
+      const y = H / 2 +
+        (Math.sin(pA + t * freqA * 0.04) * 0.5 +
+         Math.sin(pB + t * freqB * 0.04) * 0.5) * (H * 0.42) * env;
+      x === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+    }
+    ctx2d.stroke();
+
+    waveAnim = requestAnimationFrame(draw);
+  };
+  waveAnim = requestAnimationFrame(draw);
+}
+
+/* ============================================================
+   Sliders
+   ============================================================ */
+function initSlider(which) {
+  const id = which === 'a' ? 'sliderA' : 'sliderB';
+  const el = $(id);
+  let dragging = false;
+
+  const update = (clientX) => {
+    const rect = el.getBoundingClientRect();
+    let p = (clientX - rect.left) / rect.width;
+    p = Math.max(0, Math.min(1, p));
+    const freq = Math.round(pctToFreq(p));
+    state.guess[which] = freq;
+    renderSlider(which);
+    updateLiveMix(state.guess.a, state.guess.b);
+  };
+
+  const onDown = (e) => {
+    dragging = true;
+    el.setPointerCapture && e.pointerId !== undefined && el.setPointerCapture(e.pointerId);
+    update(e.clientX);
+    e.preventDefault();
+  };
+  const onMove = (e) => {
+    if (!dragging) return;
+    update(e.clientX);
+    e.preventDefault();
+  };
+  const onUp = () => { dragging = false; };
+
+  el.addEventListener('pointerdown', onDown);
+  el.addEventListener('pointermove', onMove);
+  el.addEventListener('pointerup', onUp);
+  el.addEventListener('pointercancel', onUp);
+  el.addEventListener('pointerleave', () => {
+    // keep dragging if pointer is captured
+  });
+}
+
+function renderSlider(which) {
+  const freq = state.guess[which];
+  const p = freqToPct(freq);
+  const pctStr = (p * 100).toFixed(2) + '%';
+  const indEl = $(which === 'a' ? 'indA' : 'indB');
+  const fillEl = $(which === 'a' ? 'fillA' : 'fillB');
+  const freqEl = $(which === 'a' ? 'freqA' : 'freqB');
+  indEl.style.left = pctStr;
+  fillEl.style.width = pctStr;
+  freqEl.textContent = String(freq).padStart(3, '0');
+}
+
+/* ============================================================
+   Flow
+   ============================================================ */
+function startGame() {
+  ensureAudio();
+  state.seed = getSeedFromURL() || newSeed();
+  _seed = state.seed;
+  state.round = 0;
+  state.totalScore = 0;
+  state.scores = [];
+  beginRound();
+}
+
+function beginRound() {
+  state.round += 1;
+  state.target = generateRound();
+
+  // initialize guesses to middle-ish (different from target so it's not a giveaway)
+  state.guess.a = Math.round(pctToFreq(0.3));
+  state.guess.b = Math.round(pctToFreq(0.7));
+
+  renderSlider('a');
+  renderSlider('b');
+  updateHUD();
+  stopLiveMix();
+
+  setPhase('listen');
+  setTimeout(() => {
+    startWaveAnim(state.target.a, state.target.b, LISTEN_SEC);
+    playDyad(state.target.a, state.target.b, LISTEN_SEC, () => {
+      setTimeout(() => {
+        setPhase('match');
+        startLiveMix(state.guess.a, state.guess.b);
+      }, 350);
+    });
+  }, 600);
+}
+
+function lockIn() {
+  stopLiveMix();
+  const sA = scoreTone(state.target.a, state.guess.a);
+  const sB = scoreTone(state.target.b, state.guess.b);
+  const total = sA + sB;
+  state.scores.push({ a: sA, b: sB, total, target: { ...state.target }, guess: { ...state.guess } });
+  state.totalScore += total;
+
+  // render result
+  $('roundScore').textContent = total.toFixed(1);
+  $('scoreA').textContent = sA.toFixed(1);
+  $('scoreB').textContent = sB.toFixed(1);
+  $('targetA').textContent = `${state.target.a} Hz`;
+  $('targetB').textContent = `${state.target.b} Hz`;
+  $('guessA').textContent = `${state.guess.a} Hz`;
+  $('guessB').textContent = `${state.guess.b} Hz`;
+  $('deltaA').textContent = `${Math.abs(state.target.a - state.guess.a)} Hz`;
+  $('deltaB').textContent = `${Math.abs(state.target.b - state.guess.b)} Hz`;
+  updateHUD();
+
+  setPhase('result');
+}
+
+function nextRoundOrFinish() {
+  if (state.round >= ROUNDS) {
+    finishGame();
+  } else {
+    beginRound();
+  }
+}
+
+function finishGame() {
+  $('finalScore').textContent = state.totalScore.toFixed(1).padStart(5, '0');
+  const v = state.totalScore;
+  let verdict;
+  if (v >= 90) verdict = 'Inhuman. Are your ears okay?';
+  else if (v >= 75) verdict = 'A very sharp pair of ears.';
+  else if (v >= 60) verdict = 'Well-tuned. Above the crowd.';
+  else if (v >= 45) verdict = 'Decent. The chord was there.';
+  else if (v >= 30) verdict = 'Honest effort. Pitch memory is a skill.';
+  else verdict = 'The dyad won this round.';
+  $('verdict').textContent = verdict;
+
+  const grid = $('roundsGrid');
+  grid.innerHTML = '';
+  state.scores.forEach((s, i) => {
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.innerHTML = `<span class="n">R${i + 1}</span><span class="v">${s.total.toFixed(1)}</span>`;
+    grid.appendChild(pill);
+  });
+
+  setPhase('final');
+}
+
+function replayTarget() {
+  if (!state.target) return;
+  playDyad(state.target.a, state.target.b, 2.2);
+}
+
+/* ============================================================
+   Wire up
+   ============================================================ */
+function shareSeed() {
+  const url = new URL(window.location.href);
+  url.searchParams.set('seed', state.seed);
+  navigator.clipboard.writeText(url.toString()).then(() => {
+    const btn = $('shareBtn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy link'; }, 1800);
+  });
+}
+
+$('beginBtn').addEventListener('click', startGame);
+$('submitBtn').addEventListener('click', lockIn);
+$('nextBtn').addEventListener('click', nextRoundOrFinish);
+$('replayBtn').addEventListener('click', replayTarget);
+$('restartBtn').addEventListener('click', () => {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('seed');
+  window.history.replaceState({}, '', url);
+  startGame();
+});
+$('shareBtn').addEventListener('click', shareSeed);
+
+initSlider('a');
+initSlider('b');
+renderSlider('a');
+renderSlider('b');
+
+// Stop audio on page hide
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopLiveMix();
+});
+</script>
+</body>
+</html>
