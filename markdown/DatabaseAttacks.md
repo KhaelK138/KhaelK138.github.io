@@ -145,6 +145,7 @@ export PGDATABASE={database_name}
 
 ## Oracle
 - Comand execution with `EXEC dbms_java.runjava('java.lang.Runtime.getRuntime().exec("{command}")');`
+- See what directories Oracle can read: `SELECT * FROM ALL_DIRECTORIES;`
 - Dumping Oracle: `sqlplus [username]/[password]@[host]/[SID] @extract.sql > oracle_data.txt`
 
 ## MongoDB

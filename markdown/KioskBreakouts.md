@@ -90,8 +90,11 @@ End Sub
 **LOLBAS**
 - Check out the binaries that can execute commands at [https://lolbas-project.github.io/#/execute](https://lolbas-project.github.io/#/execute)
 
-**Bypass BIOS**
+**Bypass Disk Encryption**
 - Often times, we can use Windows' recovery mode against it
+- Newly-released [YellowKey](https://github.com/Nightmare-Eclipse/YellowKey) exploit almost seems to be a backdoor allowing gaining a shell within an encrypted Bitlocker environment
+  - Just copy the FsTx folder to `{USBSTICK}:\System Volume Information\FsTx` and make sure it is formatted as NTFS
+  - Plug in, hold shift, click restart, let go of shift and hold CTRL
 - Steps are along the lines of:
   - Reboot and Shift + F8 to break out of auto-login and reach Windows login screen
   - Hold `Shift` and then click restart, resulting in Windows recovery
