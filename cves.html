@@ -112,14 +112,25 @@
   </div>
   -->
 
-  <div class="cve-entry" data-risk="9.3" data-date="2026-04-06">
+  <div class="cve-entry" data-risk="9.8" data-date="2026-04-06">
     <div class="cve-header">
-      <span class="cve-id">CVE-2026-34977 / CVSS 9.3</span>
+      <span class="cve-id">CVE-2026-34977 / CVSS 9.8</span>
       <span class="cve-date">Apr 2026</span>
     </div>
     <div class="cve-title">Aperi'Solve Unauthenticated RCE via Password Field</div>
     <div class="cve-description">
       <a href="https://aperisolve.com">Aperi'Solve</a> is an open-source steganography analysis platform. Prior to v3.2.1, the optional password field on JPEG uploads was passed into a bash command without sanitization, giving unauthenticated root RCE in the worker container.
+    </div>
+  </div>
+
+  <div class="cve-entry" data-risk="9.3" data-date="2026-05-15">
+    <div class="cve-header">
+      <span class="cve-id">CVE-2026-44666 / CVSS 9.3</span>
+      <span class="cve-date">May 2026</span>
+    </div>
+    <div class="cve-title">HRConvert2 Unauthenticated RCE via Incomplete Character Blacklist on Filenames</div>
+    <div class="cve-description">
+      <a href="https://github.com/zelon88/HRConvert2">HRConvert2</a> is an open-source file conversion tool. Prior to v3.4, the character blacklist on filenames was missing the backtick character (<code>`</code>), tab character (<code>\t</code>), and newline character (<code>\n</code>). User input from filenames was passed into command line tools for file conversion, allowing both immediate command execution and upload of PHP webshells.
     </div>
   </div>
 
