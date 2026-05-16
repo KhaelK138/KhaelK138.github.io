@@ -153,6 +153,8 @@
     });
   });
 
+  document.querySelector('.sort-btn.active').click();
+
   document.querySelectorAll('.cve-entry').forEach(entry => {
     const match = entry.querySelector('.cve-id').textContent.match(/CVE-\d{4}-\d+/);
     if (!match) return;
