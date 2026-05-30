@@ -933,8 +933,9 @@ function setPhase(p) {
 
 function updateHUD() {
   $('roundIndicator').textContent = `${String(state.round).padStart(2, '0')} / 0${ROUNDS}`;
+  const maxSoFar = state.round * 20;
   $('scoreIndicator').textContent =
-    `${state.totalScore.toFixed(1).padStart(4, '0')} / 100`;
+    `${state.totalScore.toFixed(1).padStart(4, '0')} / ${maxSoFar}`;
 }
 
 /* ============================================================
@@ -1121,6 +1122,7 @@ function lockIn() {
   $('deltaB').textContent = `${Math.abs(state.target.b - state.guess.b)} Hz`;
   updateHUD();
 
+  $('nextBtn').textContent = state.round >= ROUNDS ? 'See results' : 'Next round';
   setPhase('result');
 }
 
