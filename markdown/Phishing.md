@@ -42,6 +42,12 @@ pagetitle: Phishing
   - [List of Latin Alphabets](https://en.wikipedia.org/wiki/List_of_Latin-script_alphabets)
 - To test Latin domain candidates, use my [Verisign Latin IDN Domain Checker](https://khaelkugler.com/random_vibecoded_projects/idn_checker.html)
 
+**Using Trusted Services with Domains**
+- Something like Adobe Sign can be used alongside a domain to email to get users to "sign" a document
+  - The email will come from adobesign.com, making it appear more legit and bypassing filters
+- The site serving the document can ask the users to download the "official" AdobeSign agent
+  - Alternatively, if 2FA controls aren't in place, this could also be a good way to get credentials (e.g. "Please log in to sign the document")
+
 **Zendesk**
 - You can get a domain on Zendesk.com to send emails from
 - Zendesk also has IT stuff, so you can make a ticket and assign it to a user
