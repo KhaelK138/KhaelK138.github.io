@@ -48,6 +48,10 @@ pagetitle: Port Redirection and SSH Tunneling
 	- `listener_add --addr 0.0.0.0:1339 --to 127.0.0.1:8000`
 		- Forwarding all traffic that reaches DMZ on 1339 to kali on 8000
 	- Now, we `iwr/wget {DMZ_IP}:1339/{file}`
+- Undo everything on attacker-side
+  - `sudo ip route del {ipconfig_IP}/{mask} dev ligolo`
+  - `sudo ip link set ligolo down`
+  - `sudo ip tuntap del mode tun ligolo`
 
 **Running the proxy/server on Windows**
 - Download [Wintun](https://www.wintun.net/) driver and put `wintun.dll` in the Ligolo folder
