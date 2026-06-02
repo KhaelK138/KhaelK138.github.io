@@ -516,6 +516,7 @@ function renderPiano() {
   }
 
   piano.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
     const key = keyFromPoint(e.clientX, e.clientY);
     if (!key) return;
     e.preventDefault();
@@ -536,11 +537,15 @@ function renderPiano() {
     }
   });
 
-  document.addEventListener('mouseup', () => {
+  function cancelMouse() {
     if (!mouseDown) return;
     mouseDown = false;
     if (mouseMidi !== null) { releaseNote(mouseMidi); mouseMidi = null; }
-  });
+  }
+
+  document.addEventListener('mouseup', cancelMouse);
+  document.addEventListener('contextmenu', cancelMouse);
+  window.addEventListener('blur', cancelMouse);
 
   piano.addEventListener('touchstart', e => {
     e.preventDefault();
