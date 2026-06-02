@@ -41,8 +41,8 @@ sudo systemctl start nessusd
 ## Finding internal subdomains
 - Let's say we have an internal server, like `test.local`
 - If we want to find subdomains, `ffuf` can serve us nicely
-- Place the IP and `test.local` in `/etc/hosts`, and then run `ffuf -u http://{IP} -H "Host: FUZZ.test.local" -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt`
-  - Can also try `gobuster vhost -u http://test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 200 --append-domain > vhost` and then grep `vhost` for `"Status: 200"` or `grep -v {data_to_exclude}`
+- Place the IP and `test.local` in `/etc/hosts`, and then run `gobuster vhost -u http://test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 200 --append-domain > vhost` and then grep `vhost` for `"Status: 200"` or `grep -v {data_to_exclude}`
+  - Can also try `ffuf -u http://{IP} -H "Host: FUZZ.test.local" -w /usr/share/wordlists/dirbuster/directory-list-lowercase-2.3-medium.txt`
 
 ## Misc
 
