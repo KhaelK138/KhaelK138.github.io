@@ -31,7 +31,7 @@ body {
 	display: flex;
 	min-height: 100vh;
 	flex-direction: column;
-	padding: 0 50px
+	padding: 0 10px
 }
 
 h1,
