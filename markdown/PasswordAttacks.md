@@ -54,7 +54,7 @@ pagetitle: Password Attacks
 	- Many methods, but here's a novel one:
 		- `Get-ChildItem -Path C:\ -Include *.kdbx -File -Recurse -ErrorAction SilentlyContinue` will search for kdbx files (KeePass files) containing hashes
 		- `keepass2john {keepass_database_file}` to extract hash
-    		- Same goes for `pdf2john`, `zip2john`, or `office2john`
+    		- Same goes for `pdf2john`, `zip2john`, `ssh2john` or `office2john`
     		- We can then list the passwords like so:
 
 ```python

