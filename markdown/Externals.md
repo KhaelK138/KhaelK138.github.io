@@ -90,7 +90,12 @@ Finding user information and passwords:
 ## Email & Domain security
 
 **Email security**
-- I vibecoded a quick script that can check a list of domains for email security: [https://khaelkugler.com/misc_scripts/check_email_security.py.html](https://khaelkugler.com/misc_scripts/check_email_security.py.html)
+- Domains can have TXT records for SPF/DMARC/DKIM which essentially act as a source of truth for any email clients looking to verify information
+  - Sender Policy Framework (SPF): Domain lists IPs that can send mail as that domain
+  - DomainKeys Identified Mail (DKIM): Domains presents a public key; senders can sign mail using a private key
+  - Domain-based Message Authentication Reporting and Conformance (DMARC): Tells receiving mail server what to do with mail that fails DKIM/SPF, such as quarantine or marking as spam
+- Receiving mail servers are responsible for using the records to perform the checks, as otherwise the records are meaningless
+- I vibecoded a quick script that can check a list of sending domains for email security: [https://khaelkugler.com/misc_scripts/check_email_security.py.html](https://khaelkugler.com/misc_scripts/check_email_security.py.html)
 - [DMARCLY](https://dmarcly.com/tools/) has some great online tools that can check TXT records
   - We can also check records ourselves with `host -t txt {domain}` and `host -t a {domain}`
 - [Spoofy](https://github.com/MattKeeley/Spoofy.git) will check if a domain's emails can be spoofed
