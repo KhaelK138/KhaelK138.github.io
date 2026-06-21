@@ -81,7 +81,7 @@ I updated the Blueprint's `BeginPlay` event to call `LaunchURL` with the full pa
 ![Blueprint event graph with LaunchURL pointing to payload.bat](./images/meccha_chameleon/blueprint_launchurl.png)
 ![Reuploading the malicious map via VDF](./images/meccha_chameleon/vdf_reupload.png)
 
-It was time to test it out.
+Time to test it out!
 
 ## Confirming Execution
 
