@@ -1,6 +1,6 @@
 ---
 layout: blog
-title: 2 Click RCE in MECCHA CHAMELEON
+title: 2-Click Remote Code Execution in Meccha Chameleon
 description: Achieving remote code execution on every player in a game lobby through a malicious Steam Workshop map.
 author: Khael Kugler
 date: June 21, 2026
@@ -60,7 +60,7 @@ Lucky for me, Steam Workshop items, such as Maps, are essentially just folders. 
 
 ![alt text](./images/meccha_chameleon/steam_upload_instructions.png)
 
-At the time, MECCHA CHAMELEON performed no restrictions on uploaded file types. So let's just toss a file in the Map folder itself, and `LaunchURL` that path!
+At the time, Meccha Chameleon performed no restrictions on uploaded file types. So let's just toss a file in the Map folder itself, and `LaunchURL` that path!
 
 To pull this off, I needed a Workshop item ID first. Steam downloads Workshop content to a predictable path on every subscriber's machine - `C:\Program Files (x86)\Steam\steamapps\workshop\content\<app_id>\<workshop_id>\` - but you don't get an item ID until you've uploaded something. So the first step was uploading a benign map just to claim one.
 
@@ -104,4 +104,4 @@ Two clicks - one on the map download prompt, and the other on `Subscribe` - and 
 
 This sort of attack seems to be somewhat prevalent within these types of games. Malicious Workshop content has been seen before, such as [Kaspersky's discovery of malicious Wallpaper Engine uploads](https://www.kaspersky.com/about/press-releases/kaspersky-discovered-a-malware-campaign-targeting-steam-users-through-infected-wallpaper). It's tough for developers to recognize what constitutes attacker-controlled data, and it's easy to assume that Steam handles the filtering.
 
-If your game supports user-generated content, treat it as untrusted code - allowlist asset file types in Workshop uploads and restrict UE5 Blueprint usage. This vulnerability has been patched in latest versions.
+If your game supports user-generated content, treat it as untrusted code - allowlist asset file types in Workshop uploads and restrict UE5 Blueprint usage. This vulnerability has been patched in the latest versions.
