@@ -10,7 +10,7 @@ date: June 21, 2026
 
 ## Introduction
 
-MECCHA CHAMELEON, a hide-and-seek game on Steam built with Unreal Engine 5, has been quite the rage recently. An indie game developer's dream: 5 million downloads (as of writing) without a single cent spent on advertising, and for good reason. It's a take on the classic prop hunt game, where players attempt to hide in a cluttered map from hunters, but with the added twist of being able to *literally* paint themselves into the scenery. For example, can you spot me below? I've added an arrow to help.
+MECCHA CHAMELEON, a hide-and-seek game on Steam built with Unreal Engine 5, has been quite the rage recently. An indie game developer's dream: 7 million downloads (as of writing) without a single cent spent on advertising, and for good reason. It's a take on the classic prop hunt game, where players attempt to hide in a cluttered map from hunters, but with the added twist of being able to *literally* paint themselves into the scenery. For example, can you spot me below? I've added an arrow to help.
 
 ![alt text](./images/meccha_chameleon/hidden_player.png)
 
