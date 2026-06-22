@@ -6,13 +6,13 @@ author: Khael Kugler
 date: June 21, 2026
 ---
 
-![alt text](./images/meccha_chameleon/meccha_title.png)
+![Meccha Chameleon gameplay with a command prompt and calculator spawned by the exploit](./images/meccha_chameleon/meccha_title.png)
 
 ## Introduction
 
 MECCHA CHAMELEON, a hide-and-seek game on Steam built with Unreal Engine 5, has been quite the rage recently. An indie game developer's dream: 7 million downloads (as of writing) without a single cent spent on advertising, and for good reason. It's a take on the classic prop hunt game, where players attempt to hide in a cluttered map from hunters, but with the added twist of being able to *literally* paint themselves into the scenery. For example, can you spot me below? I've added an arrow to help.
 
-![alt text](./images/meccha_chameleon/hidden_player.png)
+![Farm map in Meccha Chameleon with an arrow pointing to a camouflaged player on the barn](./images/meccha_chameleon/hidden_player.png)
 
 However, these types of indie games often sport rich attack surfaces, as we'll examine. 
 
@@ -20,7 +20,7 @@ However, these types of indie games often sport rich attack surfaces, as we'll e
 
 One of the best parts of the game is the built-in support for custom maps. Without modding the game, players can create maps in UE5, package them into `.pak` files, and upload them to Steam's official Workshop for others to play. 
 
-![alt text](./images/meccha_chameleon/workshop_maps.png)
+![Steam Workshop page showing popular custom maps for Meccha Chameleon](./images/meccha_chameleon/workshop_maps.png)
 
 When a lobby host selects a custom map, all players are prompted to download the map from Steam before the game can start. The gameplay loop itself reinforces this; nobody wants to be the one holding up the lobby.
 
@@ -34,7 +34,7 @@ Many of the functions available were pretty boring from a security perspective. 
 
 One node did stand out, though: `LaunchURL`. At first glance, it seemed somewhat harmless--a function for opening URLs in the user's default browser. You could imagine a map creator using it to link to their social media or a Discord server.
 
-![alt text](./images/meccha_chameleon/launchurl_example.png)
+![UE5 Blueprint with BeginPlay event connected to a LaunchURL node opening a website](./images/meccha_chameleon/launchurl_example.png)
 
 To understand what it actually did under the hood, I pulled the game's shipping binary (`PenguinHotel-Win64-Shipping.exe`) into Ghidra. The Blueprint-callable entry point, `UKismetSystemLibrary::execLaunchURL`, lives at `0x143e305e0`. Following the call chain, it goes through `LaunchURLFiltered`, `LaunchURL`, and eventually lands on `FWindowsPlatformProcess::LaunchURLInternal`, which calls `ShellExecuteW(NULL, "open", URL, NULL, NULL, SW_SHOWNORMAL)`.
 
@@ -58,7 +58,7 @@ Thus, the question became: how do you plant a file on the victim's machine, at a
 
 Lucky for me, Steam Workshop items (such as maps) are essentially just folders. When a player uploads content, Steam intentionally allows every file type to be uploaded, leaving it up to the developer to restrict what files are mounted. Their documentation even calls this out, noting to developers that "your submission tool should accept just the file formats your game client expects to load." 
 
-![alt text](./images/meccha_chameleon/steam_upload_instructions.png)
+![Steam documentation highlighting that developers should restrict uploaded file formats](./images/meccha_chameleon/steam_upload_instructions.png)
 
 Upon testing, Meccha Chameleon enforced no restrictions on uploaded file types. So let's just toss a file in the map folder itself, and `LaunchURL` that path!
 
@@ -91,7 +91,7 @@ As the attacker, I started by hosting a lobby and selecting the custom map in th
 
 I joined the lobby with a second account and started the game as the host. My victim player in the lobby got the usual prompt to download the map. Clicking through took them to the Steam Workshop page, prompting them to subscribe.
 
-![alt text](./images/meccha_chameleon/victim_download_prompt2.png)
+![In-game prompt telling the player to download the custom map](./images/meccha_chameleon/victim_download_prompt2.png)
 ![Map page shown to victim in Steam overlay](./images/meccha_chameleon/victim_steam_page.png)
 
 As soon as I clicked `Subscribe`, the map downloaded, `BeginPlay` fired, and `payload.bat` executed. A command prompt popped up with the output of `whoami`.
