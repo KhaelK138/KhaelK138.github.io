@@ -78,8 +78,8 @@ With the path known, I created `payload.bat` (simply running `whoami`) and dropp
 
 I updated the Blueprint's `BeginPlay` event to call `LaunchURL` with the full path to the batch file and reuploaded the map.
 
-![Blueprint event graph with LaunchURL pointing to payload.bat](./images/meccha_chameleon/blueprint_launchurl.png)
-![Reuploading the malicious map via VDF](./images/meccha_chameleon/vdf_reupload.png)
+![Blueprint event graph with LaunchURL pointing to payload.bat and the file:// scheme](./images/meccha_chameleon/blueprint_launchurl.png)
+![Reuploading the malicious map](./images/meccha_chameleon/vdf_reupload.png)
 
 Time to test it out!
 
