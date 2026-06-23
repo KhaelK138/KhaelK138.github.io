@@ -56,9 +56,9 @@ Thus, the question became: how do you plant a file on the victim's machine, at a
 
 ## Arbitrary File Delivery
 
-Lucky for me, Steam Workshop items (such as maps) are essentially just folders. When a player uploads content, Steam intentionally allows every file type to be uploaded, leaving it up to the developer to restrict what files are mounted. Their documentation even calls this out, noting to developers that "your submission tool should accept just the file formats your game client expects to load." 
+Lucky for me, Steam Workshop items (such as maps) are essentially just folders. When a player uploads content, Steam intentionally allows every file type to be uploaded, leaving it up to the developer to restrict what files are mounted. [Their documentation even calls this out](https://partner.steamgames.com/doc/features/workshop#:~:text=your%20submission%20tool%20should), noting to developers that "your submission tool should accept *just* the file formats your game client expects to load." 
 
-![Steam documentation highlighting that developers should restrict uploaded file formats](./images/meccha_chameleon/steam_upload_instructions.png)
+![Example Map folder, including an unexpected executable.](./images/meccha_chameleon/workshop_map.png)
 
 Upon testing, Meccha Chameleon enforced no restrictions on uploaded file types. So let's just toss a file in the map folder itself, and `LaunchURL` that path!
 
