@@ -41,6 +41,7 @@ pagetitle: Phishing
   - [Vietnamese Alphabet](https://en.wikipedia.org/wiki/Vietnamese_alphabet)
   - [List of Latin Alphabets](https://en.wikipedia.org/wiki/List_of_Latin-script_alphabets)
 - To test Latin domain candidates, use my [Verisign Latin IDN Domain Checker](https://khaelkugler.com/random_vibecoded_projects/idn_checker.html)
+  - This will also suggest lookalike phishing names for any domain pasted, organized by a pretty subjective score
 
 **Using Trusted Services with Domains**
 - Something like Adobe Sign can be used alongside a domain to email to get users to "sign" a document

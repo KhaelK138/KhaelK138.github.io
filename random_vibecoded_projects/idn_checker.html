@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verisign Latin IDN Domain Checker</title>
+    <title>IDN Domain Lookalike Analyzer</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -16,342 +16,485 @@
             align-items: center;
             padding: 2rem 1rem;
         }
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 0.3rem;
-            color: #fff;
-        }
-        .subtitle {
-            color: #888;
-            font-size: 0.85rem;
-            margin-bottom: 1.5rem;
-        }
+        h1 { font-size: 1.5rem; margin-bottom: 0.3rem; color: #fff; }
+        .subtitle { color: #888; font-size: 0.85rem; margin-bottom: 1.5rem; text-align: center; }
         .input-row {
-            display: flex;
-            gap: 0.5rem;
-            width: 100%;
-            max-width: 600px;
-            margin-bottom: 1rem;
+            display: flex; gap: 0.5rem; width: 100%; max-width: 700px; margin-bottom: 1rem;
         }
         input[type="text"] {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            font-size: 1.1rem;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #fff;
-            outline: none;
+            flex: 1; padding: 0.75rem 1rem; font-size: 1.1rem;
+            background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #fff; outline: none;
         }
         input[type="text"]:focus { border-color: #555; }
         button {
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            background: #2563eb;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
+            padding: 0.75rem 1.5rem; font-size: 1rem; background: #2563eb; color: #fff;
+            border: none; border-radius: 8px; cursor: pointer; font-weight: 600;
         }
         button:hover { background: #1d4ed8; }
-        #result {
-            width: 100%;
-            max-width: 600px;
-            margin-top: 0.5rem;
+
+        .section { width: 100%; max-width: 700px; margin-top: 1.5rem; }
+        .section-title {
+            font-size: 1rem; color: #aaa; margin-bottom: 0.6rem; font-weight: 600;
+            display: flex; align-items: baseline; gap: 0.5rem;
         }
+        .section-title .count { color: #666; font-weight: 400; font-size: 0.8rem; }
+
         .verdict {
-            padding: 1rem 1.25rem;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
+            padding: 0.8rem 1rem; border-radius: 8px; font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem;
         }
         .verdict.allowed { background: #052e16; border: 1px solid #166534; color: #4ade80; }
         .verdict.blocked { background: #2a0a0a; border: 1px solid #7f1d1d; color: #f87171; }
-        .verdict.warn { background: #1a1500; border: 1px solid #854d0e; color: #fbbf24; }
-        .char-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
+        .punycode { color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; font-family: monospace; }
+        .browser-predict {
+            padding: 0.7rem 1rem; border-radius: 8px; font-size: 0.85rem;
+            margin-bottom: 0.75rem; line-height: 1.5;
         }
+        .browser-predict.puny-display { background: #2a0a0a; border: 1px solid #7f1d1d; color: #f87171; }
+        .browser-predict.top-domain-warn { background: #1a1500; border: 1px solid #854d0e; color: #fbbf24; }
+        .browser-predict .bp-label { font-weight: 600; }
+        .browser-predict .skeleton { font-family: monospace; background: #0a0a0a; padding: 0.1rem 0.4rem; border-radius: 3px; }
+        .browser-predict .detail { font-size: 0.75rem; color: #888; margin-top: 0.3rem; }
+
+        .char-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 0.5rem; }
         .char-table th {
-            text-align: left;
-            padding: 0.4rem 0.6rem;
-            background: #1a1a1a;
-            border-bottom: 1px solid #333;
-            color: #aaa;
+            text-align: left; padding: 0.35rem 0.5rem; background: #1a1a1a;
+            border-bottom: 1px solid #333; color: #aaa;
         }
-        .char-table td {
-            padding: 0.4rem 0.6rem;
-            border-bottom: 1px solid #1a1a1a;
-        }
+        .char-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #1a1a1a; }
         .char-table tr.ok td { color: #4ade80; }
         .char-table tr.bad td { color: #f87171; }
         .char-table tr.confusable td { color: #fbbf24; }
-        .char-display { font-size: 1.2rem; }
+        .char-display { font-size: 1.1rem; }
         .block-tag {
-            display: inline-block;
-            font-size: 0.65rem;
-            color: #999;
-            background: #1a1a1a;
-            padding: 0.1rem 0.4rem;
-            border-radius: 4px;
-            margin-left: 0.3rem;
-            vertical-align: middle;
+            display: inline-block; font-size: 0.6rem; color: #999; background: #1a1a1a;
+            padding: 0.1rem 0.35rem; border-radius: 4px; margin-left: 0.25rem; vertical-align: middle;
         }
-        .info {
-            max-width: 600px;
-            margin-top: 2rem;
-            padding: 1rem 1.25rem;
-            background: #111;
-            border: 1px solid #222;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            color: #777;
-            line-height: 1.5;
-        }
-        .info h3 { color: #aaa; margin-bottom: 0.4rem; font-size: 0.85rem; }
-        .punycode { color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; font-family: monospace; }
-        .browser-predict {
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            margin-bottom: 0.75rem;
-            line-height: 1.5;
-        }
-        .browser-predict.puny-display { background: #2a0a0a; border: 1px solid #7f1d1d; color: #f87171; }
-        .browser-predict.loading { background: #1a1a1a; border: 1px solid #333; color: #888; }
-        .browser-predict .bp-label { font-weight: 600; }
-        .browser-predict .skeleton { font-family: monospace; background: #0a0a0a; padding: 0.1rem 0.4rem; border-radius: 3px; }
-        .browser-predict .detail { font-size: 0.78rem; color: #888; margin-top: 0.3rem; }
         .confusable-map { color: #a78bfa; font-size: 0.75rem; font-family: monospace; }
+
+        .lookalike-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .lookalike-table th {
+            text-align: left; padding: 0.4rem 0.5rem; background: #1a1a1a;
+            border-bottom: 1px solid #333; color: #aaa; white-space: nowrap;
+        }
+        .lookalike-table td { padding: 0.4rem 0.5rem; border-bottom: 1px solid #1a1a1a; }
+        .lookalike-table tr:hover { background: #151515; }
+        .domain-cell {
+            font-family: 'Segoe UI', Roboto, sans-serif; font-size: 1rem;
+            cursor: pointer; letter-spacing: 0.01em;
+        }
+        .domain-cell:hover { text-decoration: underline; }
+        .hl { color: #f87171; font-weight: 700; }
+
+        .score-pill {
+            display: inline-block; padding: 0.1rem 0.45rem; border-radius: 6px;
+            font-size: 0.7rem; font-weight: 700; min-width: 1.8rem; text-align: center;
+        }
+        .score-critical { background: #dc262620; color: #f87171; }
+        .score-high { background: #ea580c20; color: #fb923c; }
+        .score-medium { background: #ca8a0420; color: #fbbf24; }
+        .score-low { background: #52525b20; color: #a1a1aa; }
+
+        .tech-pill {
+            display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+            font-size: 0.6rem; font-weight: 600; white-space: nowrap;
+        }
+        .tech-ascii { background: #dc262618; color: #f87171; }
+        .tech-swap { background: #ea580c18; color: #fb923c; }
+        .tech-latin-ext { background: #8b5cf618; color: #a78bfa; }
+        .tech-repeat { background: #06b6d418; color: #22d3ee; }
+
+        .detail-text { color: #888; font-size: 0.75rem; }
+        .evidence {
+            font-size: 0.65rem; color: #666; font-style: italic; display: block; margin-top: 0.1rem;
+        }
+        .show-more-btn {
+            background: #1a1a1a; border: 1px solid #333; color: #888;
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+            width: 100%; margin-top: 0.5rem; font-size: 0.8rem; text-align: center;
+        }
+        .show-more-btn:hover { background: #222; color: #aaa; }
+
+        .info {
+            max-width: 700px; margin-top: 2rem; padding: 1rem 1.25rem;
+            background: #111; border: 1px solid #222; border-radius: 8px;
+            font-size: 0.75rem; color: #777; line-height: 1.5;
+        }
+        .info h3 { color: #aaa; margin-bottom: 0.4rem; font-size: 0.8rem; }
+        .info strong { color: #999; }
     </style>
     <script src="../assets/confusables.js"></script>
+    <script src="../assets/chrome_idn_allowed.js"></script>
+    <script src="../assets/chrome_top_domains.js"></script>
 </head>
 <body>
-    <h1>Verisign Latin IDN Domain Checker</h1>
-    <p class="subtitle">Check if a domain label is registrable under Verisign's Latin script IDN rules (.com/.net)</p>
+    <h1>IDN Domain Lookalike Analyzer</h1>
+    <p class="subtitle">Check IDN registrability & discover lookalike phishing domains for .com/.net</p>
 
     <div class="input-row">
-        <input type="text" id="domainInput" placeholder="Enter domain label (e.g. adoḅe or café)" autofocus>
-        <button onclick="checkDomain()">Check</button>
+        <input type="text" id="domainInput" placeholder="Enter domain label (e.g. microsoft, apple, café)" autofocus>
+        <button onclick="analyze()">Analyze</button>
     </div>
-    <div id="result"></div>
+
+    <div id="analysis" class="section"></div>
+    <div id="lookalikes" class="section"></div>
 
     <div class="info">
         <h3>About this tool</h3>
-        Based on IANA .com Latin IDN table (com_latn_1.2.txt, Verisign). Checks whether each character
-        is in the official allowed code point set for .com/.net IDN registration.<br>
+        Based on IANA .com Latin IDN table (com_latn_1.2.txt, Verisign) and Unicode UTS #39 confusables data.
+        Checks registrability and generates potential lookalike domains ranked by visual similarity score.<br><br>
+        <strong>Techniques:</strong> ASCII multi-char lookalikes (rn&rarr;m, vv&rarr;w, cl&rarr;d),
+        character swaps (l&harr;1, o&harr;0),
+        Latin Extended substitution (ogonek, cedilla, Vietnamese horn &mdash; Chrome-verified),
+        and character repetition.<br><br>
+        <strong>Evidence sources:</strong> RaccoonO365 campaign (rnicrosoft.com, 5K+ victims across 94 countries).
     </div>
 
     <script>
-    // ── UTS #39 Confusables Engine ──────────────────────────────────────
-    // Fetches Unicode confusables.txt and implements the skeleton algorithm
-    // per UTS #39 Section 4: NFD → map through confusables → NFD
-    // Source: https://www.unicode.org/Public/security/latest/confusables.txt
-
-    // Build Map from the script-loaded CONFUSABLE_MAP_DATA object
+    // ── Confusables Engine ─────────────────────────────────────────────
     const confusableMap = new Map();
     const confusablesReady = typeof CONFUSABLE_MAP_DATA !== 'undefined';
-    const confusablesError = confusablesReady ? null : 'confusables.js failed to load';
     if (confusablesReady) {
         for (const [k, v] of Object.entries(CONFUSABLE_MAP_DATA)) {
             confusableMap.set(Number(k), v);
         }
     }
 
-    // Supplement: small capitals absent from confusables.txt but
-    // visually confusable with ASCII at URL-bar font sizes.
-    // These are gaps where the char is a target in the table but
-    // has no forward mapping of its own.
     const SMALL_CAP_SUPPLEMENTS = {
-        0x1D00: [0x0061], // ᴀ → a
-        0x1D05: [0x0064], // ᴅ → d
-        0x1D07: [0x0065], // ᴇ → e
-        0x1D0A: [0x006A], // ᴊ → j
-        0x1D0B: [0x006B], // ᴋ → k (table maps to ĸ kra, not ASCII k)
-        0x1D0D: [0x006D], // ᴍ → m (table maps to ʍ turned w, not ASCII m)
-        0x1D18: [0x0070], // ᴘ → p
-        0x1D1B: [0x0074], // ᴛ → t
+        0x1D00: [0x0061], 0x1D05: [0x0064], 0x1D07: [0x0065], 0x1D0A: [0x006A],
+        0x1D0B: [0x006B], 0x1D0D: [0x006D], 0x1D18: [0x0070], 0x1D1B: [0x0074],
     };
     for (const [k, v] of Object.entries(SMALL_CAP_SUPPLEMENTS)) {
-        if (!confusableMap.has(Number(k))) {
-            confusableMap.set(Number(k), v);
-        }
+        if (!confusableMap.has(Number(k))) confusableMap.set(Number(k), v);
     }
 
-    // UTS #39 skeleton: NFD → map each cp through confusables → NFD
     function skeleton(str) {
-        if (!confusableMap) return null;
-        // Step 1: NFD
+        if (!confusablesReady) return null;
         let nfd = str.normalize('NFD');
-        // Step 2: map each code point through confusables
         let mapped = '';
         for (const ch of nfd) {
             const cp = ch.codePointAt(0);
             const replacement = confusableMap.get(cp);
-            if (replacement) {
-                mapped += String.fromCodePoint(...replacement);
-            } else {
-                mapped += ch;
-            }
+            mapped += replacement ? String.fromCodePoint(...replacement) : ch;
         }
-        // Step 3: NFD again
         return mapped.normalize('NFD');
     }
 
-    // Get confusable mapping for a single character (for display in table)
     function getConfusableTarget(cp) {
-        if (!confusableMap) return null;
-        return confusableMap.get(cp) || null;
+        return confusablesReady ? (confusableMap.get(cp) || null) : null;
     }
 
     function isAllASCII(str) {
+        for (const ch of str) { if (ch.codePointAt(0) > 0x007F) return false; }
+        return true;
+    }
+
+    const chromeIDNReady = typeof isChromeIDNAllowed === 'function';
+    const topDomainsReady = typeof CHROME_TOP_DOMAIN_HASHES !== 'undefined' && typeof fnv1a32 === 'function';
+
+    function skeletonStripped(str) {
+        const skel = skeleton(str);
+        if (!skel) return str;
+        return skel.normalize('NFD').replace(/\p{Mn}/gu, '');
+    }
+
+
+    function matchesTopDomain(label) {
+        if (!topDomainsReady || !confusablesReady) return false;
+        const skel = skeletonStripped(label);
+        return CHROME_TOP_DOMAIN_HASHES.has(fnv1a32(skel));
+    }
+
+    function isIDNDisplaySafe(str) {
+        if (!chromeIDNReady) return true;
         for (const ch of str) {
             const cp = ch.codePointAt(0);
-            if (cp > 0x007F) return false;
+            if (cp <= 0x007F) continue;
+            if (!isChromeIDNAllowed(cp)) return false;
         }
         return true;
     }
 
-    // Characters that browsers render as punycode due to visual similarity to ASCII.
-    // Consonants with dot below/above — vowels with dots are common in real
-    // languages (Vietnamese, Lithuanian) so browsers allow those.
-    const PUNYCODE_FORCED = new Set([
-        // Dot below — consonants
-        0x1E05, // ḅ  b + dot below
-        0x1E0D, // ḍ  d + dot below
-        0x1E25, // ḥ  h + dot below
-        0x1E33, // ḳ  k + dot below
-        0x1E37, // ḷ  l + dot below
-        0x1E43, // ṃ  m + dot below
-        0x1E47, // ṇ  n + dot below
-        0x1E5B, // ṛ  r + dot below
-        0x1E63, // ṣ  s + dot below
-        0x1E6D, // ṭ  t + dot below
-        0x1E7F, // ṿ  v + dot below
-        0x1E89, // ẉ  w + dot below
-        0x1E93, // ẓ  z + dot below
-        // Dot above — consonants
-        0x1E03, // ḃ  b + dot above
-        0x1E0B, // ḋ  d + dot above
-        0x1E1F, // ḟ  f + dot above
-        0x1E23, // ḣ  h + dot above
-        0x1E41, // ṁ  m + dot above
-        0x1E45, // ṅ  n + dot above
-        0x1E57, // ṗ  p + dot above
-        0x1E59, // ṙ  r + dot above
-        0x1E61, // ṡ  s + dot above
-        0x1E6B, // ṫ  t + dot above
-        0x1E87, // ẇ  w + dot above
-        0x1E8B, // ẋ  x + dot above
-    ]);
 
-    function hasPunycodeForced(str) {
-        for (const ch of str) {
-            if (PUNYCODE_FORCED.has(ch.codePointAt(0))) return true;
-        }
-        return false;
-    }
-
-    // ── IANA .com Latin IDN table (com_latn_1.2.txt) — exact code points
-    // Source: https://www.iana.org/domains/idn-tables/tables/com_latn_1.2.txt
+    // ── ALLOWED Set (Verisign .com Latin IDN) ──────────────────────────
     const ALLOWED = new Set([
-        // Basic Latin a-z
         ...Array.from({length: 26}, (_, i) => 0x0061 + i),
-        // Digits 0-9 and hyphen
         ...Array.from({length: 10}, (_, i) => 0x0030 + i),
         0x002D,
-        // Latin-1 Supplement: U+00DF-U+00F6, U+00F8-U+00FF
         ...Array.from({length: 0x00F6 - 0x00DF + 1}, (_, i) => 0x00DF + i),
         ...Array.from({length: 0x00FF - 0x00F8 + 1}, (_, i) => 0x00F8 + i),
-        // Latin Extended-A (specific lowercase code points)
-        0x0101, 0x0103, 0x0105, 0x0107, 0x0109, 0x010B, 0x010D, 0x010F,
-        0x0111, 0x0113, 0x0115, 0x0117, 0x0119, 0x011B, 0x011D, 0x011F,
-        0x0121, 0x0123, 0x0125, 0x0127, 0x0129, 0x012B, 0x012D, 0x012F,
-        0x0131, 0x0135, 0x0137, 0x0138, 0x013A, 0x013C, 0x013E,
-        0x0142, 0x0144, 0x0146, 0x0148, 0x014B, 0x014D, 0x014F,
-        0x0151, 0x0153, 0x0155, 0x0157, 0x0159, 0x015B, 0x015D, 0x015F,
-        0x0161, 0x0163, 0x0165, 0x0167, 0x0169, 0x016B, 0x016D, 0x016F,
-        0x0171, 0x0173, 0x0175, 0x0177, 0x017A, 0x017C, 0x017E,
-        // Latin Extended-B (specific code points and sub-ranges)
-        ...Array.from({length: 0x01AF - 0x0180 + 1}, (_, i) => 0x0180 + i), // U+0180-U+01AF
-        0x01B0, 0x01B4, 0x01B6, 0x01B9, 0x01BA, 0x01BB,
-        ...Array.from({length: 0x01C3 - 0x01BD + 1}, (_, i) => 0x01BD + i), // U+01BD-U+01C3
-        0x01CE, 0x01D0, 0x01D2, 0x01D4, 0x01D6, 0x01D8, 0x01DA,
-        ...Array.from({length: 0x01FF - 0x01DC + 1}, (_, i) => 0x01DC + i), // U+01DC-U+01FF
-        ...Array.from({length: 0x024F - 0x0200 + 1}, (_, i) => 0x0200 + i), // U+0200-U+024F
-        // IPA Extensions U+0250-U+02AF
+        0x0101,0x0103,0x0105,0x0107,0x0109,0x010B,0x010D,0x010F,
+        0x0111,0x0113,0x0115,0x0117,0x0119,0x011B,0x011D,0x011F,
+        0x0121,0x0123,0x0125,0x0127,0x0129,0x012B,0x012D,0x012F,
+        0x0131,0x0135,0x0137,0x0138,0x013A,0x013C,0x013E,
+        0x0142,0x0144,0x0146,0x0148,0x014B,0x014D,0x014F,
+        0x0151,0x0153,0x0155,0x0157,0x0159,0x015B,0x015D,0x015F,
+        0x0161,0x0163,0x0165,0x0167,0x0169,0x016B,0x016D,0x016F,
+        0x0171,0x0173,0x0175,0x0177,0x017A,0x017C,0x017E,
+        ...Array.from({length: 0x01AF - 0x0180 + 1}, (_, i) => 0x0180 + i),
+        0x01B0,0x01B4,0x01B6,0x01B9,0x01BA,0x01BB,
+        ...Array.from({length: 0x01C3 - 0x01BD + 1}, (_, i) => 0x01BD + i),
+        0x01CE,0x01D0,0x01D2,0x01D4,0x01D6,0x01D8,0x01DA,
+        ...Array.from({length: 0x01FF - 0x01DC + 1}, (_, i) => 0x01DC + i),
+        ...Array.from({length: 0x024F - 0x0200 + 1}, (_, i) => 0x0200 + i),
         ...Array.from({length: 0x02AF - 0x0250 + 1}, (_, i) => 0x0250 + i),
-        // Phonetic Extensions
         ...Array.from({length: 0x1D25 - 0x1D00 + 1}, (_, i) => 0x1D00 + i),
-        0x1D2F, 0x1D3B, 0x1D4E,
+        0x1D2F,0x1D3B,0x1D4E,
         ...Array.from({length: 0x1D7F - 0x1D6B + 1}, (_, i) => 0x1D6B + i),
         ...Array.from({length: 0x1D9A - 0x1D80 + 1}, (_, i) => 0x1D80 + i),
-        // Latin Extended Additional U+1E01-U+1EFF
         ...Array.from({length: 0x1EFF - 0x1E01 + 1}, (_, i) => 0x1E01 + i),
-        // Misc Latin
-        0x214E, 0x2184,
-        // Latin Extended-C U+2C61-U+2C7B
+        0x214E,0x2184,
         ...Array.from({length: 0x2C7B - 0x2C61 + 1}, (_, i) => 0x2C61 + i),
-        // Latin Extended-D U+A723-U+A78C, U+A78E-U+A7A9, U+A7FA-U+A7FF
         ...Array.from({length: 0xA78C - 0xA723 + 1}, (_, i) => 0xA723 + i),
         ...Array.from({length: 0xA7A9 - 0xA78E + 1}, (_, i) => 0xA78E + i),
         ...Array.from({length: 0xA7FF - 0xA7FA + 1}, (_, i) => 0xA7FA + i),
     ]);
 
-    function isAllowed(cp) {
-        return ALLOWED.has(cp);
+    // ── Utilities ──────────────────────────────────────────────────────
+    function escapeHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
     }
 
-    // Simple punycode encoder for display
     function toPunycode(input) {
         try {
             const url = new URL('http://' + input + '.com');
-            const encoded = url.hostname;
-            if (encoded !== input.toLowerCase() + '.com') {
-                return encoded;
-            }
+            const enc = url.hostname;
+            if (enc !== input.toLowerCase() + '.com') return enc;
         } catch(e) {}
         return null;
     }
 
-    function checkDomain() {
-        const raw = document.getElementById('domainInput').value.trim();
-        const label = raw.replace(/\..*$/, '').toLowerCase();
-        const resultDiv = document.getElementById('result');
+    function getBlock(cp) {
+        if (cp <= 0x007F) return null;
+        if (cp <= 0x00FF) return 'Latin-1 Supp';
+        if (cp <= 0x017F) return 'Latin Ext-A';
+        if (cp <= 0x024F) return 'Latin Ext-B';
+        if (cp <= 0x02AF) return 'IPA Ext';
+        if (cp >= 0x1D00 && cp <= 0x1D7F) return 'Phonetic Ext';
+        if (cp >= 0x1D80 && cp <= 0x1DBF) return 'Phonetic Ext Supp';
+        if (cp >= 0x1E00 && cp <= 0x1EFF) return 'Latin Ext Add';
+        if (cp >= 0x2C60 && cp <= 0x2C7F) return 'Latin Ext-C';
+        if (cp >= 0xA720 && cp <= 0xA7FF) return 'Latin Ext-D';
+        if (cp >= 0x0400 && cp <= 0x04FF) return 'Cyrillic';
+        if (cp >= 0x0500 && cp <= 0x052F) return 'Cyrillic Supp';
+        return null;
+    }
 
-        if (!label) {
-            resultDiv.innerHTML = '';
-            return;
+    function scoreClass(s) {
+        if (s >= 80) return 'score-critical';
+        if (s >= 60) return 'score-high';
+        if (s >= 40) return 'score-medium';
+        return 'score-low';
+    }
+
+    // ── ASCII Lookalike Data ───────────────────────────────────────────
+    const EXPAND_MAP = [
+        { from: 'm', to: 'rn', score: 95, evidence: 'rnicrosoft.com — RaccoonO365 campaign, 5K+ victims across 94 countries' },
+        { from: 'w', to: 'vv', score: 55 },
+        { from: 'n', to: 'ri', score: 55 },
+        { from: 'd', to: 'cl', score: 30 },
+    ];
+
+    const CONTRACT_MAP = [
+        { from: 'rn', to: 'm', score: 92, evidence: 'rnicrosoft.com — RaccoonO365 campaign' },
+        { from: 'vv', to: 'w', score: 55 },
+        { from: 'ri', to: 'n', score: 55 },
+        { from: 'cl', to: 'd', score: 30 },
+    ];
+
+    const CHAR_SWAPS = new Map([
+        ['l', [{ r: '1', s: 85, note: 'Classic l/1 confusion in sans-serif' }]],
+        ['1', [{ r: 'l', s: 85 }]],
+        ['o', [{ r: '0', s: 60, note: 'Classic o/0 confusion' }]],
+        ['0', [{ r: 'o', s: 60 }]],
+        ['i', [{ r: '1', s: 40 }]],
+    ]);
+
+    // ── Latin Extended Lookalikes (Chrome-verified) ───────────────────
+    const LATIN_EXT_SUBS = new Map([
+        ['a', [
+            { r: 'ą', s: 80, note: 'ogonek' },
+            { r: 'ă', s: 60, note: 'breve' },
+        ]],
+        ['b', [{ r: 'ɓ', s: 55, note: 'IPA hook' }]],
+        ['c', [{ r: 'ç', s: 85, note: 'cedilla' }]],
+        ['d', [{ r: 'đ', s: 70, note: 'stroke' }]],
+        ['e', [{ r: 'ę', s: 60, note: 'ogonek' }]],
+        ['f', [{ r: 'ƒ', s: 20, note: 'hook' }]],
+        ['g', [{ r: 'ģ', s: 50, note: 'cedilla' }]],
+        ['h', [{ r: 'ħ', s: 50, note: 'stroke' }]],
+        ['i', [{ r: 'į', s: 60, note: 'ogonek' }]],
+        ['j', [{ r: 'ĵ', s: 60, note: 'circumflex' }]],
+        ['k', [{ r: 'ķ', s: 50, note: 'cedilla' }]],
+        ['l', [{ r: 'ļ', s: 50, note: 'cedilla' }]],
+        ['n', [{ r: 'ņ', s: 50, note: 'cedilla' }]],
+        ['o', [{ r: 'ơ', s: 85, note: 'horn' }]],
+        ['r', [{ r: 'ɍ', s: 70, note: 'stroke' }]],
+        ['s', [{ r: 'ş', s: 75, note: 'cedilla' }]],
+        ['t', [
+            { r: 'ț', s: 50, note: 'comma-below' },
+            { r: 'ŧ', s: 60, note: 'stroke' },
+        ]],
+        ['u', [
+            { r: 'ư', s: 85, note: 'horn' },
+            { r: 'ʋ', s: 70, note: 'IPA hook' },
+            { r: 'ų', s: 60, note: 'ogonek' },
+        ]],
+        ['w', [{ r: 'ŵ', s: 50, note: 'circumflex' }]],
+        ['y', [{ r: 'y̨', s: 80, note: 'ogonek' }]],
+        ['z', [{ r: 'ż', s: 50, note: 'dot above' }]],
+    ]);
+
+
+    // ── Generators ─────────────────────────────────────────────────────
+    function genExpansions(label, out) {
+        const chars = [...label];
+        for (let i = 0; i < chars.length; i++) {
+            for (const entry of EXPAND_MAP) {
+                if (chars[i] !== entry.from) continue;
+                const before = chars.slice(0, i);
+                const after = chars.slice(i + 1);
+                const replChars = [...entry.to];
+                const domain = [...before, ...replChars, ...after].join('');
+                out.push({
+                    domain, score: entry.score,
+                    technique: 'ASCII Lookalike', techClass: 'tech-ascii',
+                    detail: `'${entry.from}' → '${entry.to}'`,
+                    highlights: Array.from({length: replChars.length}, (_, j) => before.length + j),
+                    evidence: entry.evidence,
+                });
+            }
         }
+    }
+
+    function genContractions(label, out) {
+        for (const entry of CONTRACT_MAP) {
+            let idx = label.indexOf(entry.from);
+            while (idx !== -1) {
+                const domain = label.substring(0, idx) + entry.to + label.substring(idx + entry.from.length);
+                out.push({
+                    domain, score: entry.score,
+                    technique: 'ASCII Lookalike', techClass: 'tech-ascii',
+                    detail: `'${entry.from}' → '${entry.to}'`,
+                    highlights: [idx],
+                    evidence: entry.evidence,
+                });
+                idx = label.indexOf(entry.from, idx + 1);
+            }
+        }
+    }
+
+    function genCharSwaps(label, out) {
+        const chars = [...label];
+        for (let i = 0; i < chars.length; i++) {
+            const swaps = CHAR_SWAPS.get(chars[i]);
+            if (!swaps) continue;
+            for (const { r, s, note } of swaps) {
+                const nc = [...chars]; nc[i] = r;
+                out.push({
+                    domain: nc.join(''), score: s,
+                    technique: 'Char Swap', techClass: 'tech-swap',
+                    detail: `'${chars[i]}' → '${r}'`,
+                    highlights: [i],
+                    evidence: note,
+                });
+            }
+        }
+    }
+
+    function genLatinExt(label, out) {
+        const chars = [...label];
+        for (let i = 0; i < chars.length; i++) {
+            const subs = LATIN_EXT_SUBS.get(chars[i]);
+            if (!subs) continue;
+            for (const { r, s, note } of subs) {
+                const nc = [...chars]; nc[i] = r;
+                out.push({
+                    domain: nc.join(''), score: s,
+                    technique: 'Latin Extended', techClass: 'tech-latin-ext',
+                    detail: `'${chars[i]}' → '${r}' (${note})`,
+                    highlights: [i],
+                });
+            }
+        }
+    }
+
+    const REPEAT_CHARS = new Set(['l', 't', 'i']);
+
+    function genRepetitions(label, out) {
+        const chars = [...label];
+        for (let i = 0; i < chars.length; i++) {
+            const ch = chars[i];
+            if (!REPEAT_CHARS.has(ch)) continue;
+            const adjSame = (i > 0 && chars[i-1] === ch) || (i < chars.length-1 && chars[i+1] === ch);
+            const newChars = [...chars.slice(0, i+1), ch, ...chars.slice(i+1)];
+            out.push({
+                domain: newChars.join(''), score: adjSame ? 58 : 42,
+                technique: 'Repetition', techClass: 'tech-repeat',
+                detail: `doubled '${ch}'`,
+                highlights: [i + 1],
+                evidence: adjSame ? 'Extends existing repeated sequence — harder to spot' : undefined,
+            });
+        }
+    }
+
+    // ── Main Generation ────────────────────────────────────────────────
+    let currentSuggestions = [];
+    let showingAll = false;
+    const INITIAL_SHOW = 25;
+
+    function generateAll(label) {
+        const out = [];
+        genExpansions(label, out);
+        genContractions(label, out);
+        genCharSwaps(label, out);
+        genLatinExt(label, out);
+        genRepetitions(label, out);
+
+        const seen = new Set();
+        seen.add(label);
+        const unique = out.filter(s => {
+            if (seen.has(s.domain)) return false;
+            if (!isIDNDisplaySafe(s.domain)) return false;
+            seen.add(s.domain);
+            return true;
+        });
+        unique.sort((a, b) => b.score - a.score || a.domain.localeCompare(b.domain));
+        return unique;
+    }
+
+    // ── Rendering ──────────────────────────────────────────────────────
+    function renderDomainHL(domain, highlights) {
+        const hl = new Set(highlights || []);
+        const chars = [...domain];
+        let html = '';
+        for (let i = 0; i < chars.length; i++) {
+            html += hl.has(i) ? `<span class="hl">${escapeHtml(chars[i])}</span>` : escapeHtml(chars[i]);
+        }
+        return html;
+    }
+
+    function renderAnalysis(label) {
+        const div = document.getElementById('analysis');
+        if (!label) { div.innerHTML = ''; return; }
 
         const chars = [...label];
-        let allAllowed = true;
-        let hasNonASCII = false;
+        let allAllowed = true, hasNonASCII = false;
         const charResults = [];
 
         for (const ch of chars) {
             const cp = ch.codePointAt(0);
-            const allowed = isAllowed(cp);
-
+            const allowed = ALLOWED.has(cp);
             if (!allowed) allAllowed = false;
             if (cp > 0x007A || (cp > 0x0039 && cp < 0x0061 && cp !== 0x002D)) hasNonASCII = true;
-
             charResults.push({ ch, cp, allowed });
         }
 
-        let html = '';
-
-        // Punycode display
+        let html = '<div class="section-title">Domain Analysis</div>';
         const puny = toPunycode(label);
-        if (puny) {
-            html += `<div class="punycode">Punycode: ${puny}</div>`;
-        }
+        const displaySafe = isIDNDisplaySafe(label);
 
-        // Verdict (registration)
         if (!allAllowed) {
             html += `<div class="verdict blocked">BLOCKED — Contains characters outside Verisign's Latin IDN table</div>`;
         } else if (hasNonASCII) {
@@ -360,80 +503,114 @@
             html += `<div class="verdict allowed">ALLOWED — Standard ASCII domain label</div>`;
         }
 
-        // Homograph warning — skeleton is pure ASCII, or contains diacritics that browsers force to punycode
-        if (allAllowed && hasNonASCII) {
-            const skel = confusablesReady ? skeleton(label) : null;
-            if ((skel && isAllASCII(skel)) || hasPunycodeForced(label)) {
-                html += `<div class="browser-predict puny-display">`;
-                html += `<span class="bp-label">Homograph Warning:</span> Browsers will display this as Punycode (${escapeHtml(puny || 'xn--...')})`;
-                html += `<div class="detail">Every non-ASCII character has an ASCII lookalike — the label is visually indistinguishable from <span class="skeleton">${escapeHtml(skel || label)}</span> (UTS #39 skeleton)</div>`;
-                html += `</div>`;
+        if (puny && !displaySafe) {
+            html += `<div class="punycode">Punycode: ${puny}</div>`;
+            const skel = skeleton(label);
+            html += `<div class="browser-predict puny-display">`;
+            html += `<span class="bp-label">Homograph Warning:</span> Browsers will display this as Punycode (${escapeHtml(puny)})`;
+            if (skel && isAllASCII(skel)) {
+                html += `<div class="detail">Visually indistinguishable from <span class="skeleton">${escapeHtml(skel)}</span> (UTS #39 skeleton)</div>`;
             }
+            html += `</div>`;
+        } else if (hasNonASCII && displaySafe && matchesTopDomain(label)) {
+            html += `<div class="browser-predict top-domain-warn">`;
+            html += `<span class="bp-label">Top Domain Warning:</span> Characters are valid, but Chrome will force Punycode because this matches a `;
+            html += `<a href="https://chromium.googlesource.com/chromium/src/+/main/components/url_formatter/spoof_checks/top_domains/domains.list" target="_blank" style="color:#fbbf24">top domain skeleton</a>.`;
+            html += `<div class="detail">Chrome computes a skeleton of this domain and matches it against ~8,000 known domains. Firefox may still display it natively.</div>`;
+            html += `</div>`;
         }
 
-        // Character breakdown
-        html += `<table class="char-table">
-            <tr><th>Char</th><th>Code Point</th><th>Confusable</th><th>Status</th></tr>`;
-
+        html += `<table class="char-table"><tr><th>Char</th><th>Code Point</th><th>Confusable</th><th>Status</th></tr>`;
         for (const r of charResults) {
-            let rowClass = 'ok';
-            let status = 'Allowed';
-
-            if (!r.allowed) {
-                rowClass = 'bad';
-                status = 'Blocked';
-            }
-
-            // Confusable mapping column
+            let rowClass = r.allowed ? 'ok' : 'bad';
             let confusableCell = '';
             if (confusablesReady) {
                 const tgt = getConfusableTarget(r.cp);
                 if (tgt) {
-                    const tgtStr = String.fromCodePoint(...tgt);
-                    const tgtHex = tgt.map(c => 'U+' + c.toString(16).toUpperCase().padStart(4, '0')).join(' ');
-                    confusableCell = `<span class="confusable-map">${escapeHtml(r.ch)} → ${escapeHtml(tgtStr)}</span>`;
+                    confusableCell = `<span class="confusable-map">${escapeHtml(r.ch)} → ${escapeHtml(String.fromCodePoint(...tgt))}</span>`;
                     if (r.allowed && rowClass === 'ok') rowClass = 'confusable';
                 }
             }
-
             const block = getBlock(r.cp);
             const cpStr = `U+${r.cp.toString(16).toUpperCase().padStart(4, '0')}`;
-            const cpDisplay = block ? `${cpStr} <span class="block-tag">${block}</span>` : cpStr;
+            const cpDisp = block ? `${cpStr} <span class="block-tag">${block}</span>` : cpStr;
+            html += `<tr class="${rowClass}"><td class="char-display">${escapeHtml(r.ch)}</td><td>${cpDisp}</td><td>${confusableCell}</td><td>${r.allowed ? 'Allowed' : 'Blocked'}</td></tr>`;
+        }
+        html += '</table>';
+        div.innerHTML = html;
+    }
 
-            html += `<tr class="${rowClass}">
-                <td class="char-display">${escapeHtml(r.ch)}</td>
-                <td>${cpDisplay}</td>
-                <td>${confusableCell}</td>
-                <td>${status}</td>
-            </tr>`;
+    function renderLookalikes(suggestions) {
+        const div = document.getElementById('lookalikes');
+        if (!suggestions || !suggestions.length) { div.innerHTML = ''; return; }
+
+        currentSuggestions = suggestions;
+        const toShow = showingAll ? suggestions : suggestions.slice(0, INITIAL_SHOW);
+        const remaining = suggestions.length - INITIAL_SHOW;
+
+        let html = `<div class="section-title">Lookalike Domains <span class="count">(${suggestions.length} found)</span></div>`;
+        html += `<table class="lookalike-table"><tr><th>Score</th><th>Domain</th><th>Technique</th><th>Detail</th></tr>`;
+
+        for (let i = 0; i < toShow.length; i++) {
+            const s = toShow[i];
+            const sc = scoreClass(s.score);
+            const domainHtml = renderDomainHL(s.domain, s.highlights);
+            let detailHtml = `<span class="detail-text">${escapeHtml(s.detail)}</span>`;
+            if (s.evidence) detailHtml += `<span class="evidence">${escapeHtml(s.evidence)}</span>`;
+
+            html += `<tr>`;
+            html += `<td><span class="score-pill ${sc}">${s.score}</span></td>`;
+            html += `<td class="domain-cell" onclick="inspectDomain(${i})">${domainHtml}</td>`;
+            html += `<td><span class="tech-pill ${s.techClass}">${escapeHtml(s.technique)}</span></td>`;
+            html += `<td>${detailHtml}</td>`;
+            html += `</tr>`;
+        }
+        html += '</table>';
+
+        if (!showingAll && remaining > 0) {
+            html += `<button class="show-more-btn" onclick="toggleShowAll()">Show all ${suggestions.length} suggestions</button>`;
+        } else if (showingAll && suggestions.length > INITIAL_SHOW) {
+            html += `<button class="show-more-btn" onclick="toggleShowAll()">Show top ${INITIAL_SHOW} only</button>`;
         }
 
-        html += '</table>';
-        resultDiv.innerHTML = html;
+        div.innerHTML = html;
     }
 
-    function getBlock(cp) {
-        if (cp >= 0x0000 && cp <= 0x007F) return null; // Basic Latin — no tag needed
-        if (cp >= 0x0080 && cp <= 0x00FF) return 'Latin-1 Supp';
-        if (cp >= 0x0100 && cp <= 0x017F) return 'Latin Ext-A';
-        if (cp >= 0x0180 && cp <= 0x024F) return 'Latin Ext-B';
-        if (cp >= 0x0250 && cp <= 0x02AF) return 'IPA Ext';
-        if (cp >= 0x1D00 && cp <= 0x1D7F) return 'Phonetic Ext';
-        if (cp >= 0x1D80 && cp <= 0x1DBF) return 'Phonetic Ext Supp';
-        if (cp >= 0x1E00 && cp <= 0x1EFF) return 'Latin Ext Add';
-        if (cp >= 0x2C60 && cp <= 0x2C7F) return 'Latin Ext-C';
-        if (cp >= 0xA720 && cp <= 0xA7FF) return 'Latin Ext-D';
-        if (cp >= 0xAB30 && cp <= 0xAB6F) return 'Latin Ext-E';
-        return null;
+    function inspectDomain(idx) {
+        const s = currentSuggestions[idx];
+        if (!s) return;
+        document.getElementById('domainInput').value = s.domain;
+        analyze();
     }
 
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+    function toggleShowAll() {
+        showingAll = !showingAll;
+        renderLookalikes(currentSuggestions);
     }
 
-    document.getElementById('domainInput').addEventListener('input', checkDomain);
+    // ── Entry Point ────────────────────────────────────────────────────
+    function analyze() {
+        const raw = document.getElementById('domainInput').value.trim();
+        const label = raw.replace(/\..*$/, '').toLowerCase();
+        showingAll = false;
+
+        renderAnalysis(label);
+        if (label) {
+            const suggestions = generateAll(label);
+            renderLookalikes(suggestions);
+        } else {
+            renderLookalikes([]);
+        }
+    }
+
+    let debounceTimer;
+    document.getElementById('domainInput').addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(analyze, 300);
+    });
+    document.getElementById('domainInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') { clearTimeout(debounceTimer); analyze(); }
+    });
     </script>
 </body>
 </html>
