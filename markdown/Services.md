@@ -294,6 +294,10 @@ Admin RCE script available here: [https://github.com/0ang3el/aem-hacker/blob/mas
 - Find version info by performing a GET request on `/login` and searching for `"latestVersion"`
 - Other tactics: [https://hackviser.com/tactics/pentesting/services/grafana](https://hackviser.com/tactics/pentesting/services/grafana)
 
+## ArcGIS
+- Seems the most common attack path here is resetting an admin's account via weak security questions
+- Then, as admin, the Geoprocessing Service can be abused to get RCE, per [this repo](https://github.com/ryanpohlner/arcgis-web-shell)
+
 ## Miscellaneous
 - Many of the below have plenty of CVEs, just look em up
 - Nagios - default creds of `nagiosadmin:PASSW0RD`
