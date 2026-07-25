@@ -113,3 +113,13 @@ This vulnerability has been patched in the latest versions, with the game no lon
 ## July 25th Update
 
 Per [this article](https://medium.com/@FeintBE/workshop-map-for-meccha-chameleon-is-a-malware-dropper-full-breakdown-d1ac29565265), a method of using Blueprints for arbitrary file writes was discovered. This bypasses the developer's fix of blacklisting uploaded filetypes. After investigating it myself, I was able to recreate the vulnerability, so I got in contact with the devs and helped get the most recent patch out. This new patch prevents arbitrary `LaunchURL` files from being launched, though I'd still say Epic needs to set this as a default.  
+
+From checking out the batch file being used in the campaign, the below message eventually replaced the original payload: 
+
+![A message from the malware author](./images/meccha_chameleon/message_from_malware_author.png)
+
+This sort of mentality is understandable. Doing security research like this is often a thankless job, protecting people who don't know what RCE is and reaching out to devs that barely respond. It definitely takes some serious tenacity. I had to hop between multiple Discord servers, fire cold messages on Twitter, auto-translate everything I sent into Japanese, and pray that any message that did make it through was read.
+
+But their mindset is defeatist--getting in contact is possible and does happen regularly, as demonstrated here. The tenacity is important; helping solo indie devs who don't often have this insight adds a lot to the gaming community. Imagine how much time went into this game and the many less-successful games before it (which, for these devs, is quite a few). And imagine from the developer's perspective how much could be (and was) lost by a successful malware campaign, especially for a game this big. 
+
+As for why the `LaunchURL` misconfig wasn't fixed alongside the arbitrary file mounting, I did include it in my initial recommendations to the developers. I believe a bit of a language barrier and an overwhelming amount of other work led to the devs only fixing the first half of the exploit. At the time, blocking arbitrary file mounting did end up killing the exploit chain, although `LaunchURL` could still supply arbitrary schemas. I do wish that I was able to prove out the full attack path after the initial patch, but I'm glad that this exploit was also quickly shut down after being publicized. 
