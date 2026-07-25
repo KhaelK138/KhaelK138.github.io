@@ -110,6 +110,6 @@ This sort of attack seems to be somewhat prevalent within these types of games. 
 
 This vulnerability has been patched in the latest versions, with the game no longer mounting arbitrary files to disk and only accepting files with whitelisted extensions. I've also reached out to Epic Games to hopefully establish a default policy in UE5 that prevents `LaunchURL` calls from opening anything other than safe HTTP/HTTPS links, though I've yet to hear back. If game developers would like maps to be able to launch other schemes, they would ideally have to manually add them to an allowlist. Secure defaults, folks!
 
-## July 24th Update
+## July 25th Update
 
-Per [this article](https://medium.com/@FeintBE/workshop-map-for-meccha-chameleon-is-a-malware-dropper-full-breakdown-d1ac29565265), it looks like someone found a method of using Blueprints for arbitrary file writes. This bypasses the developer's fix of blacklisting uploaded filetypes. After investigating it myself, I was able to recreate the vulnerability, and thus as of 7/24/2026 the game remains vulnerable to the attack. Please be wary of downloading custom maps, and hopefully the devs will fix the vulnerability soon.
+Per [this article](https://medium.com/@FeintBE/workshop-map-for-meccha-chameleon-is-a-malware-dropper-full-breakdown-d1ac29565265), a method of using Blueprints for arbitrary file writes was discovered. This bypasses the developer's fix of blacklisting uploaded filetypes. After investigating it myself, I was able to recreate the vulnerability, so I got in contact with the devs and helped get the most recent patch out. This new patch prevents arbitrary `LaunchURL` files from being launched, though I'd still say Epic needs to set this as a default.  
