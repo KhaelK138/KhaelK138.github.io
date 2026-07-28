@@ -114,7 +114,7 @@ This vulnerability has been patched in the latest versions, with the game no lon
 
 Per [this article](https://medium.com/@FeintBE/workshop-map-for-meccha-chameleon-is-a-malware-dropper-full-breakdown-d1ac29565265), a method of using Blueprints for arbitrary file writes was discovered. This bypasses the developer's fix of blacklisting uploaded filetypes. After investigating it myself, I was able to recreate the vulnerability, so I got in contact with the devs and helped get the most recent patch out. This new patch prevents arbitrary `LaunchURL` files from being launched, though I'd still say Epic needs to set this as a default.  
 
-From checking out the batch file being used in the campaign, the below message eventually replaced the original payload: 
+From checking out the batch file being used in the campaign (thank you [@t0asts](https://x.com/t0asts)), the below message eventually replaced the original payload: 
 
 ![A message from the malware author](./images/meccha_chameleon/message_from_malware_author.png)
 
