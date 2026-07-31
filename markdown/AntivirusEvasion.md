@@ -83,6 +83,14 @@ pagetitle: Antivirus Evasion
 - DLL injection without touching disk
     - Share the DLL remotely with `sudo impacket-smbserver share ./`
 
+## Tools
+- [WASMForge](https://github.com/praetorian-inc/wasmforge)
+  - Compiles Go and C# programs into WASM-sandboxed native executables, which are very difficult to fingerprint
+- [EK47](https://gitlab.com/KevinJClark/ek47)
+  - Environmental keying payload loader, so payloads only execute on specific systems and are encrypted otherwise
+- [Heavener](https://blog.otterpwn.com/projects/heavener)
+  - Revved a lot of EDRs, made their detections selectable and testable. Worth testing very important payloads on
+
 ## Writing different types of Malware
 
 Check out [https://github.com/captain-woof/malware-study/tree/main](https://github.com/captain-woof/malware-study/tree/main), seems to be a really good resource of someone's exploration into different malware types
