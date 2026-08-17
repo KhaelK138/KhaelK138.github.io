@@ -3,22 +3,47 @@ layout: blank
 pagetitle: Kiosk Breakouts
 ---
 
-Amazing resource: [https://www.pentestpartners.com/security-blog/breaking-out-of-citrix-and-other-restricted-desktop-environments/#dialogboxes](https://www.pentestpartners.com/security-blog/breaking-out-of-citrix-and-other-restricted-desktop-environments/#dialogboxes)
-
 Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk-breakout/blob/main/breakout_payload.txt](https://github.com/KhaelK138/badusb-windows-kiosk-breakout/blob/main/breakout_payload.txt)
 
+Extremely extensive playbook for kiosk escapes and on-box domain enumeration: [https://github.com/CroodSolutions/CTRL-ESC-HOST](https://github.com/CroodSolutions/CTRL-ESC-HOST)
+
 ## Windows
+
+**Getting into Explorer**
+- I won't cover many keyboard shortcuts since they're in badusb script
+- Many ways from Chrome open it
+  - Settings > Downloads > Change Location
+  - Downloads > Click folder icon of any item
+  - Dev tools > Console > `showOpenFilePicker();`
+    - Or just click this button: <button onclick="showOpenFilePicker()">Open File Picker</button>
+  - Accessibility > Caption Preferences > Windows Settings
+- MS Office can easily get to file explorer, so direct launch them with `CTRL`+`ALT`+`SHIFT`+`WIN` and:
+  - Word: W
+  - Excel: X
+  - Powerpoint: P
+  - Outlook: O
+  - Teams (after reboot): F11
+- Magnifier: Opens settings
+- Settings: 
+  - System > Display > Graphics > "Add desktop app" for file dialog
+  - Apps > Actions > "Learn how" to open up a browser 
 
 **Getting a Shell from Explorer**
 - Can simply run programs like `cmd`, `powershell`, or `powershell_ISE`
   - Good alternatives: `C:\Windows\System32\ftp.exe` with `!{command}`, `C:\Windows\System32\wbem\WMIC.exe` with `process call create "powershell.exe"`
+  - Can also just rename `cmd.exe` or `ftp.exe` to `msedge.exe` and then type `msedge` in the browser bar
 - Can right click and "open" the file
+  - This will launch files like exes, bats, etc. so any malicious file will do
 - Can drop another file, like a `.txt`, onto the `cmd` binary
-- Can hyperlink to it via a file/web browser (`file:///C:/Windows/System32/cmd.exe` or `file:///C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe`)
+- Can hyperlink to dangerous files (`file:///C:/Windows/System32/cmd.exe` or `file:///C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe`)
 - Can place direct commands in `.bat` or `.cmd` files, such as something as simple as `powershell`
   - For a full list of executable file types: [https://aerorock.co.nz/list-of-executable-file-extensions-windows/](https://aerorock.co.nz/list-of-executable-file-extensions-windows/)
 - Can run Visual Basic inside a `.vbs` file with the following `set objApp = CreateObject("WScript.Shell"): objApp.Run "powershell"`
-- Can simply right-click and say "open in terminal", which can surprisingly work sometimes
+- Can simply right-click and say "open in terminal"
+  - This can actually work in the file preview section when opening a file
+- Using a USB:
+  - You can plug a USB in with `cmd.exe` renamed as something like `msedge.exe` 
+  - Then, after it mounts, type in `D:\msedge.exe` and it should directly open
 
 **Bypassing Path Restrictions**
 - Sometimes, paths like `C:\Windows\` will be restricted, but we can use `%WINDIR%` or `shell:MyComputerFolder` to bypass this
@@ -65,6 +90,12 @@ Kiosk breakout badusb script: [https://github.com/KhaelK138/badusb-windows-kiosk
   - RGB pixels in order: `10 0 0`, `13 10 13`, `100 109 99`, `120 101 46`, `0 0 101`, `0 0 0`
 - Then, save as a 24-bit Bitmap and rename to a `.bat` file
 - Finally, open the batch file
+
+**Touchscreen Kiosks**
+- Just sorta swipe your hand all over it
+- Swipe around with 3/4/5 fingers
+- Hold down all four corners at once
+- Getting a keyboard if only touchscreen: Settings > Accessibility > Keyboard (scroll down) > On-screen keyboard
 
 **MS Office Macros**
 - We can often get a powershell Window by creating a `docx` file, opening it, and running a macro

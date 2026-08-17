@@ -141,8 +141,13 @@ C:\Program Files\Windows PowerShell\*
 - Will check for misconfigured ACLs
 
 **Seatbelt**
-- https://github.com/GhostPack/Seatbelt
+- [https://github.com/GhostPack/Seatbelt](https://github.com/GhostPack/Seatbelt)
 - Full enum: `.\Seatbelt.exe -group=all`
+
+**Script Sentry**
+- Searches for misconfigured/dangerous logon scripts
+- [https://github.com/techspence/ScriptSentry](https://github.com/techspence/ScriptSentry)
+
 
 **Sherlock**
 - Check for missing patches on outdated versions of Windows
