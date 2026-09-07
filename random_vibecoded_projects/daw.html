@@ -287,11 +287,6 @@
             { name: "SAW LEAD", type: "super", color: "#00d2d3", muted: false, params: { vol: 0.5, cutoff: 4000, res: 2, detune: 15, reverb: 0.4 }, notes: [] }
         ];
 
-        // --- INITIAL PATTERN ---
-        [0,4,8,12,16,20,24,28].forEach(s => channels[0].notes.push({step:s, pitch:36, dur:1}));
-        [4,12,20,28].forEach(s => channels[1].notes.push({step:s, pitch:36, dur:1}));
-        channels[4].notes = [{step:0, pitch:36, dur:4}, {step:4, pitch:36, dur:4}, {step:8, pitch:36, dur:2}, {step:10, pitch:36, dur:2}, {step:12, pitch:41, dur:4}];
-        channels[5].notes = [{step:0, pitch:60, dur:16}, {step:0, pitch:63, dur:16}, {step:0, pitch:67, dur:16}, {step:16, pitch:65, dur:16},{step:16, pitch:68, dur:16},{step:16, pitch:72, dur:16}];
 
         // --- AUDIO ENGINE ---
         function initAudio() {
