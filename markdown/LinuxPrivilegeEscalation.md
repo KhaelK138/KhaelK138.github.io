@@ -265,3 +265,22 @@ int main(void)
   - Application config files 
   - Log files (like apache)
   - All users' home directories for interesting files/bash history
+
+## Container Escapes
+
+- It's best to know what makes a good container to know how to break it
+  - Rootless execution, user namespaces, default seccomp, a strict capability set, no host namespace sharing, and strong SELinux or AppArmor enforcement 
+  - On the flipside, a container started with `--privileged`, host PID/network sharing, the Docker socket mounted inside it, or a writable bind mount of `/` is basically asking to be escaped
+
+**Thinks to check for**
+- `/proc/sys/kernel/modprobe`: if we can control this path, we can plant a payload, change the modprobe symlink, and trigger a kernel module load
+  - Check with `` ls -l `cat /proc/sys/kernel/modprobe` ``
+- Containers can be given `CAP_SYS_MODULE` via `--cap-add=SYS_MODULE`, allowing the ability to load arbitrary kernel modules
+  - `capsh --print | grep cap_sys_module` or `cat /proc/self/status | grep CapEff` if no `capsh`
+    - We can then decode the results of `/proc/self/status` with `capsh --decode=0000003fffffffff`
+
+**Tooling**
+- [CDK](https://github.com/cdk-team/CDK/wiki)
+
+**Resources**
+- [HackTricks Docker Breakout](https://hacktricks.wiki/en/linux-hardening/privilege-escalation/container-security/index.html)
