@@ -68,3 +68,8 @@ name = "";   // 1000-char payload as JS string literal
 location = unescape(location.search.slice(3)); // Get the redirect location 
 </script>
 ```
+
+**WAF Bypasses**
+- Good resource on twitter: [https://x.com/XssPayloads/](https://x.com/XssPayloads/)
+- HTML parsing is a good way of getting around WAFs, for example:
+  - `%26%2302java%26%23115cript:alert(document.domain)` is a pretty neat payload I found recently, where you can include invisible characters in to throw off any detection
