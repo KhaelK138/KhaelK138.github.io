@@ -140,3 +140,14 @@
   - Management 101, decent start, more like training course
 - Fierce Conversations
   - The summary might do here
+
+## Misc
+
+**Nathan Advice**
+- It's alright to take money, don't be scared of it/bootstrap
+- Only founders can pull off an S curve
+
+**Go To Market while fighting against ludicrous funding**
+- Saturate Existing Install Base
+- Every proposal should go out for new and existing customers
+  - For existing customers, do market research for your own product and present that work to them

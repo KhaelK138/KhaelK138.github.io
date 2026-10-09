@@ -185,7 +185,22 @@ Enter-PSSession {PSSession_ID_returned}
 	  - This would require a `cifs/` service ticket, as dumping secrets is done through SMB
 
 **ACL Abuse**
-- Check out [OUned](https://github.com/synacktiv/OUned) for a pretty neat enumeration tool
+- [OUned](https://github.com/synacktiv/OUned) for a tool that can abuse the ability to modify `gPLink` of a target OU 
+  - With OU control, we can push a script to every object inside this OU
+
+**GPO Abuse**
+- GPOs control a TON of stuff within AD
+  - Security settings (password policies, firewall rules, user rights), software deployment, startup scripts, scheduled tasks, registry settings, file system/share permissions, group membership, share permissions
+  - Mechanically, they are just objects stored in the SYSVOL share (policy templates as `.inf`, `.xml`, or `.ini` files) on a domain controller, with every linked machine/user pulling them periodically (such as every 90 minutes) 
+  - Thus, write permissions over them can be pretty powerful
+- Bloodhound will automatically enumerate all GPOs and show what users have inbound control
+- If we find abusable GPOs, we can then use [pyGPOAbuse](https://github.com/Hackndo/pyGPOAbuse) to actually create the scheduled task
+  - `python3 pygpoabuse.py {domain}/{user}:{pass} -gpo-id {gpo_uuid} -taskname {anything_here} -dc-ip {dc} -command '{command}' -filter-enabled -target-dns-name {fqdn}`
+    - This will literally modify the existing file on the SMB share on the DC
+    - `-target-dns-name` can be used to only affect one target computer
+- If we want to manually see what each GPO controls, [gpoParser](https://github.com/synacktiv/gpoparser) can be used to enumerate these GPOs externally
+  - `gpoParser remote -u {user} -p {password} -d {domain} -s {server_IP}`
+  - We can then view them with `gpoParser display`
 
 ## Delegation
 - Resource-based Constrained Delegation (RBCD) is basically allowing one entity to perform some action on behalf of another user
@@ -230,6 +245,7 @@ Enter-PSSession {PSSession_ID_returned}
   - Will be created/used by different processes, such as Chromium browsers, SCCM, Task Scheduler
 - We'll find the master key in `~\AppData\Roaming\Microsoft\Protect\{user_SID}\`, which we can decrypt using impacket:
   - `dpapi.py masterkey -file {masterkey_file} -sid {user_SID} -password '{user_password}'`
+  - Without the user's password, if we have DA, we can also decrypt with `dpapi.py backupkeys -t '{domain}/{user}:{pass}@{DC_IP}' --export`
 - We can then use the masterkey to decrypt credentials, which are commonly found in `~\Appdata\(Roaming/Local)\Microsoft\Credentials\` again using impacket:
   - `dpapi.py credential -file {credential_file} -key '0x{master_key}'`
 - NetExec can also perform this process automated with `nxc smb --dpapi cookies`

