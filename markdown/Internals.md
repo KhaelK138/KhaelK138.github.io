@@ -70,7 +70,7 @@ pagetitle: Internal Assessments
 
 ## Misc
 
-## Finding subdomains on internal webapps
+**Finding subdomains on internal webapps**
 - Let's say we have an internal server, like `test.local`
 - If we want to find subdomains, `ffuf` can serve us nicely
 - Place the IP and `test.local` in `/etc/hosts`, and then run `gobuster vhost -u http://test.local -w /usr/share/wordlists/seclists/Discovery/DNS/bitquark-subdomains-top100000.txt -t 200 --append-domain > vhost` and then grep `vhost` for `"Status: 200"` or `grep -v {data_to_exclude}`
