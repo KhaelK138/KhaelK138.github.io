@@ -50,7 +50,7 @@ Most internals (at least the ones I've been on) use Active Directory, so refer t
 
 ## After Credentials Checklist
 
-- [ ] Run [bloodhound-ce-python](https://github.com/dirkjanm/bloodhound.py) to get a good understanding of the domain and look for the classics
+- [ ] Run [bloodhound-ce-python](https://github.com/dirkjanm/bloodhound.py) and import into [BloodHound](https://github.com/specterops/bloodhound) to get a good understanding of the domain and look for the classics
 - [ ] Run [Sulla](https://github.com/praetorian-inc/Sulla) to scan for secrets in all SMB shares
 - [ ] Run [RelayKing-Depth](https://github.com/depthsecurity/RelayKing-Depth) to scan for general AD misconfigurations and coercion/relay opportunities
   - This will check the domain controllers for missing LDAPS security, which if found, check for NTLMv1, dropthemic, and WebDAV servers
