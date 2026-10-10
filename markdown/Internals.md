@@ -4,7 +4,8 @@ pagetitle: Internal Assessments
 ---
 
 ## Preword
-- Most internals (at least the ones I've been on) use Active Directory, so refer to those enumeration/exploitation notes for in-depth details
+
+Most internals (at least the ones I've been on) use Active Directory, so refer to those enumeration/exploitation notes for in-depth details on any specific attack path
 
 ## Before Credentials Checklist
 
