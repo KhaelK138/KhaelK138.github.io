@@ -14,7 +14,8 @@ Most internals (at least the ones I've been on) use Active Directory, so refer t
   - [ ] `dig @{DNS_IP} SRV _ldap._tcp.dc._msdcs.{guessed_domain_name}` can show us there the DC SRV records are
     - This might return `NXDOMAIN` but show what the actual domain is, which we can rerun the query against
 - [ ] Check domain controller for service issues and common exploits/misconfigs (netexec modules: `ZeroLogon`, `badsuccessor`, `obsolete`, `gpp_password`)
-- [ ] Run full nmap scans against the known host subranges
+- [ ] Run full nmap scans against the known IP subranges
+  - If we start with creds, many of these subranges can be found by just querying LDAP for all domain computers and seeing where they lie
   - [ ] Small UDP scans as well, especially for services like `snmp`, `ike`, and `ipmi` 
   - [ ] Run [gowitness](https://github.com/sensepost/gowitness) against all discovered ports
     - [ ] Run an AI-enabled hunt against all discovered hosts, as AI can very quickly triage for CVEs and default passwords
