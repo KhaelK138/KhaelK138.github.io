@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
+  <!-- Top-level Pages -->
+  <url><loc>https://khaelkugler.com/</loc></url>
+  <url><loc>https://khaelkugler.com/notes.html</loc></url>
+  <url><loc>https://khaelkugler.com/cves.html</loc></url>
+  <url><loc>https://khaelkugler.com/vibecoded_projects.html</loc></url>
+
   <!-- Blogs -->
   <url><loc>https://khaelkugler.com/blogs/meccha_chameleon.html</loc></url>
   <url><loc>https://khaelkugler.com/blogs/approach_app.html</loc></url>
