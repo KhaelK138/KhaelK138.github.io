@@ -146,6 +146,8 @@
 **Nathan Advice**
 - It's alright to take money, don't be scared of it/bootstrap
 - Only founders can pull off an S curve
+- If Sales is only focused on acquiring new customers, existing will churn
+- 
 
 **Go To Market while fighting against ludicrous funding**
 - Saturate Existing Install Base

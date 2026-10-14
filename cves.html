@@ -84,6 +84,13 @@
     .risk-medium { background: #fff3cd; color: #856404; }
     .risk-low { background: #d4edda; color: #155724; }
     .risk-info { background: #e2e8f0; color: #4a5568; }
+    code {
+      font-size: 15px;
+      border: 1px solid #e8e8e8;
+      border-radius: 3px;
+      background-color: #eef;
+      padding: 1px 5px;
+    }
   </style>
 </head>
 <body>
@@ -134,6 +141,16 @@
     </div>
   </div>
 
+  <div class="cve-entry" data-risk="7.7" data-date="2026-10-14">
+    <div class="cve-header">
+      <span class="cve-id">CVE-2026-14765 / CVSS 7.7</span>
+      <span class="cve-date">Oct 2026</span>
+    </div>
+    <div class="cve-title">Unreal Engine Blueprint Command Execution via Unrestricted URL Scheme in LaunchURL</div>
+    <div class="cve-description">
+      <a href="https://www.unrealengine.com">Unreal Engine</a> is a game engine developed by Epic Games. Through version 5.8.0, the <code>LaunchURL</code> Blueprint node ships with an empty URL scheme filter, allowing all schemes by default. On Windows, a <code>file:///</code> scheme calls <code>ShellExecuteW</code> with the <code>open</code> verb on the path provided, causing the referenced file to be executed. Thus, games that load user-generated Blueprint content are susceptible to command execution via a malicious local file or a remote file on a WebDAV share.
+    </div>
+  </div>
 </div>
 
 <script>
