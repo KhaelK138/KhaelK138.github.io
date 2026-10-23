@@ -149,3 +149,13 @@ pagetitle: Port Redirection and SSH Tunneling
 		- To delete the rule, `netsh advfirewall firewall delete rule "{rule_name}"`
 - To delete the port forward, run `netsh interface portproxy del v4tov listenport={open_port} listenaddress={kali_IP}`
 - Can verify what is running with `netstat -anp TCP` or `netsh interface portproxy show all`
+
+## Cloudflare Tunnels
+
+- If a quick solution is needed, cloudflare tunnels can be perfect
+- Permanent ones can be set up by getting a domain within cloudflare for free, but if you need one on the fly:
+  - Install `cloudflared` (`wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64` and chmod it)
+  - Create a tunnel: `cloudflared tunnel --url ssh://localhost:22` for SSH
+    - This will print out something like `https://some-random-words.trycloudflare.com`, which is the tunnel URL
+  - Use tunnel with `ssh -o ProxyCommand="cloudflared access ssh --hostname {random_words}.trycloudflare.com" {user}@{random_words}.trycloudflare.com`
+  - Tunnel will live as long as the process is running
