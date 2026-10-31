@@ -22,6 +22,7 @@ Most internals (at least the ones I've been on) use Active Directory, so refer t
       - If desired, this can include tools like [LoginHunter](https://github.com/InfosecMatter/default-http-login-hunter) and [Ingram](https://github.com/jorhelp/Ingram)
       - These can often yield LDAP credentials by changing the server they authenticate to
   - [ ] Run a separate AI-enabled hunt against all non-HTTP services (examples described below)
+- [ ] After running nmap scans, check DCs for anonymous LDAP bind and all servers for anonymous SMB access
 - [ ] Run [Responder](https://github.com/lgandx/Responder) to poison DNS traffic and relay creds to a server without SMB/LDAP protections
 - [ ] Run [GetNPUsers](https://github.com/mandiant/gopacket/tree/main/tools/GetNPUsers) to AS-REP Roast users
 - [ ] Check for pre-created computer accounts (assigned as pre-Windows 2000 computer) using a tool like [pre2k](https://github.com/garrettfoster13/pre2k)
