@@ -48,6 +48,7 @@ pagetitle: Phishing
   - The email will come from adobesign.com, making it appear more legit and bypassing filters
 - The site serving the document can ask the users to download the "official" AdobeSign agent
   - Alternatively, if 2FA controls aren't in place, this could also be a good way to get credentials (e.g. "Please log in to sign the document")
+- Can also use Docusign/Smartsheet
 
 **Zendesk**
 - You can get a domain on Zendesk.com to send emails from
@@ -85,6 +86,9 @@ Thank you for your continued support in upholding this year's mission.
 Sincerely,
 ```
 - Then, force them to sign-in via Okta or something to do the acknowledgement
+- This could also look like "Confirm you still require access to Github" with [device code phishing](https://www.praetorian.com/blog/introducing-github-device-code-phishing/)
+  - The only non-standard domain is the one serving the code, which is our MITM. It redirects to the real github to auth, making it a pretty quick click & done
+  - After scraping emails, will require tying emails to github accounts which is externally possible
 
 ## Spoofing any site in a link
 
