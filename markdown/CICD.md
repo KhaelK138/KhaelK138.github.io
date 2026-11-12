@@ -19,7 +19,7 @@ Most of the below relates to GitHub, but the principles apply to pretty much all
     - Alternatively, a matrix of jobs will all execute in parallel
 
 **Automated Actions abuse**
-- Use [Gato](https://github.com/praetorian-inc/gato) for enumerating/attacking Github actions
+- Use [GatoX](https://github.com/adnaneKhan/gato-x) for enumerating/attacking Github actions
 - Use [Glato](https://github.com/praetorian-inc/glato) for enumerating/attacking GitLab actions
 
 ## Github Enumeration
@@ -37,11 +37,12 @@ Most of the below relates to GitHub, but the principles apply to pretty much all
   - Report with `titus report --datastore {db_file}`
 - [NoseyParker](https://github.com/praetorian-inc/noseyparker.git) can also be used as a backup here
 
-**Identifying Self-Hosted Runners**
-- 
-
-
 ## Github Exploitation
+
+**Enumerating Token Capabilities**
+- [GatoX](https://github.com/adnaneKhan/gato-x) can check what tokens have access to, including what repos we have admin/maintain/push rights to
+  - Once we find these repos, any secrets attached can be exfiltrated by accessing the runner
+  - Can also check if the runner is ephemeral or not, and if not, it should be shelled and checked out
 
 **Compromising Self-Hosted Runners**
 

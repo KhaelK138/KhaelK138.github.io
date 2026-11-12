@@ -43,17 +43,45 @@ pagetitle: Phishing
 - To test Latin domain candidates, use my [Verisign Latin IDN Domain Checker](https://khaelkugler.com/random_vibecoded_projects/idn_checker.html)
   - This will also suggest lookalike phishing names for any domain pasted, organized by a pretty subjective score
 
-**Using Trusted Services with Domains**
+**Using Trusted Services For Email Delivery**
 - Something like Adobe Sign can be used alongside a domain to email to get users to "sign" a document
   - The email will come from adobesign.com, making it appear more legit and bypassing filters
 - The site serving the document can ask the users to download the "official" AdobeSign agent
   - Alternatively, if 2FA controls aren't in place, this could also be a good way to get credentials (e.g. "Please log in to sign the document")
 - Can also use Docusign/Smartsheet
-
-**Zendesk**
 - You can get a domain on Zendesk.com to send emails from
-- Zendesk also has IT stuff, so you can make a ticket and assign it to a user
+  - Zendesk has IT stuff, so you can make a ticket and assign it to a user
   - This will send them an email with the ticket information, which we can use to have them click a link
+
+**Using Whitelisted Services for Hosting the AITM**
+- The domain receiving the click can be SAAS-based, which then pulls in the AITM content
+  - These are services like Github pages (especially for device code phishing) or Google's `run.app`
+  - The service used to deliver the payload shouldn't actually be the one hosting the payload (and most of the time it can't)
+    - Github will automatically ban if it detect phishing content in a page, so most of the time using an iframe is the best method
+- Then, domain fronting should then be used to mask the actual AITM IP (which is hosted using any VPS desired)
+  - This is the one actually listening for creds/MFA codes, hosting the payload, etc.
+- Azure Front Door is a good example of this, where you can just add `<iframe src="https://{stuff}.z01.azurefd.net/{subdirectory}"></iframe>` inside of the static, boring github page
+  - These domains are hard to block because so many valid services use them
+  - AWS also has similar examples, like `cloudfront.net`
+  - `{stuff}` can be anything, so if desired you can choose to make it like `assets-{random_chars}` so it fits well in html:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Authorize</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #f6f8fa; }
+    iframe { border: 0; width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <iframe src="https://{AITM-here}.z01.azurefd.net/static/app" title="Authorize"></iframe>
+</body>
+</html>
+```
 
 ## Getting users to click a link
 
@@ -87,8 +115,9 @@ Sincerely,
 ```
 - Then, force them to sign-in via Okta or something to do the acknowledgement
 - This could also look like "Confirm you still require access to Github" with [device code phishing](https://www.praetorian.com/blog/introducing-github-device-code-phishing/)
-  - The only non-standard domain is the one serving the code, which is our MITM. It redirects to the real github to auth, making it a pretty quick click & done
-  - After scraping emails, will require tying emails to github accounts which is externally possible
+  - The only non-standard domain is the one serving the code, which is our AITM. It redirects to the real github to auth, making it a pretty quick click & done
+    - [GitPhish](https://github.com/praetorian-inc/GitPhish) is a tool published to do exactly this, except using it in its current state will get account banned lol, the deployment needs to be tweaked
+  - After scraping emails, will require tying emails to github accounts which is externally possible so we know what targets to send to
 
 ## Spoofing any site in a link
 
