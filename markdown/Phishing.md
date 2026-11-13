@@ -3,19 +3,69 @@ layout: blank
 pagetitle: Phishing
 ---
 
-## Extensions
+## Getting users to click a link
 
-- Getting a user to download a malicious browser extension can be an instant win
-- They can have immense privileges, and can have a lot of pretext for installation
+**Using Trusted Services For Email Delivery**
+- Using trusted SAAS to deliver emails can often have much higher success rates
+  - Start by querying the targets DNS records to see if any existing SAAS usage can be leveraged for 
+- Something like Adobe Sign can be used alongside a domain to email to get users to "sign" a document
+  - The email will come from adobesign.com, making it appear more legit and bypassing filters
+- The site serving the document can ask the users to download the "official" AdobeSign agent
+  - Alternatively, if 2FA controls aren't in place, this could also be a good way to get credentials (e.g. "Please log in to sign the document")
+- Can also use Docusign/Smartsheet
+- You can get a domain on Zendesk.com to send emails from
+  - Zendesk has IT stuff, so you can make a ticket and assign it to a user
+  - This will send them an email with the ticket information, which we can use to have them click a link
 
-**Getting Someone to Install the Extension**
-- Usually, it seems online meeting software is the go-to here
-- Publish a meeting software that exfiltrates all browser cookies/tokens, and get them to install it
-  
-**Conversation Pretext**
-- Can be a bit tricky sometimes to get a conversation started with someone from support, for example, but you can reach out and say things like:
-  - "Hi! I'm a student interested in working here..."
-  - "Hi! My account isn't working, I don't know why. Can we meet..."
+**Bypassing Spam Filters**
+- Use [Phishious](https://github.com/CanIPhish/Phishious) to test an email to see if it would bounce or be caught in spam
+- Setting up DMARC/DKIM/SPF for evilginx: [https://fortbridge.co.uk/research/add-spf-dmarc-dkim-mx-records-evilginx/](https://fortbridge.co.uk/research/add-spf-dmarc-dkim-mx-records-evilginx/)
+- If we have more research time, and we know the victim's inbox type:
+  - Use [espoofer](https://github.com/chenjj/espoofer) to figure out differences between the RFC and the way the email headers are parsed
+  - Discussed in [this BH talk](https://i.blackhat.com/USA-20/Thursday/us-20-Chen-You-Have-No-Idea-Who-Sent-That-Email-18-Attacks-On-Email-Sender-Authentication.pdf)
+  - Also covered in depth by [this research paper](https://www.usenix.org/system/files/sec21-shen-kaiwen.pdf)
+
+**Spoofing a domain**
+- Depending on DMARC/DKIM, we can spoof a domain using a tool like [https://emkei.cz/](https://emkei.cz/) or mailgun via a domain we own
+
+**Call to Actions**
+- Using a call to action is a great method of getting a victim to click a link
+- This could take the form of an attached document, a big "Acknowledge" button, or something about updating personal information (like Tax info)
+  - It can be especially clever to use publicly available resources, such as an available PDF document
+  - Modifying a link at the bottom and adding a call to action at the bottom has a great success rate, for example:
+
+```md
+Dear Team,
+
+Due to operational changes within {company}, we are updating our language to the {document} for {year}. In compliance with regulations on amended documents, we require your acknowledgement of receipt of these changes. **To complete your acknowledgement, please navigate to the last page of the attached PDF and click the link provided in the amended article.**
+
+Thank you for your continued support in upholding this year's mission.
+
+Sincerely,
+```
+- This could also look like "Confirm you still require access to Github" with [device code phishing](https://www.praetorian.com/blog/introducing-github-device-code-phishing/):
+
+```md
+As part of {company}'s annual review of software licensing and access management, employees need to verify that they require an active GitHub license. 
+
+Please confirm your continued need for GitHub access via the form below:
+
+{AdobeSign/SmartSheet/Docusign link}
+```
+
+- And then on the page: 
+```md
+GitHub organization access is provisioned through Coinbase licensed seats.
+
+Please check the box confirming you have a GitHub account and will continue to need access to the Coinbase GitHub organization, then re-authenticate to the organization on the next screen.
+
+This confirmation is required so we can retain licenses only for employees who actively need org access and avoid paying for unused seats. If you do not complete both steps, your GitHub organization access may be revoked.
+
+[ ] Yes, I do require access to the Coinbase GitHub organization and require an Enterprise License.
+
+{link to AITM site}
+```
+- Then, force them to sign-in with anything desired
 
 ## Phishing Pages
 
@@ -42,16 +92,6 @@ pagetitle: Phishing
   - [List of Latin Alphabets](https://en.wikipedia.org/wiki/List_of_Latin-script_alphabets)
 - To test Latin domain candidates, use my [Verisign Latin IDN Domain Checker](https://khaelkugler.com/random_vibecoded_projects/idn_checker.html)
   - This will also suggest lookalike phishing names for any domain pasted, organized by a pretty subjective score
-
-**Using Trusted Services For Email Delivery**
-- Something like Adobe Sign can be used alongside a domain to email to get users to "sign" a document
-  - The email will come from adobesign.com, making it appear more legit and bypassing filters
-- The site serving the document can ask the users to download the "official" AdobeSign agent
-  - Alternatively, if 2FA controls aren't in place, this could also be a good way to get credentials (e.g. "Please log in to sign the document")
-- Can also use Docusign/Smartsheet
-- You can get a domain on Zendesk.com to send emails from
-  - Zendesk has IT stuff, so you can make a ticket and assign it to a user
-  - This will send them an email with the ticket information, which we can use to have them click a link
 
 **Using Whitelisted Services for Hosting the AITM**
 - The domain receiving the click can be SAAS-based, which then pulls in the AITM content
@@ -83,41 +123,27 @@ pagetitle: Phishing
 </html>
 ```
 
-## Getting users to click a link
+## Getting Creds
 
-- Registering a domain and using mailgun seems to be a good method of controlling contents of an email
-
-**Bypassing Spam Filters**
-- Use [Phishious](https://github.com/CanIPhish/Phishious) to test an email to see if it would bounce or be caught in spam
-- Setting up DMARC/DKIM/SPF for evilginx: [https://fortbridge.co.uk/research/add-spf-dmarc-dkim-mx-records-evilginx/](https://fortbridge.co.uk/research/add-spf-dmarc-dkim-mx-records-evilginx/)
-- If we have more research time, and we know the victim's inbox type:
-  - Use [espoofer](https://github.com/chenjj/espoofer) to figure out differences between the RFC and the way the email headers are parsed
-  - Discussed in [this BH talk](https://i.blackhat.com/USA-20/Thursday/us-20-Chen-You-Have-No-Idea-Who-Sent-That-Email-18-Attacks-On-Email-Sender-Authentication.pdf)
-  - Also covered in depth by [this research paper](https://www.usenix.org/system/files/sec21-shen-kaiwen.pdf)
-
-**Spoofing a domain**
-- Depending on DMARC/DKIM, we can spoof a domain using a tool like [https://emkei.cz/](https://emkei.cz/)
-
-**Call to Actions**
-- Using a call to action is a great method of getting a victim to click a link
-- This could take the form of an attached document, a big "Acknowledge" button, or something about updating personal information (like Tax info)
-  - It can be especially clever to use publicly available resources, such as an available PDF document
-  - Modifying a link at the bottom and adding a call to action at the bottom has a great success rate, for example:
-
-```md
-Dear Team,
-
-Due to operational changes within {company}, we are updating our language to the {document} for {year}. In compliance with regulations on amended documents, we require your acknowledgement of receipt of these changes. **To complete your acknowledgement, please navigate to the last page of the attached PDF and click the link provided in the amended article.**
-
-Thank you for your continued support in upholding this year's mission.
-
-Sincerely,
-```
-- Then, force them to sign-in via Okta or something to do the acknowledgement
-- This could also look like "Confirm you still require access to Github" with [device code phishing](https://www.praetorian.com/blog/introducing-github-device-code-phishing/)
+**Github Device Code Phishing**
+- Device code phishing allows you to essentially use a recovery code to instantly gain access to a user's github account, provided they authorize it with 1-click
   - The only non-standard domain is the one serving the code, which is our AITM. It redirects to the real github to auth, making it a pretty quick click & done
-    - [GitPhish](https://github.com/praetorian-inc/GitPhish) is a tool published to do exactly this, except using it in its current state will get account banned lol, the deployment needs to be tweaked
+    - [GitPhish](https://github.com/praetorian-inc/GitPhish) is a tool published to do exactly this, except using it in its current state will get account banned lol due to serving the actual phishing content ON the github site
   - After scraping emails, will require tying emails to github accounts which is externally possible so we know what targets to send to
+
+## Browser Extensions
+
+- Getting a user to download a malicious browser extension can be an instant win
+- They can have immense privileges, and can have a lot of pretext for installation
+
+**Getting Someone to Install the Extension**
+- Usually, it seems online meeting software is the go-to here
+- Publish a meeting software that exfiltrates all browser cookies/tokens, and get them to install it
+  
+**Conversation Pretext**
+- Can be a bit tricky sometimes to get a conversation started with someone from support, for example, but you can reach out and say things like:
+  - "Hi! I'm a student interested in working here..."
+  - "Hi! My account isn't working, I don't know why. Can we meet..."
 
 ## Spoofing any site in a link
 
