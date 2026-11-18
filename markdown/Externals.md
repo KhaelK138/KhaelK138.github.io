@@ -195,3 +195,8 @@ ssh_password
 net user
 ```
 
+## Misc
+
+**Getting Non-attributable IP Addresses**
+- If a quick IP address is needed, you can always just spin up a GitHub/GitLab ephemeral runner, shell it, and use its outbound internet. 
+- This also applies to other services, like Airtable

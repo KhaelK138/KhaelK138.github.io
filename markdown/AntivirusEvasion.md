@@ -23,6 +23,16 @@ pagetitle: Antivirus Evasion
 
 ## Bypassing Detection
 
+**DLL Sideloading**
+- Just find a legit binary that looks for a dll and replace it
+- General process:
+  - Install Spartacus, https://github.com/Accenture/Spartacus#installation
+  - Install voidtools https://www.voidtools.com/
+  - Go to a bunch of hardware vendors and download binaries/installers from them. Find binaries installed by them in Program Files (voidtools has very fast search indexing and easy copy paste). 
+  - Run Spartacus (use the CommandLineGenerator.html to generate the correct Command Line) 
+  - Double click on all of the applications previously installed
+  - Use the generated Visual Studio solution DLL main C++ file and create a new repository with all the correct settings (e.g. no runtime CRT)
+
 **Powershell scripts**
 - Defender seems to suck at blocking powershell scripts it hasn't seen before
 - [Invoke-Obfuscation](https://github.com/danielbohannon/Invoke-Obfuscation) seems to be a GODLIKE tool for performing any obfuscation desired
